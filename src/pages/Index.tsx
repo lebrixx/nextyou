@@ -27,25 +27,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <header className="px-6 pt-12 pb-10">
+      <header className="px-6 pt-8 pb-6">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-6xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+          <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight leading-tight">
             Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
           </h1>
-          <p className="text-muted-foreground text-lg font-medium">Ta constance forge ton succès.</p>
+          <p className="text-muted-foreground text-base font-medium">Ta constance forge ton succès.</p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 space-y-10 max-w-2xl mx-auto">
+      <main className="px-6 space-y-8 max-w-2xl mx-auto">
         {/* Progress Ring */}
-        <section className="flex flex-col items-center py-16 glass rounded-[32px] shadow-elevation border border-white/5">
-          <ProgressRing progress={progressPercentage} size={220} strokeWidth={14} />
-          <div className="mt-10 text-center space-y-2">
-            <p className="text-muted-foreground font-semibold text-base tracking-wide uppercase text-xs">Performance Hebdomadaire</p>
-            <p className="text-foreground text-xl font-bold">+3% de constance</p>
+        <section className="flex flex-col items-center py-8 glass rounded-[24px] shadow-elevation border border-white/5">
+          <ProgressRing progress={progressPercentage} size={160} strokeWidth={12} />
+          <div className="mt-6 text-center space-y-1">
+            <p className="text-muted-foreground font-semibold text-[10px] tracking-wide uppercase">Performance Hebdomadaire</p>
+            <p className="text-foreground text-base font-bold">+3% de constance</p>
           </div>
         </section>
 
