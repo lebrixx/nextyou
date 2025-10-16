@@ -29,25 +29,28 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="px-6 pt-10 pb-8">
-        <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight">
-          Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
-        </h1>
-        <p className="text-muted-foreground text-lg font-medium">Ta constance te construit. 💜</p>
+      <header className="px-6 pt-12 pb-10">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-6xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+            Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
+          </h1>
+          <p className="text-muted-foreground text-lg font-medium">Ta constance forge ton succès.</p>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 space-y-8 max-w-2xl mx-auto">
+      <main className="px-6 space-y-10 max-w-2xl mx-auto">
         {/* Progress Ring */}
-        <section className="flex flex-col items-center py-12 glass rounded-3xl shadow-elevation">
-          <ProgressRing progress={progressPercentage} />
-          <p className="text-center text-muted-foreground mt-8 max-w-xs font-medium text-base">
-            Tu tiens bon ! +3% de constance cette semaine.
-          </p>
+        <section className="flex flex-col items-center py-16 glass rounded-[32px] shadow-elevation border border-white/5">
+          <ProgressRing progress={progressPercentage} size={220} strokeWidth={14} />
+          <div className="mt-10 text-center space-y-2">
+            <p className="text-muted-foreground font-semibold text-base tracking-wide uppercase text-xs">Performance Hebdomadaire</p>
+            <p className="text-foreground text-xl font-bold">+3% de constance</p>
+          </div>
         </section>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-2 gap-4">
+        <section className="grid grid-cols-2 gap-5">
           <StatsCard
             icon={Target}
             label="Habitudes actives"
@@ -75,15 +78,17 @@ const Index = () => {
         </section>
 
         {/* Today's Habits */}
-        <section className="space-y-5">
+        <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-bold text-foreground tracking-tight">Aujourd'hui</h2>
+            <div>
+              <h2 className="text-3xl font-bold text-foreground tracking-tight mb-1">Aujourd'hui</h2>
+              <p className="text-muted-foreground text-sm">Tes habitudes du jour</p>
+            </div>
             <Button
-              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold"
-              size="sm"
+              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-bold h-11 px-5"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nouvelle habitude
+              <Plus className="w-5 h-5 mr-2" />
+              Ajouter
             </Button>
           </div>
           <div className="space-y-4">
@@ -94,9 +99,12 @@ const Index = () => {
         </section>
 
         {/* Motivational Quote */}
-        <section className="glass rounded-3xl p-8 text-center shadow-elevation border border-primary/20">
-          <p className="text-xl text-primary-glow font-semibold italic tracking-wide">
-            "Un jour de plus, une victoire de plus."
+        <section className="glass rounded-[32px] p-10 text-center shadow-elevation border border-primary/20 mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-6">
+            <Target className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent tracking-tight leading-relaxed">
+            Un jour de plus, une victoire de plus.
           </p>
         </section>
       </main>

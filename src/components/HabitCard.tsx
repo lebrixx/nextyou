@@ -13,20 +13,20 @@ interface HabitCardProps {
 
 const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardProps) => {
   return (
-    <div className="glass rounded-2xl p-6 hover:shadow-elevation transition-all duration-300 group hover:scale-[1.02]">
+    <div className="glass rounded-[24px] p-7 hover:shadow-elevation transition-all duration-300 group hover:scale-[1.01] border border-white/5">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-5 flex-1">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
-            <HabitIcon type={icon} className="w-7 h-7 text-primary-foreground" />
+        <div className="flex items-center gap-6 flex-1">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-300">
+            <HabitIcon type={icon} className="w-8 h-8 text-primary-foreground drop-shadow-lg" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-xl text-foreground group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors mb-2">
               {name}
             </h3>
-            <div className="flex items-center gap-2 mt-2">
-              <Flame className="w-4 h-4 text-primary drop-shadow-glow" />
-              <span className="text-sm text-muted-foreground font-medium">
-                {streak} jours consécutifs
+            <div className="flex items-center gap-3">
+              <Flame className="w-5 h-5 text-primary drop-shadow-glow" />
+              <span className="text-sm text-muted-foreground font-semibold">
+                {streak} jours de suite
               </span>
             </div>
           </div>
@@ -35,16 +35,16 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardPro
           onClick={() => onToggle(id)}
           variant="ghost"
           size="icon"
-          className={`w-14 h-14 rounded-full transition-all duration-300 ${
+          className={`w-16 h-16 rounded-2xl transition-all duration-300 ${
             completed
               ? "bg-primary hover:bg-primary-dark text-primary-foreground shadow-glow scale-105"
-              : "hover:bg-secondary/50 backdrop-blur-sm"
+              : "hover:bg-white/10 backdrop-blur-sm border border-white/10"
           }`}
         >
           {completed ? (
-            <CheckCircle2 className="w-7 h-7" />
+            <CheckCircle2 className="w-8 h-8" />
           ) : (
-            <Circle className="w-7 h-7" />
+            <Circle className="w-8 h-8" />
           )}
         </Button>
       </div>
