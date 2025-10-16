@@ -10,18 +10,7 @@ interface TimerData {
 }
 
 const Timer = () => {
-  const [timers, setTimers] = useState<TimerData[]>([
-    {
-      id: "1",
-      name: "Sans cigarette",
-      startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    },
-    {
-      id: "2",
-      name: "Vie saine",
-      startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    },
-  ]);
+  const [timers, setTimers] = useState<TimerData[]>([]);
 
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -44,71 +33,84 @@ const Timer = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="px-6 pt-8 pb-6 border-b border-border">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Chronomètres</h1>
-        <p className="text-muted-foreground">
-          Mesure le temps de tes accomplissements
+      <header className="px-6 pt-10 pb-8">
+        <h1 className="text-4xl font-bold text-foreground mb-3 tracking-tight">
+          Chrono<span className="bg-gradient-primary bg-clip-text text-transparent">mètres</span>
+        </h1>
+        <p className="text-muted-foreground text-base leading-relaxed mb-6">
+          Mesure le temps écoulé depuis le début d'une nouvelle version de toi-même, ou le temps passé sans une addiction.
         </p>
         <Button
-          className="w-full mt-4 bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-elevation"
+          className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-12"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Nouveau compteur
+          Créer un nouveau compteur
         </Button>
       </header>
 
       <main className="px-6 pt-6 space-y-6 max-w-2xl mx-auto">
-        {timers.map((timer) => {
+        {timers.length === 0 ? (
+          <div className="glass rounded-3xl p-12 text-center space-y-4">
+            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-4">
+              <Plus className="w-10 h-10 text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground">Aucun compteur pour le moment</h3>
+            <p className="text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Crée ton premier compteur pour suivre le temps passé depuis un changement important dans ta vie.
+            </p>
+          </div>
+        ) : (
+          timers.map((timer) => {
           const { days, hours, minutes, seconds } = formatDuration(timer.startDate);
 
-          return (
-            <div
-              key={timer.id}
-              className="bg-card border border-border rounded-3xl p-8 hover:shadow-elevation transition-all"
-            >
+            return (
+              <div
+                key={timer.id}
+                className="glass rounded-3xl p-8 hover:shadow-elevation transition-all duration-300"
+              >
               <h3 className="text-xl font-semibold text-foreground mb-6 text-center">
                 {timer.name}
               </h3>
 
               {/* Timer Display */}
-              <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-4 gap-3 mb-8">
                 <div className="flex flex-col items-center">
-                  <div className="bg-gradient-glow border border-primary/20 rounded-2xl p-4 w-full">
-                    <p className="text-4xl font-bold text-primary-glow text-center">
+                  <div className="glass-strong rounded-2xl p-5 w-full shadow-elevation">
+                    <p className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center drop-shadow-lg">
                       {days}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
+                  <p className="text-xs text-muted-foreground mt-3 font-semibold uppercase tracking-wider">
                     Jours
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="bg-gradient-glow border border-primary/20 rounded-2xl p-4 w-full">
-                    <p className="text-4xl font-bold text-primary-glow text-center">
+                  <div className="glass-strong rounded-2xl p-5 w-full shadow-elevation">
+                    <p className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center drop-shadow-lg">
                       {hours}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
+                  <p className="text-xs text-muted-foreground mt-3 font-semibold uppercase tracking-wider">
                     Heures
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="bg-gradient-glow border border-primary/20 rounded-2xl p-4 w-full">
-                    <p className="text-4xl font-bold text-primary-glow text-center">
+                  <div className="glass-strong rounded-2xl p-5 w-full shadow-elevation">
+                    <p className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center drop-shadow-lg">
                       {minutes}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
+                  <p className="text-xs text-muted-foreground mt-3 font-semibold uppercase tracking-wider">
                     Min
                   </p>
                 </div>
                 <div className="flex flex-col items-center">
-                  <div className="bg-gradient-glow border border-primary/20 rounded-2xl p-4 w-full">
-                    <p className="text-4xl font-bold text-primary-glow text-center">
+                  <div className="glass-strong rounded-2xl p-5 w-full shadow-elevation">
+                    <p className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center drop-shadow-lg">
                       {seconds}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-medium">
+                  <p className="text-xs text-muted-foreground mt-3 font-semibold uppercase tracking-wider">
                     Sec
                   </p>
                 </div>
@@ -130,9 +132,10 @@ const Timer = () => {
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Réinitialiser
               </Button>
-            </div>
-          );
-        })}
+              </div>
+            );
+          })
+        )}
       </main>
 
       <Navigation />

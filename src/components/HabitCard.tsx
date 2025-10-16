@@ -1,21 +1,24 @@
 import { CheckCircle2, Circle, Flame } from "lucide-react";
 import { Button } from "./ui/button";
+import HabitIcon, { HabitIconType } from "./HabitIcon";
 
 interface HabitCardProps {
   id: string;
   name: string;
-  emoji: string;
+  icon: HabitIconType;
   streak: number;
   completed: boolean;
   onToggle: (id: string) => void;
 }
 
-const HabitCard = ({ id, name, emoji, streak, completed, onToggle }: HabitCardProps) => {
+const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardProps) => {
   return (
     <div className="glass rounded-2xl p-6 hover:shadow-elevation transition-all duration-300 group hover:scale-[1.02]">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="text-5xl filter drop-shadow-lg">{emoji}</div>
+        <div className="flex items-center gap-5 flex-1">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform">
+            <HabitIcon type={icon} className="w-7 h-7 text-primary-foreground" />
+          </div>
           <div className="flex-1">
             <h3 className="font-semibold text-xl text-foreground group-hover:text-primary transition-colors">
               {name}

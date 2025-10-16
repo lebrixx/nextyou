@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 
 const Habits = () => {
   const [habits, setHabits] = useState([
-    { id: "1", name: "Sport matinal", emoji: "💪", streak: 7, completed: true },
-    { id: "2", name: "Lecture", emoji: "📚", streak: 12, completed: true },
-    { id: "3", name: "Méditation", emoji: "🧘", streak: 5, completed: false },
-    { id: "4", name: "Boire de l'eau", emoji: "💧", streak: 15, completed: true },
-    { id: "5", name: "Pas de cigarette", emoji: "🚭", streak: 30, completed: true },
+    { id: "1", name: "Sport matinal", icon: "sport" as const, streak: 7, completed: true },
+    { id: "2", name: "Lecture", icon: "lecture" as const, streak: 12, completed: true },
+    { id: "3", name: "Méditation", icon: "meditation" as const, streak: 5, completed: false },
+    { id: "4", name: "Boire de l'eau", icon: "hydratation" as const, streak: 15, completed: true },
+    { id: "5", name: "Sans cigarette", icon: "tabac" as const, streak: 30, completed: true },
   ]);
 
   const toggleHabit = (id: string) => {
@@ -24,24 +24,29 @@ const Habits = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="px-6 pt-8 pb-6 border-b border-border">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Mes Habitudes</h1>
+      <header className="px-6 pt-10 pb-8">
+        <h1 className="text-4xl font-bold text-foreground mb-3 tracking-tight">
+          Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Habitudes</span>
+        </h1>
+        <p className="text-muted-foreground text-base mb-6">
+          Gère et suis tes habitudes quotidiennes
+        </p>
         
         {/* Search & Filter */}
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Rechercher une habitude..."
-              className="pl-10 bg-card border-border"
+              className="pl-12 glass border-white/10 h-12 focus:border-primary/50 transition-colors"
             />
           </div>
-          <Button variant="outline" size="icon" className="shrink-0">
-            <Filter className="w-4 h-4" />
+          <Button variant="outline" size="icon" className="glass border-white/10 hover:border-primary/50 h-12 w-12">
+            <Filter className="w-5 h-5" />
           </Button>
         </div>
 
-        <Button className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-elevation">
+        <Button className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-12">
           <Plus className="w-5 h-5 mr-2" />
           Créer une nouvelle habitude
         </Button>

@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [habits, setHabits] = useState([
-    { id: "1", name: "Sport matinal", emoji: "💪", streak: 7, completed: true },
-    { id: "2", name: "Lecture", emoji: "📚", streak: 12, completed: true },
-    { id: "3", name: "Méditation", emoji: "🧘", streak: 5, completed: false },
+    { id: "1", name: "Sport matinal", icon: "sport" as const, streak: 7, completed: true },
+    { id: "2", name: "Lecture", icon: "lecture" as const, streak: 12, completed: true },
+    { id: "3", name: "Méditation", icon: "meditation" as const, streak: 5, completed: false },
   ]);
 
   const totalHabits = habits.length;
