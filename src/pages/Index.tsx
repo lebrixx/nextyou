@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
-import ProgressRing from "@/components/ProgressRing";
 import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 
@@ -94,7 +93,11 @@ const Index = () => {
   const totalHabits = habits.length;
   const completedToday = habits.filter((h) => h.completed).length;
   const progressPercentage = totalHabits > 0 ? (completedToday / totalHabits) * 100 : 0;
-  const averageStreak = habits.reduce((sum, h) => sum + h.streak, 0) / totalHabits;
+  const longestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+  const totalStreakDays = habits.reduce((sum, h) => sum + h.streak, 0);
+  
+  // Calculate days active this week (mock for now, will be real once we track history)
+  const daysActiveThisWeek = completedToday > 0 ? Math.min(7, totalStreakDays) : 0;
 
   const toggleHabit = (id: string) => {
     const updatedHabits = habits.map((habit) =>
@@ -128,37 +131,41 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
-        {/* Progress Ring */}
-        <section className="flex flex-col items-center py-4 glass rounded-xl shadow-elevation border border-white/5">
-          <ProgressRing progress={progressPercentage} size={100} strokeWidth={8} />
-          <div className="mt-2 text-center space-y-0.5">
-            <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase">Performance Aujourd&apos;hui</p>
-            <p className="text-foreground text-xs font-bold">
-              {completedToday}/{totalHabits} complétées
-            </p>
+        {/* Performance Quotidienne */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
+          <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
+            Performance Aujourd&apos;hui
+          </p>
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              {completedToday}
+            </span>
+            <span className="text-2xl font-semibold text-muted-foreground">/</span>
+            <span className="text-2xl font-semibold text-foreground">{totalHabits}</span>
           </div>
+          <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
         </section>
 
         {/* Stats Grid */}
         <section className="grid grid-cols-2 gap-3">
           <StatsCard
+            icon={Award}
+            label="Meilleur streak"
+            value={longestStreak > 0 ? `${longestStreak}j` : "0j"}
+          />
+          <StatsCard
+            icon={Calendar}
+            label="Jours actifs"
+            value={daysActiveThisWeek}
+          />
+          <StatsCard
             icon={Target}
-            label="Habitudes actives"
+            label="Total habitudes"
             value={totalHabits}
           />
           <StatsCard
-            icon={Flame}
-            label="Moyenne streak"
-            value={Math.round(averageStreak)}
-          />
-          <StatsCard
             icon={TrendingUp}
-            label="Complétées aujourd'hui"
-            value={completedToday}
-          />
-          <StatsCard
-            icon={Target}
-            label="Taux de succès"
+            label="Taux aujourd&apos;hui"
             value={`${Math.round(progressPercentage)}%`}
           />
         </section>
