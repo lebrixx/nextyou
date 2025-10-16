@@ -86,19 +86,25 @@ const Settings = () => {
             Apparence
           </h2>
           <div className="glass rounded-xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-0.5">Thème sombre</p>
-                <p className="text-xs text-muted-foreground">
-                  Mode actuel: Noir & Violet
-                </p>
-              </div>
-              <Switch defaultChecked disabled />
+            <div className="mb-3">
+              <p className="font-semibold text-foreground text-sm mb-2">Thème de couleur</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Choisis ton thème préféré
+              </p>
             </div>
             <div className="flex gap-2">
-              <div className="flex-1 h-10 rounded-lg bg-gradient-primary border-2 border-primary shadow-glow" />
-              <div className="flex-1 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 opacity-30" />
-              <div className="flex-1 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 opacity-30" />
+              <button 
+                onClick={() => toast({ title: "Thème violet", description: "Thème violet actif (par défaut)" })}
+                className="flex-1 h-16 rounded-lg bg-gradient-primary border-2 border-primary shadow-glow transition-all hover:scale-105"
+              />
+              <button 
+                onClick={() => toast({ title: "Thème bleu", description: "Fonctionnalité à venir" })}
+                className="flex-1 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 opacity-50 hover:opacity-70 transition-all"
+              />
+              <button 
+                onClick={() => toast({ title: "Thème vert", description: "Fonctionnalité à venir" })}
+                className="flex-1 h-16 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 opacity-50 hover:opacity-70 transition-all"
+              />
             </div>
           </div>
         </section>

@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { Plus, TrendingUp, Target, Flame } from "lucide-react";
+import { TrendingUp, Target, Flame } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import ProgressRing from "@/components/ProgressRing";
 import HabitCard from "@/components/HabitCard";
-import AddHabitDialog from "@/components/AddHabitDialog";
-import { Button } from "@/components/ui/button";
 import { HabitIconType } from "@/components/HabitIcon";
-import { toast } from "@/hooks/use-toast";
 
 interface Habit {
   id: string;
@@ -21,7 +18,6 @@ const Index = () => {
   const [habits, setHabits] = useState<Habit[]>([
     { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false },
   ]);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const totalHabits = habits.length;
   const completedToday = habits.filter((h) => h.completed).length;
@@ -34,21 +30,6 @@ const Index = () => {
         habit.id === id ? { ...habit, completed: !habit.completed } : habit
       )
     );
-  };
-
-  const addHabit = (name: string, icon: HabitIconType) => {
-    const newHabit = {
-      id: Date.now().toString(),
-      name,
-      icon,
-      streak: 0,
-      completed: false,
-    };
-    setHabits((prev) => [...prev, newHabit]);
-    toast({
-      title: "Habitude créée",
-      description: `"${name}" a été ajoutée à tes habitudes.`,
-    });
   };
 
   return (
@@ -107,13 +88,6 @@ const Index = () => {
               <h2 className="text-2xl font-bold text-foreground tracking-tight mb-0.5">Aujourd'hui</h2>
               <p className="text-muted-foreground text-xs">Tes habitudes du jour</p>
             </div>
-            <Button
-              onClick={() => setDialogOpen(true)}
-              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-bold h-9 px-4 text-sm"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Ajouter
-            </Button>
           </div>
           <div className="space-y-3">
             {habits.length === 0 ? (
@@ -148,7 +122,6 @@ const Index = () => {
       </main>
 
       <Navigation />
-      <AddHabitDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addHabit} />
     </div>
   );
 };

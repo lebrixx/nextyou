@@ -12,7 +12,10 @@ interface TimerData {
 }
 
 const Timer = () => {
-  const [timers, setTimers] = useState<TimerData[]>([]);
+  const [timers, setTimers] = useState<TimerData[]>(() => {
+    const saved = localStorage.getItem("habitflow_timers");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -23,14 +26,20 @@ const Timer = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("habitflow_timers", JSON.stringify(timers));
+  }, [timers]);
+
   const formatDuration = (startDate: Date) => {
-    const diff = currentTime - startDate.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const startTime = typeof startDate === 'string' ? new Date(startDate).getTime() : startDate.getTime();
+    const diff = currentTime - startTime;
+    const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
+    const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    return { days, hours, minutes, seconds };
+    return { months, days, hours, minutes, seconds };
   };
 
   const addTimer = (name: string) => {
@@ -89,7 +98,7 @@ const Timer = () => {
           </div>
         ) : (
           timers.map((timer) => {
-          const { days, hours, minutes, seconds } = formatDuration(timer.startDate);
+          const { months, days, hours, minutes, seconds } = formatDuration(timer.startDate);
 
             return (
               <div
@@ -101,7 +110,17 @@ const Timer = () => {
               </h3>
 
               {/* Timer Display */}
-              <div className="grid grid-cols-4 gap-2 mb-4">
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                <div className="flex flex-col items-center">
+                  <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
+                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
+                      {months}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
+                    Mois
+                  </p>
+                </div>
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
                     <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
@@ -148,7 +167,7 @@ const Timer = () => {
               <div className="text-center mb-4">
                 <p className="text-muted-foreground text-xs mb-0.5">Temps total</p>
                 <p className="text-lg font-bold text-primary">
-                  {days} jours, {hours}h {minutes}m
+                  {months > 0 && `${months} mois, `}{days} jours, {hours}h {minutes}m
                 </p>
               </div>
 
