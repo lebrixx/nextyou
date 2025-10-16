@@ -12,7 +12,22 @@ interface AddHabitDialogProps {
   onAdd: (name: string, icon: HabitIconType) => void;
 }
 
-const ICONS: HabitIconType[] = ["sport", "lecture", "meditation", "hydratation", "tabac"];
+const ICONS: HabitIconType[] = [
+  "sport", 
+  "lecture", 
+  "meditation", 
+  "hydratation", 
+  "nutrition",
+  "sommeil",
+  "reveil",
+  "sante",
+  "tabac",
+  "alcool",
+  "ecrans",
+  "sucre",
+  "cafe",
+  "finance"
+];
 
 const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
   const [name, setName] = useState("");
@@ -52,7 +67,7 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
           </div>
           <div className="space-y-2">
             <Label className="text-foreground text-sm">Icône</Label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-7 gap-2 max-h-[200px] overflow-y-auto">
               {ICONS.map((icon) => (
                 <button
                   key={icon}
