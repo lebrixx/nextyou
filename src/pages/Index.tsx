@@ -21,9 +21,39 @@ interface Habit {
 }
 
 const Index = () => {
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false },
-  ]);
+  const [habits, setHabits] = useState<Habit[]>(() => {
+    const saved = localStorage.getItem("habitflow_habits");
+    return saved ? JSON.parse(saved) : [
+      { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false }
+    ];
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem("habitflow_habits");
+      if (saved) {
+        setHabits(JSON.parse(saved));
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    
+    // Check for changes when returning to the page
+    const interval = setInterval(() => {
+      const saved = localStorage.getItem("habitflow_habits");
+      if (saved) {
+        const parsedHabits = JSON.parse(saved);
+        if (JSON.stringify(parsedHabits) !== JSON.stringify(habits)) {
+          setHabits(parsedHabits);
+        }
+      }
+    }, 500);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [habits]);
 
   const [timers, setTimers] = useState<TimerData[]>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -67,11 +97,11 @@ const Index = () => {
   const averageStreak = habits.reduce((sum, h) => sum + h.streak, 0) / totalHabits;
 
   const toggleHabit = (id: string) => {
-    setHabits((prev) =>
-      prev.map((habit) =>
-        habit.id === id ? { ...habit, completed: !habit.completed } : habit
-      )
+    const updatedHabits = habits.map((habit) =>
+      habit.id === id ? { ...habit, completed: !habit.completed } : habit
     );
+    setHabits(updatedHabits);
+    localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
   };
 
   return (

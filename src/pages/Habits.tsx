@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Filter, Target } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
@@ -17,17 +17,24 @@ interface Habit {
 }
 
 const Habits = () => {
-  const [habits, setHabits] = useState<Habit[]>([
-    { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false },
-  ]);
+  const [habits, setHabits] = useState<Habit[]>(() => {
+    const saved = localStorage.getItem("habitflow_habits");
+    return saved ? JSON.parse(saved) : [
+      { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false }
+    ];
+  });
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  useEffect(() => {
+    localStorage.setItem("habitflow_habits", JSON.stringify(habits));
+  }, [habits]);
+
   const toggleHabit = (id: string) => {
-    setHabits((prev) =>
-      prev.map((habit) =>
-        habit.id === id ? { ...habit, completed: !habit.completed } : habit
-      )
+    const updatedHabits = habits.map((habit) =>
+      habit.id === id ? { ...habit, completed: !habit.completed } : habit
     );
+    setHabits(updatedHabits);
+    localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
   };
 
   const addHabit = (name: string, icon: HabitIconType) => {
