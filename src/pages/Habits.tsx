@@ -2,13 +2,25 @@ import { useState } from "react";
 import { Plus, Search, Filter, Target } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
+import AddHabitDialog from "@/components/AddHabitDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { HabitIconType } from "@/components/HabitIcon";
+import { toast } from "@/hooks/use-toast";
+
+interface Habit {
+  id: string;
+  name: string;
+  icon: HabitIconType;
+  streak: number;
+  completed: boolean;
+}
 
 const Habits = () => {
-  const [habits, setHabits] = useState([
-    { id: "1", name: "Boire deux litres d'eau", icon: "hydratation" as const, streak: 0, completed: false },
+  const [habits, setHabits] = useState<Habit[]>([
+    { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false },
   ]);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const toggleHabit = (id: string) => {
     setHabits((prev) =>
@@ -16,6 +28,21 @@ const Habits = () => {
         habit.id === id ? { ...habit, completed: !habit.completed } : habit
       )
     );
+  };
+
+  const addHabit = (name: string, icon: HabitIconType) => {
+    const newHabit = {
+      id: Date.now().toString(),
+      name,
+      icon,
+      streak: 0,
+      completed: false,
+    };
+    setHabits((prev) => [...prev, newHabit]);
+    toast({
+      title: "Habitude créée",
+      description: `"${name}" a été ajoutée à tes habitudes.`,
+    });
   };
 
   return (
@@ -42,7 +69,10 @@ const Habits = () => {
           </Button>
         </div>
 
-        <Button className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm">
+        <Button 
+          onClick={() => setDialogOpen(true)}
+          className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
+        >
           <Plus className="w-4 h-4 mr-1.5" />
           Créer une nouvelle habitude
         </Button>
@@ -82,6 +112,7 @@ const Habits = () => {
       </main>
 
       <Navigation />
+      <AddHabitDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addHabit} />
     </div>
   );
 };

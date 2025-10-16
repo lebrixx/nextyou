@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Plus, RotateCcw } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import AddTimerDialog from "@/components/AddTimerDialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 interface TimerData {
   id: string;
@@ -11,7 +13,7 @@ interface TimerData {
 
 const Timer = () => {
   const [timers, setTimers] = useState<TimerData[]>([]);
-
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
@@ -31,6 +33,31 @@ const Timer = () => {
     return { days, hours, minutes, seconds };
   };
 
+  const addTimer = (name: string) => {
+    const newTimer: TimerData = {
+      id: Date.now().toString(),
+      name,
+      startDate: new Date(),
+    };
+    setTimers((prev) => [...prev, newTimer]);
+    toast({
+      title: "Compteur créé",
+      description: `Le compteur "${name}" a commencé.`,
+    });
+  };
+
+  const resetTimer = (id: string) => {
+    setTimers((prev) =>
+      prev.map((timer) =>
+        timer.id === id ? { ...timer, startDate: new Date() } : timer
+      )
+    );
+    toast({
+      title: "Compteur réinitialisé",
+      description: "Le compteur a été remis à zéro.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
@@ -41,6 +68,7 @@ const Timer = () => {
           Mesure le temps écoulé depuis le début d'une nouvelle version de toi-même, ou le temps passé sans une addiction.
         </p>
         <Button
+          onClick={() => setDialogOpen(true)}
           className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
         >
           <Plus className="w-4 h-4 mr-1.5" />
@@ -126,6 +154,7 @@ const Timer = () => {
 
               {/* Reset Button */}
               <Button
+                onClick={() => resetTimer(timer.id)}
                 variant="outline"
                 className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 h-9 text-sm"
               >
@@ -139,6 +168,7 @@ const Timer = () => {
       </main>
 
       <Navigation />
+      <AddTimerDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addTimer} />
     </div>
   );
 };

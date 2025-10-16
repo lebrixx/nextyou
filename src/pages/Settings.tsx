@@ -1,8 +1,24 @@
+import { useState } from "react";
 import { Bell, Palette, User, Info } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const [notifications, setNotifications] = useState({
+    daily: true,
+    motivational: true,
+    sounds: true,
+  });
+
+  const handleNotificationChange = (key: keyof typeof notifications) => {
+    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
+    toast({
+      title: "Paramètre modifié",
+      description: "Tes préférences ont été enregistrées.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
@@ -29,7 +45,10 @@ const Settings = () => {
                   Reçois des rappels pour tes habitudes
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={notifications.daily} 
+                onCheckedChange={() => handleNotificationChange("daily")}
+              />
             </div>
             <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
               <div>
@@ -38,7 +57,10 @@ const Settings = () => {
                   Citations inspirantes quotidiennes
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={notifications.motivational}
+                onCheckedChange={() => handleNotificationChange("motivational")}
+              />
             </div>
             <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
               <div>
@@ -47,7 +69,10 @@ const Settings = () => {
                   Sons de validation et alertes
                 </p>
               </div>
-              <Switch defaultChecked />
+              <Switch 
+                checked={notifications.sounds}
+                onCheckedChange={() => handleNotificationChange("sounds")}
+              />
             </div>
           </div>
         </section>
@@ -87,16 +112,25 @@ const Settings = () => {
             Compte
           </h2>
           <div className="glass rounded-xl divide-y divide-white/5">
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => toast({ title: "Profil", description: "Fonctionnalité à venir" })}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
               <p className="font-semibold text-foreground text-sm">Profil</p>
             </button>
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => toast({ title: "Premium", description: "Fonctionnalité à venir" })}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
               <p className="font-semibold text-foreground text-sm">Passer à Premium</p>
               <span className="px-3 py-1 rounded-full bg-gradient-primary text-primary-foreground text-[10px] font-bold shadow-glow">
                 PRO
               </span>
             </button>
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => toast({ title: "Export", description: "Fonctionnalité à venir" })}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
               <p className="font-semibold text-foreground text-sm">Exporter mes données</p>
             </button>
           </div>
@@ -111,10 +145,16 @@ const Settings = () => {
             À propos
           </h2>
           <div className="glass rounded-xl divide-y divide-white/5">
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => toast({ title: "Support", description: "Contactez-nous à support@habitflow.app" })}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
               <p className="font-semibold text-foreground text-sm">Aide & Support</p>
             </button>
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => toast({ title: "Confidentialité", description: "Tes données sont sécurisées et privées" })}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+            >
               <p className="font-semibold text-foreground text-sm">Politique de confidentialité</p>
             </button>
             <div className="p-4">
