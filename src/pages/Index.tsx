@@ -39,18 +39,18 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="px-6 space-y-8 max-w-2xl mx-auto">
+      <main className="px-6 space-y-6 max-w-2xl mx-auto">
         {/* Progress Ring */}
-        <section className="flex flex-col items-center py-8 glass rounded-[24px] shadow-elevation border border-white/5">
-          <ProgressRing progress={progressPercentage} size={160} strokeWidth={12} />
-          <div className="mt-6 text-center space-y-1">
+        <section className="flex flex-col items-center py-6 glass rounded-xl shadow-elevation border border-white/5">
+          <ProgressRing progress={progressPercentage} size={140} strokeWidth={10} />
+          <div className="mt-4 text-center space-y-0.5">
             <p className="text-muted-foreground font-semibold text-[10px] tracking-wide uppercase">Performance Hebdomadaire</p>
-            <p className="text-foreground text-base font-bold">+3% de constance</p>
+            <p className="text-foreground text-sm font-bold">+3% de constance</p>
           </div>
         </section>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-2 gap-5">
+        <section className="grid grid-cols-2 gap-3">
           <StatsCard
             icon={Target}
             label="Habitudes actives"
@@ -78,20 +78,20 @@ const Index = () => {
         </section>
 
         {/* Today's Habits */}
-        <section className="space-y-6">
+        <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-3xl font-bold text-foreground tracking-tight mb-1">Aujourd'hui</h2>
-              <p className="text-muted-foreground text-sm">Tes habitudes du jour</p>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight mb-0.5">Aujourd'hui</h2>
+              <p className="text-muted-foreground text-xs">Tes habitudes du jour</p>
             </div>
             <Button
-              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-bold h-11 px-5"
+              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-bold h-9 px-4 text-sm"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus className="w-4 h-4 mr-1.5" />
               Ajouter
             </Button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {habits.map((habit) => (
               <HabitCard key={habit.id} {...habit} onToggle={toggleHabit} />
             ))}
@@ -99,11 +99,11 @@ const Index = () => {
         </section>
 
         {/* Motivational Quote */}
-        <section className="glass rounded-[32px] p-10 text-center shadow-elevation border border-primary/20 mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-6">
-            <Target className="w-8 h-8 text-primary-foreground" />
+        <section className="glass rounded-xl p-6 text-center shadow-elevation border border-primary/20 mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow mb-4">
+            <Target className="w-6 h-6 text-primary-foreground" />
           </div>
-          <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent tracking-tight leading-relaxed">
+          <p className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent tracking-tight leading-relaxed">
             Un jour de plus, une victoire de plus.
           </p>
         </section>
