@@ -187,16 +187,34 @@ const Index = () => {
           </section>
         )}
 
-        {/* Welcome Message */}
+        {/* Inspirational Message */}
         {habits.length <= 1 && (
-          <section className="glass rounded-xl p-6 text-center shadow-elevation border border-primary/20 mb-8">
+          <section className="glass rounded-xl p-6 shadow-elevation border border-primary/20">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow mb-4">
               <Target className="w-6 h-6 text-primary-foreground" />
             </div>
-            <h3 className="text-base font-bold text-foreground mb-2">Bienvenue sur HabitFlow</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-              Commence par ajouter tes premières habitudes. Chaque action répétée devient une seconde nature.
-            </p>
+            <h3 className="text-lg font-bold text-foreground mb-3">Ta transformation commence aujourd&apos;hui</h3>
+            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+              <p>
+                Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
+                jour après jour. HabitFlow n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
+                dans cette quête vers l&apos;excellence personnelle.
+              </p>
+              <p>
+                Imagine-toi dans six mois : plus discipliné, plus confiant, fier de la personne que 
+                tu vois dans le miroir. Cette version de toi existe déjà, elle attend juste que tu 
+                fasses le premier pas. Chaque habitude que tu cultives est une pierre que tu poses 
+                pour construire la vie dont tu rêves.
+              </p>
+              <p className="font-semibold text-foreground">
+                Le secret ? La constance. Pas la perfection, mais la présence. Chaque jour compte, 
+                chaque petit effort s&apos;additionne. Et avant même que tu ne t&apos;en rendes compte, 
+                tu seras devenu cette personne extraordinaire que tu as toujours voulu être.
+              </p>
+              <p className="text-xs italic text-primary">
+                Commence maintenant. Ton futur toi te remerciera.
+              </p>
+            </div>
           </section>
         )}
       </main>
