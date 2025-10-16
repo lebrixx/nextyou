@@ -78,7 +78,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
       <header className="px-6 pt-8 pb-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
             Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
           </h1>
@@ -87,10 +87,10 @@ const Index = () => {
               Citation du jour
             </p>
             <p className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent text-center leading-relaxed">
-              "Le succès, c'est la somme de petits efforts répétés jour après jour."
+              "Le succès, c&apos;est la somme de petits efforts répétés jour après jour."
             </p>
           </div>
-          <p className="text-muted-foreground text-sm font-medium text-center">
+          <p className="text-muted-foreground text-sm font-medium">
             Comment rendre fier tes proches si tu n&apos;es pas d&apos;abord fier de toi
           </p>
         </div>
@@ -99,11 +99,11 @@ const Index = () => {
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
         {/* Progress Ring */}
-        <section className="flex flex-col items-center py-5 glass rounded-xl shadow-elevation border border-white/5">
-          <ProgressRing progress={progressPercentage} size={120} strokeWidth={10} />
-          <div className="mt-3 text-center space-y-0.5">
-            <p className="text-muted-foreground font-semibold text-[10px] tracking-wide uppercase">Performance Aujourd&apos;hui</p>
-            <p className="text-foreground text-sm font-bold">
+        <section className="flex flex-col items-center py-4 glass rounded-xl shadow-elevation border border-white/5">
+          <ProgressRing progress={progressPercentage} size={100} strokeWidth={8} />
+          <div className="mt-2 text-center space-y-0.5">
+            <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase">Performance Aujourd&apos;hui</p>
+            <p className="text-foreground text-xs font-bold">
               {completedToday}/{totalHabits} complétées
             </p>
           </div>

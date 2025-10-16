@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Palette, User, Info } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
+import { applyTheme, getTheme, Theme } from "@/lib/theme";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState({
@@ -10,6 +11,20 @@ const Settings = () => {
     motivational: true,
     sounds: true,
   });
+  const [currentTheme, setCurrentTheme] = useState<Theme>(getTheme());
+
+  useEffect(() => {
+    applyTheme(currentTheme);
+  }, []);
+
+  const handleThemeChange = (theme: Theme) => {
+    setCurrentTheme(theme);
+    applyTheme(theme);
+    toast({
+      title: "Thème changé",
+      description: `Le thème ${theme === "purple" ? "violet" : theme === "blue" ? "bleu" : "vert"} a été appliqué.`,
+    });
+  };
 
   const handleNotificationChange = (key: keyof typeof notifications) => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -94,16 +109,22 @@ const Settings = () => {
             </div>
             <div className="flex gap-2">
               <button 
-                onClick={() => toast({ title: "Thème violet", description: "Thème violet actif (par défaut)" })}
-                className="flex-1 h-16 rounded-lg bg-gradient-primary border-2 border-primary shadow-glow transition-all hover:scale-105"
+                onClick={() => handleThemeChange("purple")}
+                className={`flex-1 h-16 rounded-lg bg-gradient-to-br from-purple-600 to-purple-400 transition-all hover:scale-105 ${
+                  currentTheme === "purple" ? "border-2 border-white shadow-glow" : "opacity-70"
+                }`}
               />
               <button 
-                onClick={() => toast({ title: "Thème bleu", description: "Fonctionnalité à venir" })}
-                className="flex-1 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 opacity-50 hover:opacity-70 transition-all"
+                onClick={() => handleThemeChange("blue")}
+                className={`flex-1 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 transition-all hover:scale-105 ${
+                  currentTheme === "blue" ? "border-2 border-white shadow-glow" : "opacity-70"
+                }`}
               />
               <button 
-                onClick={() => toast({ title: "Thème vert", description: "Fonctionnalité à venir" })}
-                className="flex-1 h-16 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 opacity-50 hover:opacity-70 transition-all"
+                onClick={() => handleThemeChange("green")}
+                className={`flex-1 h-16 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 transition-all hover:scale-105 ${
+                  currentTheme === "green" ? "border-2 border-white shadow-glow" : "opacity-70"
+                }`}
               />
             </div>
           </div>

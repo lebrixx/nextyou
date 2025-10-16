@@ -1,9 +1,19 @@
 import { useState, useEffect } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { Plus, RotateCcw, Trash2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TimerData {
   id: string;
@@ -17,6 +27,8 @@ const Timer = () => {
     return saved ? JSON.parse(saved) : [];
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [timerToDelete, setTimerToDelete] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
@@ -65,6 +77,21 @@ const Timer = () => {
       title: "Compteur réinitialisé",
       description: "Le compteur a été remis à zéro.",
     });
+  };
+
+  const deleteTimer = (id: string) => {
+    setTimers((prev) => prev.filter((timer) => timer.id !== id));
+    toast({
+      title: "Compteur supprimé",
+      description: "Le compteur a été supprimé avec succès.",
+    });
+    setDeleteDialogOpen(false);
+    setTimerToDelete(null);
+  };
+
+  const confirmDelete = (id: string) => {
+    setTimerToDelete(id);
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -172,14 +199,24 @@ const Timer = () => {
               </div>
 
               {/* Reset Button */}
-              <Button
-                onClick={() => resetTimer(timer.id)}
-                variant="outline"
-                className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 h-9 text-sm"
-              >
-                <RotateCcw className="w-4 h-4 mr-1.5" />
-                Réinitialiser
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => resetTimer(timer.id)}
+                  variant="outline"
+                  className="flex-1 border-muted text-muted-foreground hover:bg-muted/10 h-9 text-sm"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  Réinitialiser
+                </Button>
+                <Button
+                  onClick={() => confirmDelete(timer.id)}
+                  variant="outline"
+                  className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 h-9 text-sm"
+                >
+                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  Supprimer
+                </Button>
+              </div>
               </div>
             );
           })
@@ -188,6 +225,26 @@ const Timer = () => {
 
       <Navigation />
       <AddTimerDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addTimer} />
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="glass border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Supprimer ce compteur ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Cette action est irréversible. Toutes les données de ce compteur seront perdues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="glass border-white/10">Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => timerToDelete && deleteTimer(timerToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
