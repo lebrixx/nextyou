@@ -1,21 +1,49 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { applyTheme, getTheme, Theme } from "@/lib/theme";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     daily: true,
     motivational: true,
     sounds: true,
   });
   const [currentTheme, setCurrentTheme] = useState<Theme>(getTheme());
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     applyTheme(currentTheme);
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      
+      if (profileData) {
+        setProfile(profileData);
+        setFullName(profileData.full_name || "");
+      }
+    }
+  };
 
   const handleThemeChange = (theme: Theme) => {
     setCurrentTheme(theme);
@@ -34,6 +62,43 @@ const Settings = () => {
     });
   };
 
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profil mis à jour",
+        description: "Tes informations ont été sauvegardées.",
+      });
+      loadUserData();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Déconnexion",
+      description: "À bientôt sur HabitFlow !",
+    });
+    navigate("/auth");
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
@@ -44,6 +109,73 @@ const Settings = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
+        {/* Account */}
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+              <User className="w-4 h-4 text-primary-foreground" />
+            </div>
+            Compte
+          </h2>
+          {user ? (
+            <div className="glass rounded-xl p-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-foreground text-sm">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={user.email}
+                  disabled
+                  className="glass border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="text-foreground text-sm">
+                  Nom complet
+                </Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="glass border-white/10 focus:border-primary/50"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleUpdateProfile}
+                  disabled={loading}
+                  className="flex-1 bg-gradient-primary text-primary-foreground shadow-glow"
+                >
+                  {loading ? "Enregistrement..." : "Enregistrer"}
+                </Button>
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="glass border-destructive/50 text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="w-4 h-4 mr-1.5" />
+                  Déconnexion
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="glass rounded-xl p-6 text-center">
+              <p className="text-muted-foreground text-sm mb-3">
+                Tu n&apos;es pas connecté
+              </p>
+              <Button
+                onClick={() => navigate("/auth")}
+                className="bg-gradient-primary text-primary-foreground shadow-glow"
+              >
+                Se connecter
+              </Button>
+            </div>
+          )}
+        </section>
+
         {/* Notifications */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -127,39 +259,6 @@ const Settings = () => {
                 }`}
               />
             </div>
-          </div>
-        </section>
-
-        {/* Account */}
-        <section className="space-y-3">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <User className="w-4 h-4 text-primary-foreground" />
-            </div>
-            Compte
-          </h2>
-          <div className="glass rounded-xl divide-y divide-white/5">
-            <button 
-              onClick={() => toast({ title: "Profil", description: "Fonctionnalité à venir" })}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-            >
-              <p className="font-semibold text-foreground text-sm">Profil</p>
-            </button>
-            <button 
-              onClick={() => toast({ title: "Premium", description: "Fonctionnalité à venir" })}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-            >
-              <p className="font-semibold text-foreground text-sm">Passer à Premium</p>
-              <span className="px-3 py-1 rounded-full bg-gradient-primary text-primary-foreground text-[10px] font-bold shadow-glow">
-                PRO
-              </span>
-            </button>
-            <button 
-              onClick={() => toast({ title: "Export", description: "Fonctionnalité à venir" })}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
-            >
-              <p className="font-semibold text-foreground text-sm">Exporter mes données</p>
-            </button>
           </div>
         </section>
 

@@ -8,6 +8,7 @@ import Habits from "./pages/Habits";
 import Analytics from "./pages/Analytics";
 import Timer from "./pages/Timer";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +20,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
           <Route path="/habits" element={<Habits />} />
           <Route path="/analytics" element={<Analytics />} />
