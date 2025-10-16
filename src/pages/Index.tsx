@@ -48,10 +48,17 @@ const Index = () => {
     const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
     const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 30)) / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    if (months > 0) return `${months}m ${days}j`;
-    if (days > 0) return `${days}j ${hours}h`;
-    return `${hours}h`;
+    const parts = [];
+    if (months > 0) parts.push(`${months}mo`);
+    if (days > 0) parts.push(`${days}j`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+    
+    return parts.slice(0, 3).join(' ');
   };
 
   const totalHabits = habits.length;
@@ -72,15 +79,20 @@ const Index = () => {
       {/* Header with Daily Quote */}
       <header className="px-6 pt-8 pb-6">
         <div className="max-w-2xl mx-auto">
-          <div className="glass rounded-xl p-4 mb-4 border border-primary/20">
+          <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
+            Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
+          </h1>
+          <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
+              Citation du jour
+            </p>
             <p className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent text-center leading-relaxed">
               "Le succès, c'est la somme de petits efforts répétés jour après jour."
             </p>
           </div>
-          <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight leading-tight">
-            Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
-          </h1>
-          <p className="text-muted-foreground text-base font-medium">Ta constance forge ton succès.</p>
+          <p className="text-muted-foreground text-sm font-medium text-center">
+            Comment rendre fier tes proches si tu n&apos;es pas d&apos;abord fier de toi
+          </p>
         </div>
       </header>
 
@@ -90,40 +102,12 @@ const Index = () => {
         <section className="flex flex-col items-center py-5 glass rounded-xl shadow-elevation border border-white/5">
           <ProgressRing progress={progressPercentage} size={120} strokeWidth={10} />
           <div className="mt-3 text-center space-y-0.5">
-            <p className="text-muted-foreground font-semibold text-[10px] tracking-wide uppercase">Performance Aujourd'hui</p>
+            <p className="text-muted-foreground font-semibold text-[10px] tracking-wide uppercase">Performance Aujourd&apos;hui</p>
             <p className="text-foreground text-sm font-bold">
               {completedToday}/{totalHabits} complétées
             </p>
           </div>
         </section>
-
-        {/* Timers Section */}
-        {timers.length > 0 ? (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Mes compteurs
-            </h2>
-            <div className="grid grid-cols-2 gap-2">
-              {timers.map((timer) => (
-                <div key={timer.id} className="glass rounded-lg p-3 border border-white/5">
-                  <p className="text-xs text-muted-foreground mb-1 truncate">{timer.name}</p>
-                  <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    {formatTimerCompact(timer.startDate)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <section className="glass rounded-xl p-5 text-center border border-white/5">
-            <Clock className="w-8 h-8 text-primary mx-auto mb-2" />
-            <p className="text-sm text-foreground font-semibold mb-1">Aucun compteur actif</p>
-            <p className="text-xs text-muted-foreground">
-              Crée un compteur dans la section Chronomètres pour suivre ton progrès
-            </p>
-          </section>
-        )}
 
         {/* Stats Grid */}
         <section className="grid grid-cols-2 gap-3">
@@ -174,6 +158,34 @@ const Index = () => {
             )}
           </div>
         </section>
+
+        {/* Timers Section */}
+        {timers.length > 0 ? (
+          <section className="space-y-3">
+            <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Mes compteurs
+            </h2>
+            <div className="grid grid-cols-2 gap-2">
+              {timers.map((timer) => (
+                <div key={timer.id} className="glass rounded-lg p-3 border border-white/5">
+                  <p className="text-xs text-muted-foreground mb-1 truncate">{timer.name}</p>
+                  <p className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    {formatTimerCompact(timer.startDate)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="glass rounded-xl p-5 text-center border border-white/5">
+            <Clock className="w-8 h-8 text-primary mx-auto mb-2" />
+            <p className="text-sm text-foreground font-semibold mb-1">Aucun compteur actif</p>
+            <p className="text-xs text-muted-foreground">
+              Crée un compteur dans la section Chronomètres pour suivre ton progrès
+            </p>
+          </section>
+        )}
 
         {/* Welcome Message */}
         {habits.length <= 1 && (
