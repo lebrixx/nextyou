@@ -29,19 +29,19 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="px-6 pt-8 pb-6">
-        <h1 className="text-4xl font-bold text-foreground mb-2">
-          Habit<span className="text-primary">Flow</span>
+      <header className="px-6 pt-10 pb-8">
+        <h1 className="text-5xl font-bold text-foreground mb-3 tracking-tight">
+          Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
         </h1>
-        <p className="text-muted-foreground">Ta constance te construit. 💜</p>
+        <p className="text-muted-foreground text-lg font-medium">Ta constance te construit. 💜</p>
       </header>
 
       {/* Main Content */}
       <main className="px-6 space-y-8 max-w-2xl mx-auto">
         {/* Progress Ring */}
-        <section className="flex flex-col items-center py-8 bg-gradient-glow rounded-3xl border border-border">
+        <section className="flex flex-col items-center py-12 glass rounded-3xl shadow-elevation">
           <ProgressRing progress={progressPercentage} />
-          <p className="text-center text-muted-foreground mt-6 max-w-xs">
+          <p className="text-center text-muted-foreground mt-8 max-w-xs font-medium text-base">
             Tu tiens bon ! +3% de constance cette semaine.
           </p>
         </section>
@@ -75,18 +75,18 @@ const Index = () => {
         </section>
 
         {/* Today's Habits */}
-        <section className="space-y-4">
+        <section className="space-y-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Aujourd'hui</h2>
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">Aujourd'hui</h2>
             <Button
-              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-elevation"
+              className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nouvelle habitude
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {habits.map((habit) => (
               <HabitCard key={habit.id} {...habit} onToggle={toggleHabit} />
             ))}
@@ -94,8 +94,8 @@ const Index = () => {
         </section>
 
         {/* Motivational Quote */}
-        <section className="bg-card border border-primary/20 rounded-2xl p-6 text-center">
-          <p className="text-lg text-primary-glow font-medium italic">
+        <section className="glass rounded-3xl p-8 text-center shadow-elevation border border-primary/20">
+          <p className="text-xl text-primary-glow font-semibold italic tracking-wide">
             "Un jour de plus, une victoire de plus."
           </p>
         </section>
