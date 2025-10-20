@@ -163,15 +163,9 @@ const Settings = () => {
             </div>
           ) : (
             <div className="glass rounded-xl p-6 text-center">
-              <p className="text-muted-foreground text-sm mb-3">
-                Tu n&apos;es pas connecté
+              <p className="text-muted-foreground text-sm">
+                Non connecté
               </p>
-              <Button
-                onClick={() => navigate("/auth")}
-                className="bg-gradient-primary text-primary-foreground shadow-glow"
-              >
-                Se connecter
-              </Button>
             </div>
           )}
         </section>
