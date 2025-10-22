@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -162,9 +162,25 @@ const Settings = () => {
               </div>
             </div>
           ) : (
-            <div className="glass rounded-xl p-6 text-center">
-              <p className="text-muted-foreground text-sm">
-                Non connecté
+            <div className="glass rounded-xl p-6 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center">
+                <User className="w-8 h-8 text-primary" />
+              </div>
+              <div>
+                <p className="text-foreground font-semibold mb-1">Non connecté</p>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Connecte-toi pour synchroniser tes données sur tous tes appareils
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate("/auth")}
+                className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Se connecter
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                💡 Tu peux utiliser l&apos;app sans compte, mais tes données seront uniquement sur cet appareil
               </p>
             </div>
           )}

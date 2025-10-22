@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
+import AppTour from "@/components/AppTour";
+import { Button } from "@/components/ui/button";
+import { quotes } from "@/data/quotes";
 
 interface TimerData {
   id: string;
@@ -68,6 +71,11 @@ const Index = () => {
   const [timers, setTimers] = useState<TimerData[]>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState(() => {
+    const allQuotes = Object.values(quotes).flat();
+    return allQuotes[Math.floor(Math.random() * allQuotes.length)];
+  });
 
   useEffect(() => {
     const saved = localStorage.getItem("habitflow_timers");
@@ -95,6 +103,17 @@ const Index = () => {
     const interval = setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Change quote every hour
+  useEffect(() => {
+    const changeQuote = () => {
+      const allQuotes = Object.values(quotes).flat();
+      setCurrentQuote(allQuotes[Math.floor(Math.random() * allQuotes.length)]);
+    };
+
+    const interval = setInterval(changeQuote, 60 * 60 * 1000); // Every hour
     return () => clearInterval(interval);
   }, []);
 
@@ -140,19 +159,27 @@ const Index = () => {
       <header className="px-6 pt-safe-offset-8 pb-6">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
-            Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
+            Next<span className="bg-gradient-primary bg-clip-text text-transparent"> You 2.0</span>
           </h1>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
               Citation du jour
             </p>
             <p className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent text-center leading-relaxed">
-              "Le succès, c&apos;est la somme de petits efforts répétés jour après jour."
+              "{currentQuote.text}"
+            </p>
+            <p className="text-xs text-muted-foreground mt-1 text-center">
+              — {currentQuote.author}
             </p>
           </div>
-          <p className="text-muted-foreground text-sm font-medium">
-            Comment rendre fier tes proches si tu n&apos;es pas d&apos;abord fier de toi
-          </p>
+          <Button
+            onClick={() => setTourOpen(true)}
+            variant="outline"
+            className="glass border-primary/30 text-foreground hover:bg-primary/10"
+          >
+            <HelpCircle className="w-4 h-4 mr-2" />
+            Présentation de l&apos;app
+          </Button>
         </div>
       </header>
 
@@ -301,6 +328,7 @@ const Index = () => {
       </main>
 
       <Navigation />
+      <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
     </div>
   );
 };

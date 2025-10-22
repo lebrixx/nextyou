@@ -28,7 +28,9 @@ const Timer = () => {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [timerToDelete, setTimerToDelete] = useState<string | null>(null);
+  const [timerToReset, setTimerToReset] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
@@ -75,8 +77,15 @@ const Timer = () => {
     );
     toast({
       title: "Compteur réinitialisé",
-      description: "Le compteur a été remis à zéro.",
+      description: "Nouveau départ, nouvelle opportunité de réussir.",
     });
+    setResetDialogOpen(false);
+    setTimerToReset(null);
+  };
+
+  const confirmReset = (id: string) => {
+    setTimerToReset(id);
+    setResetDialogOpen(true);
   };
 
   const deleteTimer = (id: string) => {
@@ -180,8 +189,8 @@ const Timer = () => {
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
-                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
-                      {seconds}
+                    <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
+                      {seconds.toString().padStart(2, '0')}
                     </p>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
@@ -190,18 +199,17 @@ const Timer = () => {
                 </div>
               </div>
 
-              {/* Total Time */}
-              <div className="text-center mb-4">
-                <p className="text-muted-foreground text-xs mb-0.5">Temps total</p>
-                <p className="text-lg font-bold text-primary">
-                  {months > 0 && `${months} mois, `}{days} jours, {hours}h {minutes}m
+              {/* Widget Info */}
+              <div className="text-center mb-4 glass-strong rounded-lg p-3">
+                <p className="text-[10px] text-muted-foreground">
+                  💡 Ajoute ce compteur en widget sur ton écran d&apos;accueil pour le voir en permanence
                 </p>
               </div>
 
-              {/* Reset Button */}
+              {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button
-                  onClick={() => resetTimer(timer.id)}
+                  onClick={() => confirmReset(timer.id)}
                   variant="outline"
                   className="flex-1 border-muted text-muted-foreground hover:bg-muted/10 h-9 text-sm"
                 >
@@ -226,12 +234,36 @@ const Timer = () => {
       <Navigation />
       <AddTimerDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addTimer} />
       
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <AlertDialogContent className="glass border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Réinitialiser ce compteur ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground leading-relaxed">
+              Je sais que c&apos;est difficile, mais c&apos;est la chose honnête à faire. 
+              Se mentir à soi-même ne mène nulle part. Chaque nouveau départ est une opportunité 
+              de devenir plus fort. Tu as le courage de recommencer, et c&apos;est déjà une victoire.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="glass border-white/10">Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => timerToReset && resetTimer(timerToReset)}
+              className="bg-gradient-primary text-primary-foreground shadow-glow"
+            >
+              Réinitialiser
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="glass border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">Supprimer ce compteur ?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Cette action est irréversible. Toutes les données de ce compteur seront perdues.
+              Es-tu sûr de vouloir supprimer ce compteur ? Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

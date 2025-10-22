@@ -1,171 +1,159 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Bell, BellRing } from "lucide-react";
+import { Sparkles, Bell, Smartphone } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { quotes, getRandomQuotes } from "@/data/quotes";
+import { Label } from "@/components/ui/label";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const Plan = () => {
-  const [displayedQuotes, setDisplayedQuotes] = useState(() => getRandomQuotes(10));
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [quotesPerDay, setQuotesPerDay] = useState(() => {
+    const saved = localStorage.getItem("quotes_per_day");
+    return saved ? parseInt(saved) : 3;
+  });
   const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
-  const { toast } = useToast();
 
-  const refreshQuotes = () => {
-    setDisplayedQuotes(getRandomQuotes(10));
-  };
+  useEffect(() => {
+    localStorage.setItem("quotes_per_day", quotesPerDay.toString());
+  }, [quotesPerDay]);
 
-  const handleEnableNotifications = async () => {
+  const handleActivateNotifications = async () => {
     try {
       await scheduleQuoteNotifications();
-      setNotificationsEnabled(true);
       toast({
         title: "Notifications activées",
-        description: "Tu recevras une citation chaque jour à 9h",
+        description: `Tu recevras ${quotesPerDay} citation${quotesPerDay > 1 ? 's' : ''} par jour entre 9h et 22h.`,
       });
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible d'activer les notifications",
+        description: "Impossible d'activer les notifications.",
         variant: "destructive",
       });
     }
   };
 
   const handleTestNotification = async () => {
-    try {
-      await sendInstantQuote();
-      toast({
-        title: "Notification envoyée",
-        description: "Vérifie tes notifications !",
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer la notification",
-        variant: "destructive",
-      });
-    }
+    await sendInstantQuote();
+    toast({
+      title: "Citation envoyée",
+      description: "Tu devrais recevoir une notification dans quelques secondes.",
+    });
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          <span className="bg-gradient-primary bg-clip-text text-transparent">Citations</span>
+          Cita<span className="bg-gradient-primary bg-clip-text text-transparent">tions</span>
         </h1>
         <p className="text-muted-foreground text-sm">
-          Plus de 100 citations pour t'inspirer chaque jour
+          Configure tes notifications quotidiennes de motivation
         </p>
       </header>
 
       <main className="px-6 pt-4 space-y-6 max-w-2xl mx-auto">
-        {/* Notifications Control */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/20">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+        {/* Notification Frequency */}
+        <section className="glass rounded-xl p-5 space-y-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
               <Bell className="w-5 h-5 text-primary-foreground" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-bold text-foreground">Notifications quotidiennes</h2>
-              <p className="text-xs text-muted-foreground">Reçois une citation inspirante chaque jour</p>
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Fréquence des notifications</h2>
+              <p className="text-xs text-muted-foreground">Citations envoyées entre 9h et 22h</p>
             </div>
           </div>
-          
-          <div className="flex gap-2">
+
+          <div className="space-y-3">
+            <Label className="text-sm text-foreground">
+              Nombre de citations par jour : <span className="text-primary font-bold">{quotesPerDay}</span>
+            </Label>
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={quotesPerDay}
+              onChange={(e) => setQuotesPerDay(parseInt(e.target.value))}
+              className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>1 citation</span>
+              <span>10 citations</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
             <Button
-              onClick={handleEnableNotifications}
-              className="flex-1"
-              disabled={notificationsEnabled}
+              onClick={handleActivateNotifications}
+              className="flex-1 bg-gradient-primary text-primary-foreground shadow-glow"
             >
-              <BellRing className="w-4 h-4 mr-2" />
-              {notificationsEnabled ? "Activées" : "Activer"}
+              <Bell className="w-4 h-4 mr-2" />
+              Activer les notifications
             </Button>
             <Button
               onClick={handleTestNotification}
               variant="outline"
-              className="flex-1"
+              className="glass border-primary/30"
             >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Test
+              Tester
             </Button>
           </div>
         </section>
 
         {/* Widget Instructions */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+        <section className="glass rounded-xl p-5 space-y-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+              <Smartphone className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-foreground mb-2">Widget de citations</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                Ajoute les citations sur ton écran d'accueil pour une dose quotidienne de motivation. 
+              <h2 className="text-lg font-bold text-foreground">Widget Citations</h2>
+              <p className="text-xs text-muted-foreground">Affiche les citations sur ton écran d&apos;accueil</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="glass-strong rounded-lg p-4">
+              <p className="font-semibold text-foreground mb-2">📱 Sur iOS (iPhone/iPad)</p>
+              <ol className="list-decimal list-inside space-y-1.5 text-xs">
+                <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
+                <li>Touche le bouton + en haut à gauche</li>
+                <li>Recherche "Next You 2.0"</li>
+                <li>Sélectionne le widget Citations</li>
+                <li>Choisis la taille et place-le</li>
+              </ol>
+            </div>
+
+            <div className="glass-strong rounded-lg p-4">
+              <p className="font-semibold text-foreground mb-2">🤖 Sur Android</p>
+              <ol className="list-decimal list-inside space-y-1.5 text-xs">
+                <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
+                <li>Touche "Widgets"</li>
+                <li>Cherche "Next You 2.0"</li>
+                <li>Fais glisser le widget Citations</li>
+                <li>Ajuste la taille selon tes besoins</li>
+              </ol>
+            </div>
+
+            <div className="text-center pt-2">
+              <p className="text-xs text-primary">
+                💡 Le widget affiche une nouvelle citation toutes les heures parmi plus de 130 messages inspirants
               </p>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span><strong>iOS:</strong> Maintiens appui sur l'écran d'accueil → "+" → Recherche "HabitFlow"</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-primary">•</span>
-                  <span><strong>Android:</strong> Maintiens appui sur l'icône → "Widgets" → Sélectionne le widget</span>
-                </div>
-              </div>
             </div>
           </div>
         </section>
 
-        {/* Quotes Display */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold text-foreground">Citations inspirantes</h2>
-            <Button
-              onClick={refreshQuotes}
-              size="sm"
-              variant="outline"
-              className="border-primary/30 text-primary hover:bg-primary/10"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Nouvelles
-            </Button>
-          </div>
-          {displayedQuotes.map((quote, index) => (
-            <div
-              key={index}
-              className="glass rounded-xl p-5 shadow-elevation border border-white/5 animate-fade-in hover-scale"
-            >
-              <div className="flex items-start gap-3">
-                <div className="text-2xl shrink-0">
-                  {quote.category === "motivation" && "🔥"}
-                  {quote.category === "discipline" && "💪"}
-                  {quote.category === "success" && "🎯"}
-                  {quote.category === "perseverance" && "⚡"}
-                  {quote.category === "mindset" && "🧠"}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-foreground font-medium italic leading-relaxed mb-2">
-                    "{quote.text}"
-                  </p>
-                  <p className="text-xs text-muted-foreground">— {quote.author}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </section>
-
-        {/* Info Section */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10">
+        {/* About Section */}
+        <section className="glass rounded-xl p-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <div className="text-2xl">💪</div>
             <div>
-              <h3 className="text-base font-bold text-foreground mb-2">À propos des citations</h3>
+              <h3 className="text-base font-bold text-foreground mb-2">Plus de 130 citations inspirantes</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Découvre plus de 100 citations inspirantes dans 5 catégories différentes. Utilise les filtres pour explorer les thèmes qui résonnent avec toi, ou clique sur "Nouvelles" pour découvrir 10 nouvelles citations aléatoires.
+                Notre collection comprend des messages de motivation, discipline, succès, persévérance et mindset. 
+                Les notifications sont envoyées à des heures aléatoires entre 9h et 22h pour te surprendre et te motiver 
+                tout au long de la journée.
               </p>
             </div>
           </div>

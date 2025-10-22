@@ -19,21 +19,36 @@ export const useNotifications = () => {
     // Clear existing notifications
     await LocalNotifications.cancel({ notifications: [] });
 
-    // Schedule daily quote notifications at 9 AM
-    const randomQuotes = getRandomQuotes(30); // 30 days of quotes
+    // Get quotes per day from localStorage
+    const quotesPerDay = parseInt(localStorage.getItem("quotes_per_day") || "3");
+    const totalDays = 30;
+    const totalNotifications = totalDays * quotesPerDay;
     
-    const notifications = randomQuotes.map((quote, index) => {
-      const date = new Date();
-      date.setDate(date.getDate() + index);
-      date.setHours(9, 0, 0, 0);
+    const randomQuotes = getRandomQuotes(totalNotifications);
+    
+    const notifications = [];
+    let notificationId = 1;
 
-      return {
-        id: index + 1,
-        title: '💪 Ta citation du jour',
-        body: `"${quote.text}" - ${quote.author}`,
-        schedule: { at: date },
-      };
-    });
+    for (let day = 0; day < totalDays; day++) {
+      for (let i = 0; i < quotesPerDay; i++) {
+        // Random hour between 9 and 22
+        const randomHour = Math.floor(Math.random() * (22 - 9 + 1)) + 9;
+        const randomMinute = Math.floor(Math.random() * 60);
+        
+        const date = new Date();
+        date.setDate(date.getDate() + day);
+        date.setHours(randomHour, randomMinute, 0, 0);
+
+        const quote = randomQuotes[(day * quotesPerDay) + i];
+
+        notifications.push({
+          id: notificationId++,
+          title: '💪 Citation inspirante',
+          body: `"${quote.text}" - ${quote.author}`,
+          schedule: { at: date },
+        });
+      }
+    }
 
     await LocalNotifications.schedule({ notifications });
   };
