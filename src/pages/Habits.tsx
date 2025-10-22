@@ -171,14 +171,14 @@ const Habits = () => {
             className="flex-1 bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
           >
             <Plus className="w-4 h-4 mr-1.5" />
-            Créer une nouvelle habitude
+            Nouvelle habitude
           </Button>
           <Button
             onClick={() => setPlanOpen(true)}
             variant="outline"
-            className="border-primary/50 text-primary hover:bg-primary/10 h-9 px-4 text-sm font-semibold"
+            className="border-primary/50 text-primary hover:bg-primary/10 h-9 px-3 text-sm font-semibold shrink-0"
           >
-            <Target className="w-4 h-4 mr-1.5" />
+            <Target className="w-4 h-4 mr-1" />
             Plan
           </Button>
         </div>

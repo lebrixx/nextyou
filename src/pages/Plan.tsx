@@ -1,87 +1,29 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Plus, Trash2, Edit2 } from "lucide-react";
+import { Sparkles, RefreshCw } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-
-interface QuoteCategory {
-  id: string;
-  name: string;
-  icon: string;
-  enabled: boolean;
-}
-
-interface CustomQuote {
-  id: string;
-  text: string;
-  author: string;
-}
+import { quotes, getRandomQuotes, Quote } from "@/data/quotes";
 
 const Plan = () => {
-  const [categories, setCategories] = useState<QuoteCategory[]>(() => {
-    const saved = localStorage.getItem("habitflow_quote_categories");
-    return saved ? JSON.parse(saved) : [
-      { id: "motivation", name: "Motivation", icon: "🔥", enabled: true },
-      { id: "discipline", name: "Discipline", icon: "💪", enabled: true },
-      { id: "success", name: "Succès", icon: "🎯", enabled: true },
-      { id: "perseverance", name: "Persévérance", icon: "⚡", enabled: false },
-      { id: "mindset", name: "État d'esprit", icon: "🧠", enabled: false },
-    ];
-  });
+  const [selectedCategory, setSelectedCategory] = useState<Quote["category"] | "all">("all");
+  const [displayedQuotes, setDisplayedQuotes] = useState<Quote[]>(() => getRandomQuotes(10));
 
-  const [customQuotes, setCustomQuotes] = useState<CustomQuote[]>(() => {
-    const saved = localStorage.getItem("habitflow_custom_quotes");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const categories = [
+    { id: "all", name: "Toutes", icon: "✨" },
+    { id: "motivation", name: "Motivation", icon: "🔥" },
+    { id: "discipline", name: "Discipline", icon: "💪" },
+    { id: "success", name: "Succès", icon: "🎯" },
+    { id: "perseverance", name: "Persévérance", icon: "⚡" },
+    { id: "mindset", name: "État d'esprit", icon: "🧠" },
+  ];
 
-  const [isAddingQuote, setIsAddingQuote] = useState(false);
-  const [newQuoteText, setNewQuoteText] = useState("");
-  const [newQuoteAuthor, setNewQuoteAuthor] = useState("");
+  const filteredQuotes = selectedCategory === "all" 
+    ? displayedQuotes 
+    : displayedQuotes.filter(q => q.category === selectedCategory);
 
-  useEffect(() => {
-    localStorage.setItem("habitflow_quote_categories", JSON.stringify(categories));
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem("habitflow_custom_quotes", JSON.stringify(customQuotes));
-  }, [customQuotes]);
-
-  const toggleCategory = (categoryId: string) => {
-    setCategories(
-      categories.map((cat) =>
-        cat.id === categoryId ? { ...cat, enabled: !cat.enabled } : cat
-      )
-    );
-    toast.success("Préférences mises à jour");
-  };
-
-  const addCustomQuote = () => {
-    if (!newQuoteText.trim()) {
-      toast.error("Le texte de la citation ne peut pas être vide");
-      return;
-    }
-
-    const newQuote: CustomQuote = {
-      id: Date.now().toString(),
-      text: newQuoteText,
-      author: newQuoteAuthor || "Anonyme",
-    };
-
-    setCustomQuotes([...customQuotes, newQuote]);
-    setNewQuoteText("");
-    setNewQuoteAuthor("");
-    setIsAddingQuote(false);
-    toast.success("Citation ajoutée avec succès");
-  };
-
-  const deleteCustomQuote = (quoteId: string) => {
-    setCustomQuotes(customQuotes.filter((q) => q.id !== quoteId));
-    toast.success("Citation supprimée");
+  const refreshQuotes = () => {
+    setDisplayedQuotes(getRandomQuotes(10));
   };
 
   return (
@@ -91,34 +33,45 @@ const Plan = () => {
           <span className="bg-gradient-primary bg-clip-text text-transparent">Citations</span>
         </h1>
         <p className="text-muted-foreground text-sm">
-          Personnalise tes sources d'inspiration quotidiennes
+          Plus de 100 citations pour t'inspirer chaque jour
         </p>
       </header>
 
       <main className="px-6 pt-4 space-y-6 max-w-2xl mx-auto">
-        {/* Quote Categories */}
+        {/* Quote Categories Filter */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Filtrer par catégorie</h2>
+                <p className="text-xs text-muted-foreground">{quotes.length} citations disponibles</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Catégories de citations</h2>
-              <p className="text-xs text-muted-foreground">Active les thèmes qui te parlent</p>
-            </div>
+            <Button
+              onClick={refreshQuotes}
+              size="sm"
+              variant="outline"
+              className="border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Nouvelles
+            </Button>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <Badge
                 key={category.id}
-                variant={category.enabled ? "default" : "outline"}
+                variant={selectedCategory === category.id ? "default" : "outline"}
                 className={`cursor-pointer px-4 py-2 text-sm transition-all ${
-                  category.enabled
+                  selectedCategory === category.id
                     ? "bg-gradient-primary text-primary-foreground shadow-glow"
                     : "border-primary/30 text-muted-foreground hover:border-primary/50"
                 }`}
-                onClick={() => toggleCategory(category.id)}
+                onClick={() => setSelectedCategory(category.id as any)}
               >
                 <span className="mr-2">{category.icon}</span>
                 {category.name}
@@ -127,89 +80,30 @@ const Plan = () => {
           </div>
         </section>
 
-        {/* Custom Quotes */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-                <Edit2 className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">Mes citations personnelles</h2>
-                <p className="text-xs text-muted-foreground">Ajoute tes citations préférées</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Add Quote Button */}
-          <Dialog open={isAddingQuote} onOpenChange={setIsAddingQuote}>
-            <DialogTrigger asChild>
-              <Button className="w-full mb-4 bg-gradient-primary text-primary-foreground shadow-glow">
-                <Plus className="w-4 h-4 mr-2" />
-                Ajouter une citation
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="glass">
-              <DialogHeader>
-                <DialogTitle>Nouvelle citation</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="quote-text">Citation</Label>
-                  <Textarea
-                    id="quote-text"
-                    placeholder="La citation qui t'inspire..."
-                    value={newQuoteText}
-                    onChange={(e) => setNewQuoteText(e.target.value)}
-                    rows={3}
-                  />
+        {/* Quotes Display */}
+        <section className="space-y-3">
+          {filteredQuotes.map((quote, index) => (
+            <div
+              key={index}
+              className="glass rounded-xl p-5 shadow-elevation border border-white/5 animate-fade-in hover-scale"
+            >
+              <div className="flex items-start gap-3">
+                <div className="text-2xl shrink-0">
+                  {quote.category === "motivation" && "🔥"}
+                  {quote.category === "discipline" && "💪"}
+                  {quote.category === "success" && "🎯"}
+                  {quote.category === "perseverance" && "⚡"}
+                  {quote.category === "mindset" && "🧠"}
                 </div>
-                <div>
-                  <Label htmlFor="quote-author">Auteur (optionnel)</Label>
-                  <Input
-                    id="quote-author"
-                    placeholder="Nom de l'auteur"
-                    value={newQuoteAuthor}
-                    onChange={(e) => setNewQuoteAuthor(e.target.value)}
-                  />
-                </div>
-                <Button onClick={addCustomQuote} className="w-full bg-gradient-primary text-primary-foreground">
-                  Ajouter
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Custom Quotes List */}
-          {customQuotes.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-sm text-muted-foreground">
-                Aucune citation personnelle pour le moment
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {customQuotes.map((quote) => (
-                <div
-                  key={quote.id}
-                  className="bg-muted/30 rounded-lg p-4 border border-primary/10 group relative"
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteCustomQuote(quote.id)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                  <p className="text-sm text-foreground font-medium italic leading-relaxed pr-8">
+                <div className="flex-1">
+                  <p className="text-sm text-foreground font-medium italic leading-relaxed mb-2">
                     "{quote.text}"
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">— {quote.author}</p>
+                  <p className="text-xs text-muted-foreground">— {quote.author}</p>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
+          ))}
         </section>
 
         {/* Info Section */}
@@ -221,7 +115,7 @@ const Plan = () => {
             <div>
               <h3 className="text-base font-bold text-foreground mb-2">À propos des citations</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Les citations activées apparaîtront dans ton flux quotidien. Personnalise tes catégories et ajoute tes citations préférées pour créer une source d'inspiration qui te ressemble.
+                Découvre plus de 100 citations inspirantes dans 5 catégories différentes. Utilise les filtres pour explorer les thèmes qui résonnent avec toi, ou clique sur "Nouvelles" pour découvrir 10 nouvelles citations aléatoires.
               </p>
             </div>
           </div>

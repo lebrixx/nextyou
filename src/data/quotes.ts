@@ -1,0 +1,190 @@
+export interface Quote {
+  text: string;
+  author: string;
+  category: "motivation" | "discipline" | "success" | "perseverance" | "mindset";
+}
+
+export const quotes: Quote[] = [
+  // Motivation
+  { text: "La seule façon de faire du bon travail est d'aimer ce que vous faites.", author: "Steve Jobs", category: "motivation" },
+  { text: "Le succès n'est pas la clé du bonheur. Le bonheur est la clé du succès.", author: "Albert Schweitzer", category: "motivation" },
+  { text: "Crois en toi-même et tout devient possible.", author: "Anonyme", category: "motivation" },
+  { text: "La motivation vous sert de départ. L'habitude vous fait continuer.", author: "Jim Ryun", category: "motivation" },
+  { text: "Tu es plus fort que tu ne le penses.", author: "Anonyme", category: "motivation" },
+  { text: "Chaque jour est une nouvelle chance de s'améliorer.", author: "Anonyme", category: "motivation" },
+  { text: "Ne compte pas les jours, fais que les jours comptent.", author: "Muhammad Ali", category: "motivation" },
+  { text: "L'énergie et la persévérance conquièrent toutes choses.", author: "Benjamin Franklin", category: "motivation" },
+  { text: "Commence où tu es. Utilise ce que tu as. Fais ce que tu peux.", author: "Arthur Ashe", category: "motivation" },
+  { text: "La meilleure façon de prédire l'avenir est de le créer.", author: "Peter Drucker", category: "motivation" },
+  { text: "Le courage n'est pas l'absence de peur, mais la capacité de la vaincre.", author: "Nelson Mandela", category: "motivation" },
+  { text: "Tout ce dont tu as besoin est déjà en toi.", author: "Anonyme", category: "motivation" },
+  { text: "Les opportunités ne se présentent pas, tu les crées.", author: "Chris Grosser", category: "motivation" },
+  { text: "Fais-le maintenant. Parfois, plus tard devient jamais.", author: "Anonyme", category: "motivation" },
+  { text: "La passion est l'énergie. Ressens le pouvoir qui vient de te concentrer sur ce qui t'excite.", author: "Oprah Winfrey", category: "motivation" },
+  { text: "Sois le changement que tu veux voir dans le monde.", author: "Gandhi", category: "motivation" },
+  { text: "Ta vie ne s'améliore pas par hasard, elle s'améliore par le changement.", author: "Jim Rohn", category: "motivation" },
+  { text: "N'abandonne jamais un rêve juste à cause du temps qu'il faudra pour l'accomplir.", author: "Earl Nightingale", category: "motivation" },
+  { text: "Le moment parfait n'existe pas. Commence maintenant.", author: "Anonyme", category: "motivation" },
+  { text: "Tu ne peux pas changer le passé, mais tu peux ruiner le présent en t'inquiétant du futur.", author: "Anonyme", category: "motivation" },
+
+  // Discipline
+  { text: "La discipline est le pont entre tes objectifs et tes accomplissements.", author: "Jim Rohn", category: "discipline" },
+  { text: "Le succès n'est pas toujours une question de grandeur. C'est une question de cohérence.", author: "Dwayne Johnson", category: "discipline" },
+  { text: "Ce que tu fais aujourd'hui peut améliorer tous tes lendemains.", author: "Ralph Marston", category: "discipline" },
+  { text: "La discipline est la clé du succès. Sans elle, le talent ne suffit pas.", author: "Anonyme", category: "discipline" },
+  { text: "Les petites disciplines répétées avec constance conduisent à de grandes réalisations.", author: "Jim Rohn", category: "discipline" },
+  { text: "L'autodiscipline commence par la maîtrise de tes pensées.", author: "Napoleon Hill", category: "discipline" },
+  { text: "La discipline c'est choisir entre ce que tu veux maintenant et ce que tu veux le plus.", author: "Abraham Lincoln", category: "discipline" },
+  { text: "Le succès est la somme de petits efforts répétés jour après jour.", author: "Robert Collier", category: "discipline" },
+  { text: "La motivation te fait démarrer, l'habitude te fait continuer.", author: "Jim Ryun", category: "discipline" },
+  { text: "Ne te laisse pas distraire par ce qui n'a pas d'importance.", author: "Anonyme", category: "discipline" },
+  { text: "La routine est la base de l'excellence.", author: "Anonyme", category: "discipline" },
+  { text: "L'excellence n'est pas un acte mais une habitude.", author: "Aristote", category: "discipline" },
+  { text: "La discipline est liberté.", author: "Jocko Willink", category: "discipline" },
+  { text: "Fais ce qui doit être fait, même quand tu n'en as pas envie.", author: "Anonyme", category: "discipline" },
+  { text: "Le secret du changement est de concentrer toute ton énergie non pas à lutter contre le passé, mais à construire le nouveau.", author: "Socrate", category: "discipline" },
+  { text: "Ton corps peut tout supporter. C'est ton esprit qu'il faut convaincre.", author: "Anonyme", category: "discipline" },
+  { text: "La persévérance est la clé de toute réussite.", author: "Anonyme", category: "discipline" },
+  { text: "Les champions sont faits dans la douleur, pas dans le confort.", author: "Anonyme", category: "discipline" },
+  { text: "La discipline est le carburant de la réussite.", author: "Anonyme", category: "discipline" },
+  { text: "Chaque action compte. Chaque répétition compte.", author: "Anonyme", category: "discipline" },
+
+  // Succès
+  { text: "Le secret du succès, c'est de commencer.", author: "Mark Twain", category: "success" },
+  { text: "Le succès, c'est tomber sept fois et se relever huit.", author: "Proverbe japonais", category: "success" },
+  { text: "Les gagnants trouvent des moyens, les perdants des excuses.", author: "Franklin D. Roosevelt", category: "success" },
+  { text: "Le succès n'est pas définitif, l'échec n'est pas fatal : c'est le courage de continuer qui compte.", author: "Winston Churchill", category: "success" },
+  { text: "Tu n'as pas besoin d'être excellent pour commencer, mais tu dois commencer pour devenir excellent.", author: "Zig Ziglar", category: "success" },
+  { text: "Le succès est un état d'esprit. Si tu veux réussir, commence par penser à toi-même comme un succès.", author: "Joyce Brothers", category: "success" },
+  { text: "La différence entre qui tu es et qui tu veux être, c'est ce que tu fais.", author: "Charles Duhigg", category: "success" },
+  { text: "Le succès ne vient pas de ce que tu fais occasionnellement, mais de ce que tu fais de manière cohérente.", author: "Anonyme", category: "success" },
+  { text: "La route du succès est toujours en construction.", author: "Lily Tomlin", category: "success" },
+  { text: "Le succès demande du temps, de la patience et de la détermination.", author: "Anonyme", category: "success" },
+  { text: "Ton attitude, pas ton aptitude, déterminera ton altitude.", author: "Zig Ziglar", category: "success" },
+  { text: "Le succès c'est d'aller d'échec en échec sans perdre son enthousiasme.", author: "Winston Churchill", category: "success" },
+  { text: "Les limites n'existent que dans ton esprit.", author: "Anonyme", category: "success" },
+  { text: "Le succès n'est pas accidentel. C'est un travail acharné, de la persévérance et de l'apprentissage.", author: "Pelé", category: "success" },
+  { text: "Ne rêve pas ta vie, vis ton rêve.", author: "Anonyme", category: "success" },
+  { text: "La seule limite à notre épanouissement de demain sera nos doutes d'aujourd'hui.", author: "Franklin D. Roosevelt", category: "success" },
+  { text: "Chaque expert a d'abord été un débutant.", author: "Anonyme", category: "success" },
+  { text: "Le succès est la somme de petites victoires quotidiennes.", author: "Anonyme", category: "success" },
+  { text: "Agis comme si c'était impossible d'échouer.", author: "Winston Churchill", category: "success" },
+  { text: "Les rêves ne fonctionnent que si tu y travailles.", author: "John C. Maxwell", category: "success" },
+
+  // Persévérance
+  { text: "Ce n'est pas parce que les choses sont difficiles que nous n'osons pas, c'est parce que nous n'osons pas qu'elles sont difficiles.", author: "Sénèque", category: "perseverance" },
+  { text: "Les obstacles sont ces choses effrayantes que tu vois quand tu détournes les yeux de ton objectif.", author: "Henry Ford", category: "perseverance" },
+  { text: "Un gagnant est un rêveur qui n'abandonne jamais.", author: "Nelson Mandela", category: "perseverance" },
+  { text: "La persévérance, c'est ce qui rend l'impossible possible.", author: "Anonyme", category: "perseverance" },
+  { text: "Tombe sept fois, relève-toi huit.", author: "Proverbe japonais", category: "perseverance" },
+  { text: "L'échec est simplement l'opportunité de recommencer de manière plus intelligente.", author: "Henry Ford", category: "perseverance" },
+  { text: "La persévérance est la clé de toutes les portes verrouillées.", author: "Anonyme", category: "perseverance" },
+  { text: "Quand tu as envie d'abandonner, rappelle-toi pourquoi tu as commencé.", author: "Anonyme", category: "perseverance" },
+  { text: "Les difficultés renforcent l'esprit, comme le travail le fait pour le corps.", author: "Sénèque", category: "perseverance" },
+  { text: "Le succès est le résultat de la préparation, du travail acharné et de l'apprentissage de l'échec.", author: "Colin Powell", category: "perseverance" },
+  { text: "Chaque échec est une leçon déguisée.", author: "Anonyme", category: "perseverance" },
+  { text: "La vraie gloire est de se relever chaque fois qu'on tombe.", author: "Confucius", category: "perseverance" },
+  { text: "Plus c'est dur, plus c'est grand quand tu réussis.", author: "Anonyme", category: "perseverance" },
+  { text: "Ne dis jamais jamais, car les limites, comme les peurs, ne sont souvent qu'une illusion.", author: "Michael Jordan", category: "perseverance" },
+  { text: "Le perdant voit un problème dans chaque solution. Le gagnant voit une solution dans chaque problème.", author: "Anonyme", category: "perseverance" },
+  { text: "La force ne vient pas de gagner. Tes combats développent ta force.", author: "Arnold Schwarzenegger", category: "perseverance" },
+  { text: "Les diamants sont créés sous pression.", author: "Anonyme", category: "perseverance" },
+  { text: "L'adversité est l'état dans lequel l'homme se connaît le mieux.", author: "John Wooden", category: "perseverance" },
+  { text: "Quand tout semble aller contre toi, souviens-toi que l'avion décolle face au vent.", author: "Henry Ford", category: "perseverance" },
+  { text: "Continue. Chaque pas compte.", author: "Anonyme", category: "perseverance" },
+
+  // Mindset
+  { text: "Ton attitude détermine ta direction.", author: "Anonyme", category: "mindset" },
+  { text: "Change tes pensées et tu changeras ton monde.", author: "Norman Vincent Peale", category: "mindset" },
+  { text: "L'esprit est tout. Ce que tu penses, tu le deviens.", author: "Bouddha", category: "mindset" },
+  { text: "Soit tu contrôles ton esprit, soit il te contrôle.", author: "Anonyme", category: "mindset" },
+  { text: "La vie est un écho. Ce que tu envoies te revient.", author: "Zig Ziglar", category: "mindset" },
+  { text: "Tu es ce que tu crois être.", author: "C.S. Lewis", category: "mindset" },
+  { text: "Ton état d'esprit est un choix.", author: "Anonyme", category: "mindset" },
+  { text: "Pense positif, sois positif, et des choses positives arriveront.", author: "Anonyme", category: "mindset" },
+  { text: "La mentalité de croissance transforme l'échec en apprentissage.", author: "Carol Dweck", category: "mindset" },
+  { text: "Tu ne peux pas contrôler ce qui t'arrive, mais tu peux contrôler comment tu y réagis.", author: "Épictète", category: "mindset" },
+  { text: "Un esprit négatif ne te donnera jamais une vie positive.", author: "Anonyme", category: "mindset" },
+  { text: "Ton plus grand pouvoir est ton état d'esprit.", author: "Anonyme", category: "mindset" },
+  { text: "Ce que tu penses, tu l'attires. Ce que tu imagines, tu le crées.", author: "Anonyme", category: "mindset" },
+  { text: "La gratitude transforme ce que nous avons en suffisance.", author: "Anonyme", category: "mindset" },
+  { text: "Ton état d'esprit forge ton destin.", author: "Anonyme", category: "mindset" },
+  { text: "Élargis ton esprit et tu élargiras ton monde.", author: "Anonyme", category: "mindset" },
+  { text: "La façon dont tu vois les problèmes détermine comment tu les résous.", author: "Anonyme", category: "mindset" },
+  { text: "Un esprit calme est un esprit puissant.", author: "Anonyme", category: "mindset" },
+  { text: "Choisis l'optimisme, c'est un multiplicateur de force.", author: "Anonyme", category: "mindset" },
+  { text: "L'état d'esprit est la première étape vers le succès.", author: "Anonyme", category: "mindset" },
+
+  // Plus de citations motivation
+  { text: "Fais de ta vie un rêve, et d'un rêve, une réalité.", author: "Antoine de Saint-Exupéry", category: "motivation" },
+  { text: "L'action est la clé fondamentale de tout succès.", author: "Pablo Picasso", category: "motivation" },
+  { text: "La vie commence à la fin de votre zone de confort.", author: "Neale Donald Walsch", category: "motivation" },
+  { text: "Le seul impossible est celui qu'on ne tente pas.", author: "Anonyme", category: "motivation" },
+  { text: "Vis comme si tu devais mourir demain. Apprends comme si tu devais vivre toujours.", author: "Gandhi", category: "motivation" },
+  { text: "La distance entre tes rêves et la réalité s'appelle l'action.", author: "Anonyme", category: "motivation" },
+  { text: "Chaque matin, nous renaissons. Ce que nous faisons aujourd'hui compte le plus.", author: "Bouddha", category: "motivation" },
+  { text: "N'attends pas le moment parfait. Prends le moment et rends-le parfait.", author: "Anonyme", category: "motivation" },
+  { text: "Le bonheur n'est pas quelque chose de prêt à l'emploi. Il vient de tes propres actions.", author: "Dalaï Lama", category: "motivation" },
+  { text: "Si l'opportunité ne frappe pas, construis une porte.", author: "Milton Berle", category: "motivation" },
+
+  // Plus de citations discipline
+  { text: "Nous sommes ce que nous faisons à répétition. L'excellence n'est donc pas un acte, mais une habitude.", author: "Aristote", category: "discipline" },
+  { text: "La constance, c'est aller jusqu'au bout de ce que tu as décidé de faire.", author: "Anonyme", category: "discipline" },
+  { text: "Les habitudes d'aujourd'hui créent les résultats de demain.", author: "Anonyme", category: "discipline" },
+  { text: "Concentre-toi sur ce que tu peux contrôler.", author: "Anonyme", category: "discipline" },
+  { text: "La vraie liberté, c'est la discipline.", author: "Anonyme", category: "discipline" },
+  { text: "Fais les choses difficiles quand elles sont faciles.", author: "Lao Tseu", category: "discipline" },
+  { text: "L'effort continu, pas la force ou l'intelligence, est la clé pour libérer notre potentiel.", author: "Winston Churchill", category: "discipline" },
+  { text: "La discipline mène à l'habitude, l'habitude mène au succès.", author: "Anonyme", category: "discipline" },
+  { text: "Chaque choix a une conséquence. Choisis sagement.", author: "Anonyme", category: "discipline" },
+  { text: "Le contrôle de soi est la force. La pensée juste est la maîtrise. Le calme est le pouvoir.", author: "James Allen", category: "discipline" },
+
+  // Plus de citations succès
+  { text: "Le succès est un mauvais professeur. Il pousse les gens intelligents à penser qu'ils ne peuvent pas perdre.", author: "Bill Gates", category: "success" },
+  { text: "Il n'y a qu'une façon d'échouer, c'est d'abandonner avant d'avoir réussi.", author: "Olivier Lockert", category: "success" },
+  { text: "Le génie, c'est 1% d'inspiration et 99% de transpiration.", author: "Thomas Edison", category: "success" },
+  { text: "La réussite appartient à tout le monde. C'est au travail d'équipe qu'en revient le mérite.", author: "Frank Piccard", category: "success" },
+  { text: "Le succès, c'est se relever une fois de plus que l'on est tombé.", author: "Confucius", category: "success" },
+  { text: "Le talent gagne des matchs, mais le travail d'équipe et l'intelligence gagnent des championnats.", author: "Michael Jordan", category: "success" },
+  { text: "Le succès n'a pas besoin d'explication. L'échec n'en accepte aucune.", author: "Jesse Jackson", category: "success" },
+  { text: "La réussite ne se mesure pas à la position qu'on atteint mais aux obstacles qu'on a dû surmonter.", author: "Booker T. Washington", category: "success" },
+  { text: "Un des secrets du succès est de ne pas se laisser abattre par les échecs temporaires.", author: "Anonyme", category: "success" },
+  { text: "Le succès c'est obtenir ce que l'on veut. Le bonheur c'est apprécier ce que l'on obtient.", author: "Dale Carnegie", category: "success" },
+
+  // Plus de citations persévérance
+  { text: "La patience et la persévérance ont un effet magique devant lequel les difficultés disparaissent.", author: "John Quincy Adams", category: "perseverance" },
+  { text: "Même le plus long voyage commence par un premier pas.", author: "Lao Tseu", category: "perseverance" },
+  { text: "La vie est comme le vélo, il faut avancer pour ne pas perdre l'équilibre.", author: "Albert Einstein", category: "perseverance" },
+  { text: "Il n'y a pas de raccourci vers le succès.", author: "Anonyme", category: "perseverance" },
+  { text: "Persévère. Rien au monde ne peut remplacer la persévérance.", author: "Calvin Coolidge", category: "perseverance" },
+  { text: "Le champion est celui qui se relève quand il ne le peut pas.", author: "Jack Dempsey", category: "perseverance" },
+  { text: "La volonté de gagner n'est rien sans la volonté de se préparer.", author: "Juma Ikangaa", category: "perseverance" },
+  { text: "On ne réalise pas ses rêves en dormant.", author: "Anonyme", category: "perseverance" },
+  { text: "Plus tu te rapproches de tes rêves, plus ils deviennent réels.", author: "Anonyme", category: "perseverance" },
+  { text: "Le succès est la capacité d'aller d'échec en échec sans perdre son enthousiasme.", author: "Winston Churchill", category: "perseverance" },
+
+  // Plus de citations mindset
+  { text: "Sois le maître de ton esprit, pas l'esclave de tes émotions.", author: "Anonyme", category: "mindset" },
+  { text: "La vraie richesse, c'est d'avoir un esprit paisible.", author: "Anonyme", category: "mindset" },
+  { text: "Ton premier ennemi n'est pas extérieur, c'est ton propre doute.", author: "Anonyme", category: "mindset" },
+  { text: "La façon dont nous pensons détermine la façon dont nous vivons.", author: "Anonyme", category: "mindset" },
+  { text: "Un esprit positif donne de l'énergie positive.", author: "Anonyme", category: "mindset" },
+  { text: "La force mentale est la base de tout succès physique.", author: "Anonyme", category: "mindset" },
+  { text: "Maîtrise ton esprit et tu maîtriseras ta vie.", author: "Anonyme", category: "mindset" },
+  { text: "Les pensées négatives sont comme des oiseaux, tu ne peux les empêcher de voler, mais tu peux les empêcher de faire leur nid.", author: "Proverbe chinois", category: "mindset" },
+  { text: "Ton mental est ton arme la plus puissante.", author: "Anonyme", category: "mindset" },
+  { text: "Cultive un esprit de gratitude et regarde ta vie se transformer.", author: "Anonyme", category: "mindset" },
+];
+
+export const getRandomQuote = (): Quote => {
+  return quotes[Math.floor(Math.random() * quotes.length)];
+};
+
+export const getQuotesByCategory = (category: Quote["category"]): Quote[] => {
+  return quotes.filter(q => q.category === category);
+};
+
+export const getRandomQuotes = (count: number): Quote[] => {
+  const shuffled = [...quotes].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
