@@ -26,10 +26,10 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty("--primary-glow", colors["primary-glow"]);
   root.style.setProperty("--gradient-primary", colors["gradient-primary"]);
   
-  localStorage.setItem("habitflow_theme", theme);
+  localStorage.setItem("nextyou_theme", theme);
 };
 
 export const getTheme = (): Theme => {
-  const saved = localStorage.getItem("habitflow_theme");
+  const saved = localStorage.getItem("nextyou_theme");
   return (saved as Theme) || "purple";
 };

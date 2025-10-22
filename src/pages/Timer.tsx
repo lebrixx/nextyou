@@ -149,8 +149,8 @@ const Timer = () => {
               <div className="grid grid-cols-5 gap-2 mb-4">
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
-                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
-                      {months}
+                    <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
+                      {months.toString().padStart(2, '0')}
                     </p>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
@@ -159,8 +159,8 @@ const Timer = () => {
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
-                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
-                      {days}
+                    <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
+                      {days.toString().padStart(2, '0')}
                     </p>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
@@ -169,8 +169,8 @@ const Timer = () => {
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
-                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
-                      {hours}
+                    <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
+                      {hours.toString().padStart(2, '0')}
                     </p>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">
@@ -179,8 +179,8 @@ const Timer = () => {
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
-                    <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center">
-                      {minutes}
+                    <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
+                      {minutes.toString().padStart(2, '0')}
                     </p>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-2 font-semibold uppercase tracking-wider">

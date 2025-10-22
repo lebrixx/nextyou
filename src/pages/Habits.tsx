@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, Target, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, Target, ChevronRight, Trash2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import HabitStats from "@/components/HabitStats";
@@ -152,20 +152,6 @@ const Habits = () => {
           Gère et suis tes habitudes quotidiennes
         </p>
         
-        {/* Search & Filter */}
-        <div className="flex gap-2 mb-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher..."
-              className="pl-9 glass border-white/10 h-9 text-sm focus:border-primary/50 transition-colors"
-            />
-          </div>
-          <Button variant="outline" size="icon" className="glass border-white/10 hover:border-primary/50 h-9 w-9">
-            <Filter className="w-4 h-4" />
-          </Button>
-        </div>
-
         <div className="space-y-2">
           <Button 
             onClick={() => setDialogOpen(true)}

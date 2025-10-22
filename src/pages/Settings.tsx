@@ -94,7 +94,7 @@ const Settings = () => {
     await supabase.auth.signOut();
     toast({
       title: "Déconnexion",
-      description: "À bientôt sur HabitFlow !",
+      description: "À bientôt sur Next You 2.0 !",
     });
     navigate("/");
   };
@@ -282,7 +282,7 @@ const Settings = () => {
           </h2>
           <div className="glass rounded-xl divide-y divide-white/5">
             <button 
-              onClick={() => toast({ title: "Support", description: "Contactez-nous à support@habitflow.app" })}
+              onClick={() => toast({ title: "Support", description: "Contactez-nous à support@nextyou.app" })}
               className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
             >
               <p className="font-semibold text-foreground text-sm">Aide & Support</p>

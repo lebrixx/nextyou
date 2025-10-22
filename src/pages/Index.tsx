@@ -306,7 +306,7 @@ const Index = () => {
           <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
             <p>
               Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
-              jour après jour. HabitFlow n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
+              jour après jour. Next You 2.0 n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
               dans cette quête vers l&apos;excellence personnelle.
             </p>
             <p>

@@ -39,7 +39,7 @@ const Auth = () => {
 
         toast({
           title: "Connexion réussie",
-          description: "Bienvenue sur HabitFlow !",
+          description: "Bienvenue sur Next You 2.0 !",
         });
         navigate("/");
       } else {

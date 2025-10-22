@@ -17,7 +17,10 @@ export const useNotifications = () => {
 
   const scheduleQuoteNotifications = async () => {
     // Clear existing notifications
-    await LocalNotifications.cancel({ notifications: [] });
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length > 0) {
+      await LocalNotifications.cancel({ notifications: pending.notifications });
+    }
 
     // Get quotes per day from localStorage
     const quotesPerDay = parseInt(localStorage.getItem("quotes_per_day") || "3");
@@ -30,14 +33,18 @@ export const useNotifications = () => {
     let notificationId = 1;
 
     for (let day = 0; day < totalDays; day++) {
+      // Distribute notifications evenly throughout the day
+      const hoursInDay = 14; // Between 9 AM and 11 PM
+      const intervalHours = hoursInDay / quotesPerDay;
+      
       for (let i = 0; i < quotesPerDay; i++) {
-        // Random hour between 9 and 22
-        const randomHour = Math.floor(Math.random() * (22 - 9 + 1)) + 9;
+        // Calculate time slot for this notification
+        const baseHour = 9 + Math.floor(i * intervalHours);
         const randomMinute = Math.floor(Math.random() * 60);
         
         const date = new Date();
         date.setDate(date.getDate() + day);
-        date.setHours(randomHour, randomMinute, 0, 0);
+        date.setHours(baseHour, randomMinute, 0, 0);
 
         const quote = randomQuotes[(day * quotesPerDay) + i];
 

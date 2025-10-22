@@ -88,7 +88,7 @@ const Plan = () => {
             className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Enregistrer et activer les notifications
+            💾 Enregistrer et activer les notifications
           </Button>
 
           <Button
@@ -97,7 +97,7 @@ const Plan = () => {
             size="sm"
             className="w-full glass border-primary/30 text-xs"
           >
-            📲 Tester une notification maintenant
+            ✨ Tester (envoie une notification maintenant)
           </Button>
         </section>
 
@@ -138,7 +138,7 @@ const Plan = () => {
 
             <div className="text-center pt-2">
               <p className="text-xs text-primary">
-                💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 130 messages inspirants
+                💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 160 messages inspirants
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ const Plan = () => {
           <div className="flex items-start gap-3">
             <div className="text-2xl">💪</div>
             <div>
-              <h3 className="text-base font-bold text-foreground mb-2">Plus de 130 citations inspirantes</h3>
+              <h3 className="text-base font-bold text-foreground mb-2">Plus de 160 citations inspirantes</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Notre collection comprend des messages de motivation, discipline, succès, persévérance et mindset. 
                 Les notifications sont envoyées à des heures aléatoires entre 9h et 22h pour te surprendre et te motiver 

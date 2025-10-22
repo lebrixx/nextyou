@@ -27,8 +27,10 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
     const avgStreak = total > 0 ? Math.round(habits.reduce((sum, h) => sum + h.streak, 0) / total) : 0;
     const bestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+    const totalStreakDays = habits.reduce((sum, h) => sum + h.streak, 0);
+    const perfectDays = habits.filter(h => h.streak > 0).length; // Nombre d'habitudes avec au moins 1 jour de série
 
-    return { total, completed, completionRate, avgStreak, bestStreak };
+    return { total, completed, completionRate, avgStreak, bestStreak, totalStreakDays, perfectDays };
   }, [habits]);
 
   // Prepare chart data
@@ -39,20 +41,26 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
 
   // Generate analysis
   const getAnalysis = () => {
-    const { completionRate, avgStreak, bestStreak, total } = stats;
+    const { completionRate, avgStreak, bestStreak, total, totalStreakDays, perfectDays } = stats;
     
     if (total === 0) {
       return "Commence par créer des habitudes pour voir ton analyse.";
     }
 
-    if (completionRate >= 80) {
-      return `Excellent travail ! Tu as complété ${completionRate}% de tes habitudes aujourd'hui. Ta discipline est impressionnante. Continue ainsi pour atteindre tes objectifs.`;
+    const consistency = perfectDays / total;
+    
+    if (completionRate >= 80 && avgStreak >= 5) {
+      return `Extraordinaire ! Tu as complété ${completionRate}% de tes habitudes avec une moyenne de ${avgStreak} jours de série. Tu accumules déjà ${totalStreakDays} jours au total. Ta discipline est exemplaire et te rapproche chaque jour de tes objectifs. Continue sur cette lancée !`;
+    } else if (completionRate >= 80) {
+      return `Excellent travail ! Tu as complété ${completionRate}% de tes habitudes aujourd'hui. Ta discipline est impressionnante. Pour maximiser ton impact, concentre-toi sur maintenir ces habitudes plusieurs jours d'affilée.`;
+    } else if (completionRate >= 50 && avgStreak >= 3) {
+      return `Bien joué ! Tu as complété ${completionRate}% de tes habitudes avec ${totalStreakDays} jours cumulés. Tu prouves ta constance avec une série moyenne de ${avgStreak} jours. Continue ainsi et tu atteindras des résultats extraordinaires.`;
     } else if (completionRate >= 50) {
-      return `Bien joué ! Tu as complété ${completionRate}% de tes habitudes. Tu es sur la bonne voie. Reste constant et tu verras des résultats extraordinaires.`;
+      return `Bien joué ! Tu as complété ${completionRate}% de tes habitudes. Tu es sur la bonne voie. Pour progresser, essaie de ne pas rompre tes séries - chaque jour consécutif renforce ta volonté.`;
     } else if (completionRate > 0) {
-      return `Tu as complété ${completionRate}% de tes habitudes aujourd'hui. Chaque petit pas compte. Concentre-toi sur une habitude à la fois pour construire un momentum positif.`;
+      return `Tu as complété ${completionRate}% de tes habitudes aujourd'hui. Chaque petit pas compte. ${perfectDays > 0 ? `Tu as ${perfectDays} habitude(s) active(s) - concentre-toi sur elles pour construire un momentum positif.` : 'Commence par une seule habitude pour créer un effet d\'entraînement.'}`;
     } else {
-      return "Aujourd'hui est une nouvelle opportunité. Commence par une seule habitude, la plus facile, et construis ta série de victoires à partir de là.";
+      return "Aujourd'hui est une nouvelle opportunité. Commence par une seule habitude, la plus facile, et construis ta série de victoires à partir de là. Le premier jour est toujours le plus important.";
     }
   };
 
@@ -74,16 +82,16 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
           Statistiques
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="mb-2">
-          <DialogTitle className="text-xl sm:text-2xl">
+      <DialogContent className="glass max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto p-3 sm:p-5">
+        <DialogHeader className="mb-3">
+          <DialogTitle className="text-lg sm:text-xl">
             Tes <span className="bg-gradient-primary bg-clip-text text-transparent">Statistiques</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <StatsCard
               icon={Calendar}
               label="Aujourd'hui"
@@ -106,35 +114,45 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
               label="Meilleure"
               value={stats.bestStreak}
             />
+            <StatsCard
+              icon={Calendar}
+              label="Total jours"
+              value={stats.totalStreakDays}
+            />
+            <StatsCard
+              icon={Award}
+              label="Actives"
+              value={`${stats.perfectDays}/${stats.total}`}
+            />
           </div>
 
           {/* Chart */}
           {habits.length > 0 && (
-            <div className="glass rounded-xl p-3 sm:p-4 shadow-elevation">
-              <h3 className="text-sm sm:text-base font-bold text-foreground mb-3">Séries par habitude</h3>
-              <ChartContainer config={chartConfig} className="h-[200px] w-full">
+            <div className="glass rounded-xl p-2 sm:p-3 shadow-elevation">
+              <h3 className="text-xs sm:text-sm font-bold text-foreground mb-2">Séries par habitude</h3>
+              <ChartContainer config={chartConfig} className="h-[160px] sm:h-[180px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                  <BarChart data={chartData} margin={{ top: 5, right: 2, left: -25, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
                     <XAxis 
                       dataKey="name" 
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={10}
+                      fontSize={8}
                       tickLine={false}
                       angle={-45}
                       textAnchor="end"
-                      height={60}
+                      height={50}
                     />
                     <YAxis 
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={10}
+                      fontSize={8}
                       tickLine={false}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar 
                       dataKey="streak" 
                       fill="var(--color-streak)" 
-                      radius={[6, 6, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -143,14 +161,14 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
           )}
 
           {/* Analysis */}
-          <div className="glass rounded-xl p-3 sm:p-4 shadow-elevation border border-primary/10">
-            <div className="flex items-start gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
+          <div className="glass rounded-xl p-2 sm:p-3 shadow-elevation border border-primary/10">
+            <div className="flex items-start gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 sm:mb-2">Analyse</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                <h3 className="text-xs sm:text-sm font-bold text-foreground mb-1">Analyse</h3>
+                <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
                   {getAnalysis()}
                 </p>
               </div>
