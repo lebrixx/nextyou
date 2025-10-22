@@ -146,29 +146,6 @@ const Index = () => {
           <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
         </section>
 
-        {/* Stats Grid */}
-        <section className="grid grid-cols-2 gap-3">
-          <StatsCard
-            icon={Award}
-            label="Meilleur streak"
-            value={longestStreak > 0 ? `${longestStreak}j` : "0j"}
-          />
-          <StatsCard
-            icon={Calendar}
-            label="Jours actifs"
-            value={daysActiveThisWeek}
-          />
-          <StatsCard
-            icon={Target}
-            label="Total habitudes"
-            value={totalHabits}
-          />
-          <StatsCard
-            icon={TrendingUp}
-            label="Taux aujourd&apos;hui"
-            value={`${Math.round(progressPercentage)}%`}
-          />
-        </section>
 
         {/* Today's Habits */}
         <section className="space-y-4">

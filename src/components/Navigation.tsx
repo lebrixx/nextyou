@@ -5,7 +5,7 @@ const Navigation = () => {
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },
     { icon: Target, label: "Habitudes", path: "/habits" },
-    { icon: BarChart3, label: "Analyse", path: "/analytics" },
+    { icon: BarChart3, label: "Plan", path: "/analytics" },
     { icon: Timer, label: "Chrono", path: "/timer" },
     { icon: Settings, label: "Réglages", path: "/settings" },
   ];
