@@ -96,7 +96,7 @@ const Settings = () => {
       title: "Déconnexion",
       description: "À bientôt sur HabitFlow !",
     });
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
