@@ -1,11 +1,11 @@
-import { Home, Target, BarChart3, Timer, Settings } from "lucide-react";
+import { Home, Target, Sparkles, Timer, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const Navigation = () => {
   const navItems = [
     { icon: Home, label: "Accueil", path: "/" },
     { icon: Target, label: "Habitudes", path: "/habits" },
-    { icon: BarChart3, label: "Plan", path: "/analytics" },
+    { icon: Sparkles, label: "Citations", path: "/analytics" },
     { icon: Timer, label: "Chrono", path: "/timer" },
     { icon: Settings, label: "Réglages", path: "/settings" },
   ];

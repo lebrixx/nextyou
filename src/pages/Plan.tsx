@@ -1,306 +1,228 @@
 import { useState, useEffect } from "react";
-import { Target, Plus, Trash2, ChevronRight, GitBranch, Flame } from "lucide-react";
+import { Sparkles, Plus, Trash2, Edit2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-interface Action {
+interface QuoteCategory {
   id: string;
-  text: string;
+  name: string;
+  icon: string;
+  enabled: boolean;
 }
 
-interface Goal {
+interface CustomQuote {
   id: string;
-  title: string;
-  actions: Action[];
+  text: string;
+  author: string;
 }
 
 const Plan = () => {
-  const [goals, setGoals] = useState<Goal[]>(() => {
-    const saved = localStorage.getItem("habitflow_goals");
+  const [categories, setCategories] = useState<QuoteCategory[]>(() => {
+    const saved = localStorage.getItem("habitflow_quote_categories");
+    return saved ? JSON.parse(saved) : [
+      { id: "motivation", name: "Motivation", icon: "🔥", enabled: true },
+      { id: "discipline", name: "Discipline", icon: "💪", enabled: true },
+      { id: "success", name: "Succès", icon: "🎯", enabled: true },
+      { id: "perseverance", name: "Persévérance", icon: "⚡", enabled: false },
+      { id: "mindset", name: "État d'esprit", icon: "🧠", enabled: false },
+    ];
+  });
+
+  const [customQuotes, setCustomQuotes] = useState<CustomQuote[]>(() => {
+    const saved = localStorage.getItem("habitflow_custom_quotes");
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [newGoalTitle, setNewGoalTitle] = useState("");
-  const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
-  const [newActionText, setNewActionText] = useState("");
+  const [isAddingQuote, setIsAddingQuote] = useState(false);
+  const [newQuoteText, setNewQuoteText] = useState("");
+  const [newQuoteAuthor, setNewQuoteAuthor] = useState("");
 
   useEffect(() => {
-    localStorage.setItem("habitflow_goals", JSON.stringify(goals));
-  }, [goals]);
+    localStorage.setItem("habitflow_quote_categories", JSON.stringify(categories));
+  }, [categories]);
 
-  const addGoal = () => {
-    if (!newGoalTitle.trim()) {
-      toast.error("Le titre de l'objectif ne peut pas être vide");
+  useEffect(() => {
+    localStorage.setItem("habitflow_custom_quotes", JSON.stringify(customQuotes));
+  }, [customQuotes]);
+
+  const toggleCategory = (categoryId: string) => {
+    setCategories(
+      categories.map((cat) =>
+        cat.id === categoryId ? { ...cat, enabled: !cat.enabled } : cat
+      )
+    );
+    toast.success("Préférences mises à jour");
+  };
+
+  const addCustomQuote = () => {
+    if (!newQuoteText.trim()) {
+      toast.error("Le texte de la citation ne peut pas être vide");
       return;
     }
 
-    const newGoal: Goal = {
+    const newQuote: CustomQuote = {
       id: Date.now().toString(),
-      title: newGoalTitle,
-      actions: [],
+      text: newQuoteText,
+      author: newQuoteAuthor || "Anonyme",
     };
 
-    setGoals([...goals, newGoal]);
-    setNewGoalTitle("");
-    setIsAddingGoal(false);
-    toast.success("Objectif ajouté avec succès");
+    setCustomQuotes([...customQuotes, newQuote]);
+    setNewQuoteText("");
+    setNewQuoteAuthor("");
+    setIsAddingQuote(false);
+    toast.success("Citation ajoutée avec succès");
   };
 
-  const deleteGoal = (goalId: string) => {
-    setGoals(goals.filter((g) => g.id !== goalId));
-    toast.success("Objectif supprimé");
-  };
-
-  const addAction = (goalId: string) => {
-    if (!newActionText.trim()) {
-      toast.error("Le texte de l'action ne peut pas être vide");
-      return;
-    }
-
-    const newAction: Action = {
-      id: Date.now().toString(),
-      text: newActionText,
-    };
-
-    setGoals(
-      goals.map((goal) =>
-        goal.id === goalId
-          ? { ...goal, actions: [...goal.actions, newAction] }
-          : goal
-      )
-    );
-
-    setNewActionText("");
-    setEditingGoalId(null);
-    toast.success("Action ajoutée");
-  };
-
-  const deleteAction = (goalId: string, actionId: string) => {
-    setGoals(
-      goals.map((goal) =>
-        goal.id === goalId
-          ? { ...goal, actions: goal.actions.filter((a) => a.id !== actionId) }
-          : goal
-      )
-    );
-    toast.success("Action supprimée");
+  const deleteCustomQuote = (quoteId: string) => {
+    setCustomQuotes(customQuotes.filter((q) => q.id !== quoteId));
+    toast.success("Citation supprimée");
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Ton <span className="bg-gradient-primary bg-clip-text text-transparent">Plan</span>
+          <span className="bg-gradient-primary bg-clip-text text-transparent">Citations</span>
         </h1>
         <p className="text-muted-foreground text-sm">
-          Transforme tes ambitions en actions concrètes
+          Personnalise tes sources d'inspiration quotidiennes
         </p>
       </header>
 
-      <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
-        {/* Add Goal Button */}
-        <Dialog open={isAddingGoal} onOpenChange={setIsAddingGoal}>
-          <DialogTrigger asChild>
-            <Button className="w-full bg-gradient-primary text-primary-foreground shadow-glow">
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un objectif
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="glass">
-            <DialogHeader>
-              <DialogTitle>Nouvel objectif</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="goal-title">Quel est ton objectif ?</Label>
-                <Input
-                  id="goal-title"
-                  placeholder="Ex: Apprendre l'anglais, Devenir plus beau..."
-                  value={newGoalTitle}
-                  onChange={(e) => setNewGoalTitle(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addGoal()}
-                />
-              </div>
-              <Button onClick={addGoal} className="w-full bg-gradient-primary text-primary-foreground">
-                Créer l'objectif
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Goals List */}
-        {goals.length === 0 ? (
-          <section className="glass rounded-xl p-8 text-center shadow-elevation space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
-              <Target className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground">Commence à planifier</h2>
-            <div className="space-y-2 text-left max-w-md mx-auto">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Définis tes objectifs et décompose-les en actions concrètes pour créer un chemin clair vers ta réussite.
-              </p>
-            </div>
-          </section>
-        ) : (
-          <div className="space-y-4">
-            {goals.map((goal) => (
-              <section key={goal.id} className="glass rounded-xl p-5 shadow-elevation border border-white/5">
-                {/* Goal Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-                      <Target className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-foreground mb-1">{goal.title}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {goal.actions.length} action{goal.actions.length > 1 ? "s" : ""} pour y parvenir
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteGoal(goal.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Actions List */}
-                {goal.actions.length > 0 && (
-                  <div className="space-y-2 mb-3 ml-13">
-                    {goal.actions.map((action, index) => (
-                      <div
-                        key={action.id}
-                        className="flex items-start gap-2 group"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="flex flex-col items-center shrink-0">
-                            {index > 0 && (
-                              <div className="w-px h-3 bg-primary/30" />
-                            )}
-                            <ChevronRight className="w-4 h-4 text-primary" />
-                            {index < goal.actions.length - 1 && (
-                              <div className="w-px h-6 bg-primary/30" />
-                            )}
-                          </div>
-                          <p className="text-sm text-foreground bg-muted/50 rounded-lg px-3 py-2 flex-1">
-                            {action.text}
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteAction(goal.id, action.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add Action */}
-                {editingGoalId === goal.id ? (
-                  <div className="space-y-2 ml-13">
-                    <Input
-                      placeholder="Ex: Regarder 15min de vidéos en anglais par jour..."
-                      value={newActionText}
-                      onChange={(e) => setNewActionText(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && addAction(goal.id)}
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => addAction(goal.id)}
-                        className="bg-gradient-primary text-primary-foreground"
-                      >
-                        Ajouter
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingGoalId(null);
-                          setNewActionText("");
-                        }}
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingGoalId(goal.id)}
-                    className="ml-13 border-primary/30 text-primary hover:bg-primary/10"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Ajouter une action
-                  </Button>
-                )}
-              </section>
-            ))}
-          </div>
-        )}
-
-        {/* Why it's important section */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10 mt-8">
-          <div className="flex items-start gap-3">
+      <main className="px-6 pt-4 space-y-6 max-w-2xl mx-auto">
+        {/* Quote Categories */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5">
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Target className="w-5 h-5 text-primary-foreground" />
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-foreground mb-2">Pourquoi est-ce important ?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="text-primary font-semibold">Un objectif sans plan n'est qu'un rêve.</span> En décomposant tes ambitions en actions concrètes, tu transformes l'incertitude en <span className="text-foreground font-semibold">clarté</span>. Chaque branche devient une promesse que tu peux tenir, un pas vers la version de toi que tu aspires à devenir.
-              </p>
+              <h2 className="text-lg font-bold text-foreground">Catégories de citations</h2>
+              <p className="text-xs text-muted-foreground">Active les thèmes qui te parlent</p>
             </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Badge
+                key={category.id}
+                variant={category.enabled ? "default" : "outline"}
+                className={`cursor-pointer px-4 py-2 text-sm transition-all ${
+                  category.enabled
+                    ? "bg-gradient-primary text-primary-foreground shadow-glow"
+                    : "border-primary/30 text-muted-foreground hover:border-primary/50"
+                }`}
+                onClick={() => toggleCategory(category.id)}
+              >
+                <span className="mr-2">{category.icon}</span>
+                {category.name}
+              </Badge>
+            ))}
           </div>
         </section>
 
-        {/* Motivation Section */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10 mt-4">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Flame className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-base font-bold text-foreground mb-1">Motivation</h3>
-              <p className="text-xs text-muted-foreground">Citations pour t'inspirer chaque jour</p>
+        {/* Custom Quotes */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                <Edit2 className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Mes citations personnelles</h2>
+                <p className="text-xs text-muted-foreground">Ajoute tes citations préférées</p>
+              </div>
             </div>
           </div>
-          
-          <div className="space-y-3">
-            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
-              <p className="text-sm text-foreground font-medium italic leading-relaxed">
-                "La discipline est le pont entre tes objectifs et tes accomplissements."
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">— Jim Rohn</p>
-            </div>
-            
-            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
-              <p className="text-sm text-foreground font-medium italic leading-relaxed">
-                "Tu n'as pas besoin d'être excellent pour commencer, mais tu dois commencer pour devenir excellent."
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">— Zig Ziglar</p>
-            </div>
 
-            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
-              <p className="text-sm text-foreground font-medium italic leading-relaxed">
-                "Le secret du succès, c'est de commencer."
+          {/* Add Quote Button */}
+          <Dialog open={isAddingQuote} onOpenChange={setIsAddingQuote}>
+            <DialogTrigger asChild>
+              <Button className="w-full mb-4 bg-gradient-primary text-primary-foreground shadow-glow">
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter une citation
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="glass">
+              <DialogHeader>
+                <DialogTitle>Nouvelle citation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="quote-text">Citation</Label>
+                  <Textarea
+                    id="quote-text"
+                    placeholder="La citation qui t'inspire..."
+                    value={newQuoteText}
+                    onChange={(e) => setNewQuoteText(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="quote-author">Auteur (optionnel)</Label>
+                  <Input
+                    id="quote-author"
+                    placeholder="Nom de l'auteur"
+                    value={newQuoteAuthor}
+                    onChange={(e) => setNewQuoteAuthor(e.target.value)}
+                  />
+                </div>
+                <Button onClick={addCustomQuote} className="w-full bg-gradient-primary text-primary-foreground">
+                  Ajouter
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Custom Quotes List */}
+          {customQuotes.length === 0 ? (
+            <div className="text-center py-6">
+              <p className="text-sm text-muted-foreground">
+                Aucune citation personnelle pour le moment
               </p>
-              <p className="text-xs text-muted-foreground mt-2">— Mark Twain</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {customQuotes.map((quote) => (
+                <div
+                  key={quote.id}
+                  className="bg-muted/30 rounded-lg p-4 border border-primary/10 group relative"
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteCustomQuote(quote.id)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <p className="text-sm text-foreground font-medium italic leading-relaxed pr-8">
+                    "{quote.text}"
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">— {quote.author}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Info Section */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground mb-2">À propos des citations</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Les citations activées apparaîtront dans ton flux quotidien. Personnalise tes catégories et ajoute tes citations préférées pour créer une source d'inspiration qui te ressemble.
+              </p>
             </div>
           </div>
         </section>
