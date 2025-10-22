@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Target, Plus, Trash2, ChevronRight, GitBranch } from "lucide-react";
+import { Target, Plus, Trash2, ChevronRight, GitBranch, Flame } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -98,7 +98,7 @@ const Plan = () => {
           Ton <span className="bg-gradient-primary bg-clip-text text-transparent">Plan</span>
         </h1>
         <p className="text-muted-foreground text-sm">
-          Définis tes objectifs et les actions pour les atteindre
+          Transforme tes ambitions en actions concrètes
         </p>
       </header>
 
@@ -140,24 +140,10 @@ const Plan = () => {
               <Target className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-xl font-bold text-foreground">Commence à planifier</h2>
-            <div className="space-y-3 text-left max-w-md mx-auto">
+            <div className="space-y-2 text-left max-w-md mx-auto">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Cette section te permet de définir tes grands objectifs et de les décomposer en actions concrètes :
+                Définis tes objectifs et décompose-les en actions concrètes pour créer un chemin clair vers ta réussite.
               </p>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <GitBranch className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span>Définis tes objectifs de vie (apprendre une langue, améliorer ton physique...)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <GitBranch className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span>Crée des branches d'actions pour chaque objectif</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <GitBranch className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span>Visualise le chemin vers ta réussite</span>
-                </li>
-              </ul>
             </div>
           </section>
         ) : (
@@ -269,24 +255,52 @@ const Plan = () => {
         )}
 
         {/* Why it's important section */}
-        <section className="glass rounded-xl p-6 shadow-elevation border border-primary/10 mt-8">
-          <div className="flex items-start gap-3 mb-3">
+        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10 mt-8">
+          <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
               <Target className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-foreground mb-2">Pourquoi est-ce important ?</h3>
-              <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-                <p>
-                  <span className="text-primary font-semibold">Un objectif sans plan n'est qu'un rêve.</span> Définir tes objectifs et les décomposer en actions concrètes transforme tes ambitions en réalité tangible.
-                </p>
-                <p>
-                  Chaque action que tu identifies devient une <span className="text-foreground font-semibold">étape franchissable</span>. Au lieu d'être submergé par l'ampleur de ton objectif, tu crées un chemin clair, une marche après l'autre.
-                </p>
-                <p>
-                  Ce plan te donne de la <span className="text-primary font-semibold">clarté</span>, te permet de mesurer tes progrès, et surtout, il transforme l'incertitude en <span className="text-foreground font-semibold">action</span>. Chaque branche que tu ajoutes ici est une promesse que tu te fais — et que tu peux tenir.
-                </p>
-              </div>
+              <h3 className="text-base font-bold text-foreground mb-2">Pourquoi est-ce important ?</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                <span className="text-primary font-semibold">Un objectif sans plan n'est qu'un rêve.</span> En décomposant tes ambitions en actions concrètes, tu transformes l'incertitude en <span className="text-foreground font-semibold">clarté</span>. Chaque branche devient une promesse que tu peux tenir, un pas vers la version de toi que tu aspires à devenir.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Motivation Section */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/10 mt-4">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+              <Flame className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-foreground mb-1">Motivation</h3>
+              <p className="text-xs text-muted-foreground">Citations pour t'inspirer chaque jour</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
+              <p className="text-sm text-foreground font-medium italic leading-relaxed">
+                "La discipline est le pont entre tes objectifs et tes accomplissements."
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">— Jim Rohn</p>
+            </div>
+            
+            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
+              <p className="text-sm text-foreground font-medium italic leading-relaxed">
+                "Tu n'as pas besoin d'être excellent pour commencer, mais tu dois commencer pour devenir excellent."
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">— Zig Ziglar</p>
+            </div>
+
+            <div className="bg-muted/30 rounded-lg p-4 border border-primary/10">
+              <p className="text-sm text-foreground font-medium italic leading-relaxed">
+                "Le secret du succès, c'est de commencer."
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">— Mark Twain</p>
             </div>
           </div>
         </section>

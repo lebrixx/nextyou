@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
@@ -17,6 +17,17 @@ interface Habit {
   icon: HabitIconType;
   streak: number;
   completed: boolean;
+}
+
+interface Action {
+  id: string;
+  text: string;
+}
+
+interface Goal {
+  id: string;
+  title: string;
+  actions: Action[];
 }
 
 const Index = () => {
@@ -56,12 +67,28 @@ const Index = () => {
 
   const [timers, setTimers] = useState<TimerData[]>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [goals, setGoals] = useState<Goal[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("habitflow_timers");
     if (saved) {
       setTimers(JSON.parse(saved));
     }
+  }, []);
+
+  useEffect(() => {
+    const loadGoals = () => {
+      const saved = localStorage.getItem("habitflow_goals");
+      if (saved) {
+        setGoals(JSON.parse(saved));
+      }
+    };
+    
+    loadGoals();
+    
+    // Listen for changes in goals
+    const interval = setInterval(loadGoals, 500);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -145,6 +172,48 @@ const Index = () => {
           </div>
           <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
         </section>
+
+        {/* Goals Section */}
+        {goals.length > 0 && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Mes objectifs
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {goals.map((goal) => (
+                <div key={goal.id} className="glass rounded-xl p-4 shadow-elevation border border-white/5">
+                  <div className="flex items-start gap-3 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                      <Target className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-bold text-foreground mb-1">{goal.title}</h3>
+                      <p className="text-[10px] text-muted-foreground">
+                        {goal.actions.length} action{goal.actions.length > 1 ? "s" : ""} planifiée{goal.actions.length > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                  </div>
+                  {goal.actions.length > 0 && (
+                    <div className="space-y-1.5 ml-11 mt-2">
+                      {goal.actions.slice(0, 2).map((action) => (
+                        <div key={action.id} className="flex items-center gap-2">
+                          <ChevronRight className="w-3 h-3 text-primary shrink-0" />
+                          <p className="text-xs text-muted-foreground truncate">{action.text}</p>
+                        </div>
+                      ))}
+                      {goal.actions.length > 2 && (
+                        <p className="text-[10px] text-primary ml-5">+{goal.actions.length - 2} autre{goal.actions.length - 2 > 1 ? "s" : ""} action{goal.actions.length - 2 > 1 ? "s" : ""}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
 
         {/* Today's Habits */}
