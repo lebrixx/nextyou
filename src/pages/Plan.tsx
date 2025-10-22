@@ -72,33 +72,33 @@ const Plan = () => {
             <input
               type="range"
               min="1"
-              max="10"
+              max="4"
               value={quotesPerDay}
               onChange={(e) => setQuotesPerDay(parseInt(e.target.value))}
               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>1 citation</span>
-              <span>10 citations</span>
+              <span>4 citations</span>
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={handleActivateNotifications}
-              className="flex-1 bg-gradient-primary text-primary-foreground shadow-glow"
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Activer les notifications
-            </Button>
-            <Button
-              onClick={handleTestNotification}
-              variant="outline"
-              className="glass border-primary/30"
-            >
-              Tester
-            </Button>
-          </div>
+          <Button
+            onClick={handleActivateNotifications}
+            className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold"
+          >
+            <Bell className="w-4 h-4 mr-2" />
+            Enregistrer et activer les notifications
+          </Button>
+
+          <Button
+            onClick={handleTestNotification}
+            variant="outline"
+            size="sm"
+            className="w-full glass border-primary/30 text-xs"
+          >
+            📲 Tester une notification maintenant
+          </Button>
         </section>
 
         {/* Widget Instructions */}
@@ -138,7 +138,7 @@ const Plan = () => {
 
             <div className="text-center pt-2">
               <p className="text-xs text-primary">
-                💡 Le widget affiche une nouvelle citation toutes les heures parmi plus de 130 messages inspirants
+                💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 130 messages inspirants
               </p>
             </div>
           </div>

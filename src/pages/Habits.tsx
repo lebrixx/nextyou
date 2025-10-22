@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, Filter, Target, ChevronRight, Trash2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
+import HabitStats from "@/components/HabitStats";
 import AddHabitDialog from "@/components/AddHabitDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,6 +174,7 @@ const Habits = () => {
             <Plus className="w-4 h-4 mr-1.5" />
             Nouvelle habitude
           </Button>
+          <HabitStats habits={habits} />
           <Button
             onClick={() => setPlanOpen(true)}
             variant="outline"
