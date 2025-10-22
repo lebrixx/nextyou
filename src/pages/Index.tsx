@@ -137,7 +137,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
-      <header className="px-6 pt-8 pb-6">
+      <header className="px-6 pt-safe-offset-8 pb-6">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
             Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
@@ -158,6 +158,33 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
+        {/* Timers Section */}
+        {timers.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Mes compteurs
+            </h2>
+            <div className="glass rounded-xl p-4 shadow-elevation border border-white/5">
+              <div className="grid grid-cols-2 gap-3">
+                {timers.map((timer) => (
+                  <div key={timer.id} className="rounded-lg p-3 bg-background/50 border border-white/5">
+                    <p className="text-xs text-muted-foreground mb-1 truncate">{timer.name}</p>
+                    <p className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      {formatTimerCompact(timer.startDate)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <p className="text-[10px] text-muted-foreground text-center">
+                  💡 Ajoute les compteurs en widget pour les voir directement sur ton écran d'accueil
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
           <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
@@ -242,33 +269,6 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Timers Section */}
-        {timers.length > 0 ? (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Mes compteurs
-            </h2>
-            <div className="grid grid-cols-2 gap-2">
-              {timers.map((timer) => (
-                <div key={timer.id} className="glass rounded-lg p-3 border border-white/5">
-                  <p className="text-xs text-muted-foreground mb-1 truncate">{timer.name}</p>
-                  <p className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    {formatTimerCompact(timer.startDate)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <section className="glass rounded-xl p-5 text-center border border-white/5">
-            <Clock className="w-8 h-8 text-primary mx-auto mb-2" />
-            <p className="text-sm text-foreground font-semibold mb-1">Aucun compteur actif</p>
-            <p className="text-xs text-muted-foreground">
-              Crée un compteur dans la section Chronomètres pour suivre ton progrès
-            </p>
-          </section>
-        )}
 
         {/* Inspirational Message */}
         <section className="glass rounded-xl p-6 shadow-elevation border border-primary/20">
