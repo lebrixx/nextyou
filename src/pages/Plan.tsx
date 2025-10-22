@@ -267,6 +267,29 @@ const Plan = () => {
             ))}
           </div>
         )}
+
+        {/* Why it's important section */}
+        <section className="glass rounded-xl p-6 shadow-elevation border border-primary/10 mt-8">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+              <Target className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-2">Pourquoi est-ce important ?</h3>
+              <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
+                <p>
+                  <span className="text-primary font-semibold">Un objectif sans plan n'est qu'un rêve.</span> Définir tes objectifs et les décomposer en actions concrètes transforme tes ambitions en réalité tangible.
+                </p>
+                <p>
+                  Chaque action que tu identifies devient une <span className="text-foreground font-semibold">étape franchissable</span>. Au lieu d'être submergé par l'ampleur de ton objectif, tu crées un chemin clair, une marche après l'autre.
+                </p>
+                <p>
+                  Ce plan te donne de la <span className="text-primary font-semibold">clarté</span>, te permet de mesurer tes progrès, et surtout, il transforme l'incertitude en <span className="text-foreground font-semibold">action</span>. Chaque branche que tu ajoutes ici est une promesse que tu te fais — et que tu peux tenir.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Navigation />

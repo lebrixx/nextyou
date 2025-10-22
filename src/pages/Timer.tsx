@@ -101,7 +101,7 @@ const Timer = () => {
           Chrono<span className="bg-gradient-primary bg-clip-text text-transparent">mètres</span>
         </h1>
         <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-          Mesure le temps écoulé depuis le début d'une nouvelle version de toi-même, ou le temps passé sans une addiction.
+          Chaque seconde compte. Chaque chronomètre représente un <span className="text-primary font-semibold">engagement envers toi-même</span>. Marque le début de ta transformation, célèbre ta liberté retrouvée, ou mesure le chemin parcouru vers la meilleure version de toi. Ce n'est pas qu'un compteur — c'est le témoignage vivant de ta <span className="text-primary font-semibold">détermination</span>.
         </p>
         <Button
           onClick={() => setDialogOpen(true)}
@@ -120,7 +120,7 @@ const Timer = () => {
             </div>
             <h3 className="text-lg font-bold text-foreground">Aucun compteur</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-              Crée ton premier compteur pour suivre le temps passé depuis un changement important dans ta vie.
+              Lance ton premier chronomètre aujourd'hui. Que ce soit pour célébrer le début d'une nouvelle habitude, marquer ta victoire sur une addiction, ou simplement mesurer ton évolution — <span className="text-primary font-semibold">chaque moment compte</span>.
             </p>
           </div>
         ) : (
