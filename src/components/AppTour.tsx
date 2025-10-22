@@ -16,7 +16,7 @@ const tourSteps: TourStep[] = [
   },
   {
     title: "✅ Habitudes",
-    description: "Crée et gère tes habitudes quotidiennes. Chaque validation augmente ta série (streak). Plus tu es régulier, plus tu construis ta discipline.",
+    description: "Crée et gère tes habitudes quotidiennes avec des statistiques détaillées. Chaque validation augmente ta série (streak). Analyse tes performances et visualise ta progression pour rester motivé.",
     icon: "✅"
   },
   {
@@ -28,11 +28,6 @@ const tourSteps: TourStep[] = [
     title: "💬 Citations",
     description: "Reçois des messages motivants pour rester inspiré. Configure la fréquence des notifications et ajoute les citations en widget sur ton écran d'accueil.",
     icon: "💬"
-  },
-  {
-    title: "📊 Statistiques",
-    description: "Analyse tes performances avec des graphiques détaillés. Visualise ta progression hebdomadaire et mensuelle pour rester motivé.",
-    icon: "📊"
   },
   {
     title: "⚙️ Réglages",

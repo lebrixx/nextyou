@@ -166,23 +166,15 @@ const Habits = () => {
           </Button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="space-y-2">
           <Button 
             onClick={() => setDialogOpen(true)}
-            className="flex-1 bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
+            className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
           >
             <Plus className="w-4 h-4 mr-1.5" />
             Nouvelle habitude
           </Button>
           <HabitStats habits={habits} />
-          <Button
-            onClick={() => setPlanOpen(true)}
-            variant="outline"
-            className="border-primary/50 text-primary hover:bg-primary/10 h-9 px-3 text-sm font-semibold shrink-0"
-          >
-            <Target className="w-4 h-4 mr-1" />
-            Plan
-          </Button>
         </div>
       </header>
 

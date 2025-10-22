@@ -68,22 +68,22 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
       <DialogTrigger asChild>
         <Button 
           variant="outline"
-          className="border-primary/50 text-primary hover:bg-primary/10 h-9 px-3 text-sm font-semibold shrink-0"
+          className="w-full border-primary/50 text-primary hover:bg-primary/10 h-9 text-sm font-semibold"
         >
           <BarChart3 className="w-4 h-4 mr-1" />
           Statistiques
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass max-w-3xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
+      <DialogContent className="glass max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="mb-2">
+          <DialogTitle className="text-xl sm:text-2xl">
             Tes <span className="bg-gradient-primary bg-clip-text text-transparent">Statistiques</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-4">
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <StatsCard
               icon={Calendar}
               label="Aujourd'hui"
@@ -110,28 +110,31 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
 
           {/* Chart */}
           {habits.length > 0 && (
-            <div className="glass rounded-xl p-5 shadow-elevation">
-              <h3 className="text-lg font-bold text-foreground mb-4">Séries par habitude</h3>
-              <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <div className="glass rounded-xl p-3 sm:p-4 shadow-elevation">
+              <h3 className="text-sm sm:text-base font-bold text-foreground mb-3">Séries par habitude</h3>
+              <ChartContainer config={chartConfig} className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
+                  <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                     <XAxis 
                       dataKey="name" 
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={11}
+                      fontSize={10}
                       tickLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
                     />
                     <YAxis 
                       stroke="hsl(var(--muted-foreground))"
-                      fontSize={11}
+                      fontSize={10}
                       tickLine={false}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar 
                       dataKey="streak" 
                       fill="var(--color-streak)" 
-                      radius={[8, 8, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -140,14 +143,14 @@ const HabitStats = ({ habits }: HabitStatsProps) => {
           )}
 
           {/* Analysis */}
-          <div className="glass rounded-xl p-5 shadow-elevation border border-primary/10">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
+          <div className="glass rounded-xl p-3 sm:p-4 shadow-elevation border border-primary/10">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
-              <div>
-                <h3 className="text-base font-bold text-foreground mb-2">Analyse</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-foreground mb-1 sm:mb-2">Analyse</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   {getAnalysis()}
                 </p>
               </div>
