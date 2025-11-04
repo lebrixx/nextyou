@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle, ChevronDown } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
@@ -7,6 +7,7 @@ import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import { Button } from "@/components/ui/button";
 import { quotes } from "@/data/quotes";
+import { useHabitReset } from "@/hooks/useHabitReset";
 
 interface TimerData {
   id: string;
@@ -34,6 +35,8 @@ interface Goal {
 }
 
 const Index = () => {
+  useHabitReset(); // Reset habits at midnight
+  
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem("habitflow_habits");
     return saved ? JSON.parse(saved) : [
@@ -186,6 +189,21 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
+        {/* Performance Quotidienne */}
+        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
+          <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
+            Performance Aujourd&apos;hui
+          </p>
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              {completedToday}
+            </span>
+            <span className="text-2xl font-semibold text-muted-foreground">/</span>
+            <span className="text-2xl font-semibold text-foreground">{totalHabits}</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
+        </section>
+
         {/* Timers Section */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
@@ -219,21 +237,6 @@ const Index = () => {
               </p>
             </div>
           )}
-        </section>
-
-        {/* Performance Quotidienne */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
-          <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
-            Performance Aujourd&apos;hui
-          </p>
-          <div className="flex items-baseline justify-center gap-1">
-            <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              {completedToday}
-            </span>
-            <span className="text-2xl font-semibold text-muted-foreground">/</span>
-            <span className="text-2xl font-semibold text-foreground">{totalHabits}</span>
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
         </section>
 
         {/* Goals Section */}
@@ -310,17 +313,17 @@ const Index = () => {
         <section className="glass rounded-xl p-5 shadow-elevation border border-primary/20">
           <Button
             onClick={() => setPhilosophyOpen(!philosophyOpen)}
-            variant="ghost"
-            className="w-full p-0 h-auto hover:bg-transparent"
+            variant="outline"
+            className="w-full border-primary/40 hover:bg-primary/10 h-auto py-3"
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-primary shadow-glow">
-                  <Target className="w-5 h-5 text-primary-foreground" />
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <h3 className="text-base font-bold text-foreground">Philosophie de l&apos;application</h3>
+                <h3 className="text-sm font-bold text-foreground">Philosophie de l&apos;application</h3>
               </div>
-              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${philosophyOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-primary transition-transform ${philosophyOpen ? 'rotate-180' : ''}`} />
             </div>
           </Button>
           

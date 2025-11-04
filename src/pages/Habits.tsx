@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { HabitIconType } from "@/components/HabitIcon";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import { useHabitReset } from "@/hooks/useHabitReset";
 
 interface Habit {
   id: string;
@@ -33,6 +34,8 @@ interface Goal {
 }
 
 const Habits = () => {
+  useHabitReset(); // Reset habits at midnight
+  
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem("habitflow_habits");
     return saved ? JSON.parse(saved) : [
@@ -61,12 +64,26 @@ const Habits = () => {
   }, [goals]);
 
   const toggleHabit = (id: string) => {
-    const updatedHabits = habits.map((habit) =>
-      habit.id === id ? { ...habit, completed: !habit.completed } : habit
-    );
+    const updatedHabits = habits.map((habit) => {
+      if (habit.id === id) {
+        const newCompleted = !habit.completed;
+        return {
+          ...habit,
+          completed: newCompleted,
+          streak: newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1)
+        };
+      }
+      return habit;
+    });
     setHabits(updatedHabits);
     localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
   };
+
+  // Sort habits: uncompleted first, completed last
+  const sortedHabits = [...habits].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
 
   const addHabit = (name: string, icon: HabitIconType) => {
     const newHabit = {
@@ -190,7 +207,7 @@ const Habits = () => {
               </p>
             </div>
 
-            {habits.map((habit) => (
+            {sortedHabits.map((habit) => (
               <HabitCard key={habit.id} {...habit} onToggle={toggleHabit} />
             ))}
           </>
