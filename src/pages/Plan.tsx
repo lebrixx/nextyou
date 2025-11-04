@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Bell, Smartphone } from "lucide-react";
+import { Sparkles, Bell, Smartphone, ChevronDown } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ const Plan = () => {
     const saved = localStorage.getItem("quotes_per_day");
     return saved ? parseInt(saved) : 3;
   });
+  const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
 
   useEffect(() => {
@@ -85,10 +86,10 @@ const Plan = () => {
 
           <Button
             onClick={handleActivateNotifications}
-            className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold"
+            className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold text-sm"
           >
             <Bell className="w-4 h-4 mr-2" />
-            💾 Enregistrer et activer les notifications
+            Enregistrer
           </Button>
 
           <Button
@@ -97,51 +98,70 @@ const Plan = () => {
             size="sm"
             className="w-full glass border-primary/30 text-xs"
           >
-            ✨ Tester (envoie une notification maintenant)
+            ✨ Tester maintenant
           </Button>
         </section>
 
         {/* Widget Instructions */}
-        <section className="glass rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Smartphone className="w-5 h-5 text-primary-foreground" />
+        <section className="glass rounded-xl p-5 space-y-3">
+          <Button
+            onClick={() => setWidgetSectionOpen(!widgetSectionOpen)}
+            variant="ghost"
+            className="w-full p-0 h-auto hover:bg-transparent"
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+                  <Smartphone className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-base font-bold text-foreground">Widget sur ton écran</h2>
+                  <p className="text-xs text-muted-foreground">Affiche les citations en permanence</p>
+                </div>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${widgetSectionOpen ? 'rotate-180' : ''}`} />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Widget Citations</h2>
-              <p className="text-xs text-muted-foreground">Affiche les citations sur ton écran d&apos;accueil</p>
-            </div>
-          </div>
+          </Button>
 
-          <div className="space-y-3 text-sm text-muted-foreground">
-            <div className="glass-strong rounded-lg p-4">
-              <p className="font-semibold text-foreground mb-2">📱 Sur iOS (iPhone/iPad)</p>
-              <ol className="list-decimal list-inside space-y-1.5 text-xs">
-                <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
-                <li>Touche le bouton + en haut à gauche</li>
-                <li>Recherche "Next You 2.0"</li>
-                <li>Sélectionne le widget Citations</li>
-                <li>Choisis la taille et place-le</li>
-              </ol>
-            </div>
+          {widgetSectionOpen && (
+            <div className="space-y-3 text-sm text-muted-foreground pt-3 border-t border-white/10">
+              <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                <p className="text-xs font-semibold text-primary mb-1">💡 À quoi ça sert ?</p>
+                <p className="text-xs text-muted-foreground">
+                  Place un widget sur ton écran d'accueil pour voir une citation motivante sans ouvrir l'app. 
+                  Parfait pour garder ta motivation visible toute la journée !
+                </p>
+              </div>
 
-            <div className="glass-strong rounded-lg p-4">
-              <p className="font-semibold text-foreground mb-2">🤖 Sur Android</p>
-              <ol className="list-decimal list-inside space-y-1.5 text-xs">
-                <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
-                <li>Touche "Widgets"</li>
-                <li>Cherche "Next You 2.0"</li>
-                <li>Fais glisser le widget Citations</li>
-                <li>Ajuste la taille selon tes besoins</li>
-              </ol>
-            </div>
+              <div className="glass-strong rounded-lg p-4">
+                <p className="font-semibold text-foreground mb-2 text-xs">📱 Sur iOS (iPhone/iPad)</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-xs">
+                  <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
+                  <li>Touche le bouton + en haut à gauche</li>
+                  <li>Recherche "Next You 2.0"</li>
+                  <li>Sélectionne le widget Citations</li>
+                  <li>Choisis la taille et place-le</li>
+                </ol>
+              </div>
 
-            <div className="text-center pt-2">
-              <p className="text-xs text-primary">
-                💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 160 messages inspirants
-              </p>
+              <div className="glass-strong rounded-lg p-4">
+                <p className="font-semibold text-foreground mb-2 text-xs">🤖 Sur Android</p>
+                <ol className="list-decimal list-inside space-y-1.5 text-xs">
+                  <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
+                  <li>Touche "Widgets"</li>
+                  <li>Cherche "Next You 2.0"</li>
+                  <li>Fais glisser le widget Citations</li>
+                  <li>Ajuste la taille selon tes besoins</li>
+                </ol>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-xs text-primary">
+                  💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 160 messages inspirants
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* About Section */}

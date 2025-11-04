@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle, ChevronDown } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
@@ -72,6 +72,7 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tourOpen, setTourOpen] = useState(false);
+  const [philosophyOpen, setPhilosophyOpen] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
     return allQuotes[Math.floor(Math.random() * allQuotes.length)];
@@ -186,12 +187,12 @@ const Index = () => {
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
         {/* Timers Section */}
-        {timers.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Mes compteurs
-            </h2>
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            Mes compteurs
+          </h2>
+          {timers.length > 0 ? (
             <div className="glass rounded-xl p-4 shadow-elevation border border-white/5">
               <div className="grid grid-cols-2 gap-3">
                 {timers.map((timer) => (
@@ -209,8 +210,16 @@ const Index = () => {
                 </p>
               </div>
             </div>
-          </section>
-        )}
+          ) : (
+            <div className="glass rounded-xl p-6 text-center border border-white/5">
+              <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground mb-2">Aucun compteur configuré</p>
+              <p className="text-xs text-muted-foreground/70">
+                Va dans l'onglet "Chrono" pour créer tes compteurs personnalisés
+              </p>
+            </div>
+          )}
+        </section>
 
         {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
@@ -298,32 +307,46 @@ const Index = () => {
 
 
         {/* Inspirational Message */}
-        <section className="glass rounded-xl p-6 shadow-elevation border border-primary/20">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow mb-4">
-            <Target className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <h3 className="text-lg font-bold text-foreground mb-3">Ta transformation commence aujourd&apos;hui</h3>
-          <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">
-            <p>
-              Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
-              jour après jour. Next You 2.0 n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
-              dans cette quête vers l&apos;excellence personnelle.
-            </p>
-            <p>
-              Imagine-toi dans six mois : plus discipliné, plus confiant, fier de la personne que 
-              tu vois dans le miroir. Cette version de toi existe déjà, elle attend juste que tu 
-              fasses le premier pas. Chaque habitude que tu cultives est une pierre que tu poses 
-              pour construire la vie dont tu rêves.
-            </p>
-            <p className="font-semibold text-foreground">
-              Le secret ? La constance. Pas la perfection, mais la présence. Chaque jour compte, 
-              chaque petit effort s&apos;additionne. Et avant même que tu ne t&apos;en rendes compte, 
-              tu seras devenu cette personne extraordinaire que tu as toujours voulu être.
-            </p>
-            <p className="text-xs italic text-primary">
-              Commence maintenant. Ton futur toi te remerciera.
-            </p>
-          </div>
+        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/20">
+          <Button
+            onClick={() => setPhilosophyOpen(!philosophyOpen)}
+            variant="ghost"
+            className="w-full p-0 h-auto hover:bg-transparent"
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-primary shadow-glow">
+                  <Target className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <h3 className="text-base font-bold text-foreground">Philosophie de l&apos;application</h3>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${philosophyOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </Button>
+          
+          {philosophyOpen && (
+            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed mt-4 pt-4 border-t border-white/10">
+              <p>
+                Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
+                jour après jour. Next You 2.0 n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
+                dans cette quête vers l&apos;excellence personnelle.
+              </p>
+              <p>
+                Imagine-toi dans six mois : plus discipliné, plus confiant, fier de la personne que 
+                tu vois dans le miroir. Cette version de toi existe déjà, elle attend juste que tu 
+                fasses le premier pas. Chaque habitude que tu cultives est une pierre que tu poses 
+                pour construire la vie dont tu rêves.
+              </p>
+              <p className="font-semibold text-foreground">
+                Le secret ? La constance. Pas la perfection, mais la présence. Chaque jour compte, 
+                chaque petit effort s&apos;additionne. Et avant même que tu ne t&apos;en rendes compte, 
+                tu seras devenu cette personne extraordinaire que tu as toujours voulu être.
+              </p>
+              <p className="text-xs italic text-primary">
+                Commence maintenant. Ton futur toi te remerciera.
+              </p>
+            </div>
+          )}
         </section>
       </main>
 
