@@ -53,8 +53,8 @@ const Settings = () => {
     setCurrentTheme(theme);
     applyTheme(theme);
     toast({
-      title: "Thème changé",
-      description: `Le thème ${theme === "purple" ? "violet" : theme === "blue" ? "bleu" : "vert"} a été appliqué.`,
+      title: t('themeChanged'),
+      description: t('themeApplied'),
     });
   };
 

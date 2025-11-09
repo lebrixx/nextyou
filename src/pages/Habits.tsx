@@ -226,15 +226,13 @@ const Habits = () => {
             {t('newHabit')}
           </Button>
           <HabitStats habits={habits} />
-          {user && (
-            <Button
-              onClick={() => setBadgesDialogOpen(true)}
-              variant="outline"
-              className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm"
-            >
-              🏆 {t('myBadges')}
-            </Button>
-          )}
+          <Button
+            onClick={() => setBadgesDialogOpen(true)}
+            variant="outline"
+            className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm font-semibold"
+          >
+            🏆 {t('myBadges')}
+          </Button>
         </div>
       </header>
 
@@ -281,7 +279,13 @@ const Habits = () => {
               Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Badges</span>
             </DialogTitle>
           </DialogHeader>
-          {user && <BadgeDisplay badges={badges} />}
+          {user ? (
+            <BadgeDisplay badges={badges} />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Connecte-toi pour voir tes badges</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
       

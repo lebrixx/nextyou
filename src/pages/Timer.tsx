@@ -251,17 +251,17 @@ const Timer = () => {
                 <Button
                   onClick={() => confirmReset(timer.id)}
                   variant="outline"
-                  className="flex-1 glass border-white/20 text-foreground hover:bg-white/5 h-10"
+                  className="flex-1 glass border-white/20 text-foreground hover:bg-white/5 h-10 text-xs"
                 >
-                  <RotateCcw className="w-4 h-4 mr-2" />
+                  <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                   Réinitialiser
                 </Button>
                 <Button
                   onClick={() => confirmDelete(timer.id)}
                   variant="outline"
-                  className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 h-10"
+                  className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 h-10 text-xs"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                   Supprimer
                 </Button>
               </div>

@@ -71,6 +71,8 @@ const translations: Translations = {
     days: "jours",
     at: "à",
     quotes: "Citations",
+    themeChanged: "Thème changé",
+    themeApplied: "Le thème a été appliqué avec succès",
   },
   en: {
     home: "Home",
@@ -134,6 +136,8 @@ const translations: Translations = {
     days: "days",
     at: "at",
     quotes: "Quotes",
+    themeChanged: "Theme changed",
+    themeApplied: "Theme has been applied successfully",
   },
   es: {
     home: "Inicio",
@@ -197,6 +201,8 @@ const translations: Translations = {
     days: "días",
     at: "a las",
     quotes: "Citas",
+    themeChanged: "Tema cambiado",
+    themeApplied: "El tema se ha aplicado con éxito",
   },
   de: {
     home: "Startseite",
@@ -260,6 +266,8 @@ const translations: Translations = {
     days: "Tage",
     at: "um",
     quotes: "Zitate",
+    themeChanged: "Thema geändert",
+    themeApplied: "Das Thema wurde erfolgreich angewendet",
   },
   it: {
     home: "Home",
@@ -323,6 +331,8 @@ const translations: Translations = {
     days: "giorni",
     at: "alle",
     quotes: "Citazioni",
+    themeChanged: "Tema cambiato",
+    themeApplied: "Il tema è stato applicato con successo",
   },
 };
 
@@ -339,10 +349,20 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     const saved = localStorage.getItem('nextyou_language');
     return (saved as Language) || 'fr';
   });
+  const [key, setKey] = useState(0);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('nextyou_language', lang);
+    // Force full re-render of the app
+    setKey(prev => prev + 1);
+    // Show confirmation toast
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('language-changed', { detail: { language: lang } });
+        window.dispatchEvent(event);
+      }
+    }, 100);
   };
 
   const t = (key: string): string => {
@@ -350,7 +370,7 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <I18nContext.Provider value={{ language, setLanguage, t }}>
+    <I18nContext.Provider key={key} value={{ language, setLanguage, t }}>
       {children}
     </I18nContext.Provider>
   );
