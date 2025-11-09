@@ -44,32 +44,37 @@ const Plan = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6">
+      <header className="px-6 pt-8 pb-6 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
+          <Sparkles className="w-8 h-8 text-primary-foreground" />
+        </div>
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Cita<span className="bg-gradient-primary bg-clip-text text-transparent">tions</span>
+          Messages <span className="bg-gradient-primary bg-clip-text text-transparent">Inspirants</span>
         </h1>
-        <p className="text-muted-foreground text-sm">
-          Configure tes notifications quotidiennes de motivation
+        <p className="text-muted-foreground text-sm max-w-md mx-auto">
+          Reçois des messages positifs et motivants pour booster ta journée
         </p>
       </header>
 
       <main className="px-6 pt-4 space-y-6 max-w-2xl mx-auto">
         {/* Notification Frequency */}
-        <section className="glass rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Bell className="w-5 h-5 text-primary-foreground" />
+        <section className="glass rounded-xl p-6 space-y-5 border border-primary/20">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow mb-3">
+              <Bell className="w-6 h-6 text-primary-foreground" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Fréquence des notifications</h2>
-              <p className="text-xs text-muted-foreground">Citations envoyées entre 9h et 22h</p>
-            </div>
+            <h2 className="text-lg font-bold text-foreground mb-1">Notifications Quotidiennes</h2>
+            <p className="text-xs text-muted-foreground">Messages envoyés entre 9h et 22h</p>
           </div>
 
-          <div className="space-y-3">
-            <Label className="text-sm text-foreground">
-              Nombre de citations par jour : <span className="text-primary font-bold">{quotesPerDay}</span>
-            </Label>
+          <div className="space-y-4">
+            <div className="text-center">
+              <Label className="text-sm text-muted-foreground block mb-2">Messages par jour</Label>
+              <div className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3">
+                {quotesPerDay}
+              </div>
+            </div>
+            
             <input
               type="range"
               min="1"
@@ -78,86 +83,97 @@ const Plan = () => {
               onChange={(e) => setQuotesPerDay(parseInt(e.target.value))}
               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>1 citation</span>
-              <span>4 citations</span>
+            <div className="flex justify-between text-xs text-muted-foreground px-1">
+              <span>1</span>
+              <span>2</span>
+              <span>3</span>
+              <span>4</span>
             </div>
           </div>
 
-          <Button
-            onClick={handleActivateNotifications}
-            className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold text-sm"
-          >
-            <Bell className="w-4 h-4 mr-2" />
-            Enregistrer
-          </Button>
+          <div className="space-y-2 pt-2">
+            <Button
+              onClick={handleActivateNotifications}
+              className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity font-semibold h-12"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Activer
+            </Button>
 
-          <Button
-            onClick={handleTestNotification}
-            variant="outline"
-            size="sm"
-            className="w-full glass border-primary/30 text-xs"
-          >
-            ✨ Tester maintenant
-          </Button>
+            <Button
+              onClick={handleTestNotification}
+              variant="outline"
+              className="w-full glass border-primary/30 h-10"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Tester
+            </Button>
+          </div>
         </section>
 
         {/* Widget Instructions */}
-        <section className="glass rounded-xl p-5 space-y-3">
-          <Button
+        <section className="space-y-3">
+          <button
             onClick={() => setWidgetSectionOpen(!widgetSectionOpen)}
-            variant="ghost"
-            className="w-full p-0 h-auto hover:bg-transparent"
+            className="w-full group"
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-                  <Smartphone className="w-5 h-5 text-primary-foreground" />
+            <div className="glass rounded-xl p-4 border border-primary/30 hover:border-primary/50 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Smartphone className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                      Widget Écran d&apos;Accueil
+                    </h2>
+                    <p className="text-xs text-muted-foreground">Messages toujours visibles</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <h2 className="text-base font-bold text-foreground">Widget sur ton écran</h2>
-                  <p className="text-xs text-muted-foreground">Affiche les citations en permanence</p>
-                </div>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${widgetSectionOpen ? 'rotate-180' : ''}`} />
               </div>
-              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${widgetSectionOpen ? 'rotate-180' : ''}`} />
             </div>
-          </Button>
+          </button>
 
           {widgetSectionOpen && (
-            <div className="space-y-3 text-sm text-muted-foreground pt-3 border-t border-white/10">
-              <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                <p className="text-xs font-semibold text-primary mb-1">💡 À quoi ça sert ?</p>
-                <p className="text-xs text-muted-foreground">
-                  Place un widget sur ton écran d'accueil pour voir une citation motivante sans ouvrir l'app. 
-                  Parfait pour garder ta motivation visible toute la journée !
+            <div className="glass rounded-xl p-5 space-y-4 border border-primary/20 animate-accordion-down">
+              <div className="bg-gradient-primary/10 rounded-lg p-4 border border-primary/30">
+                <p className="text-sm font-semibold text-primary mb-2">✨ Garde ta motivation visible</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Le widget affiche un message inspirant directement sur ton écran d&apos;accueil. 
+                  Plus besoin d&apos;ouvrir l&apos;app pour voir ta dose de motivation !
                 </p>
               </div>
 
-              <div className="glass-strong rounded-lg p-4">
-                <p className="font-semibold text-foreground mb-2 text-xs">📱 Sur iOS (iPhone/iPad)</p>
-                <ol className="list-decimal list-inside space-y-1.5 text-xs">
-                  <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
-                  <li>Touche le bouton + en haut à gauche</li>
-                  <li>Recherche "Next You 2.0"</li>
-                  <li>Sélectionne le widget Citations</li>
-                  <li>Choisis la taille et place-le</li>
-                </ol>
-              </div>
+              <div className="space-y-3">
+                <div className="rounded-lg p-4 bg-background/50 border border-white/10">
+                  <p className="font-semibold text-foreground mb-2 text-sm flex items-center gap-2">
+                    <span>📱</span> iPhone / iPad
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+                    <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
+                    <li>Appuie sur le <span className="text-primary font-semibold">+</span> en haut à gauche</li>
+                    <li>Cherche <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Choisis le widget et place-le</li>
+                  </ol>
+                </div>
 
-              <div className="glass-strong rounded-lg p-4">
-                <p className="font-semibold text-foreground mb-2 text-xs">🤖 Sur Android</p>
-                <ol className="list-decimal list-inside space-y-1.5 text-xs">
-                  <li>Reste appuyé sur l&apos;écran d&apos;accueil</li>
-                  <li>Touche "Widgets"</li>
-                  <li>Cherche "Next You 2.0"</li>
-                  <li>Fais glisser le widget Citations</li>
-                  <li>Ajuste la taille selon tes besoins</li>
-                </ol>
+                <div className="rounded-lg p-4 bg-background/50 border border-white/10">
+                  <p className="font-semibold text-foreground mb-2 text-sm flex items-center gap-2">
+                    <span>🤖</span> Android
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+                    <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
+                    <li>Appuie sur <span className="text-primary font-semibold">&quot;Widgets&quot;</span></li>
+                    <li>Trouve <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Fais glisser le widget à l&apos;endroit voulu</li>
+                  </ol>
+                </div>
               </div>
 
               <div className="text-center pt-2">
-                <p className="text-xs text-primary">
-                  💡 Le widget affiche une nouvelle citation toutes les 30 minutes parmi plus de 160 messages inspirants
+                <p className="text-xs text-primary font-medium">
+                  💫 Nouveau message toutes les 30 minutes
                 </p>
               </div>
             </div>
@@ -165,15 +181,18 @@ const Plan = () => {
         </section>
 
         {/* About Section */}
-        <section className="glass rounded-xl p-5">
-          <div className="flex items-start gap-3">
-            <div className="text-2xl">💪</div>
+        <section className="glass rounded-xl p-5 border border-primary/20">
+          <div className="text-center space-y-3">
+            <div className="text-3xl">💪</div>
             <div>
-              <h3 className="text-base font-bold text-foreground mb-2">Plus de 160 citations inspirantes</h3>
+              <h3 className="text-lg font-bold text-foreground mb-2">+160 Messages Inspirants</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Notre collection comprend des messages de motivation, discipline, succès, persévérance et mindset. 
-                Les notifications sont envoyées à des heures aléatoires entre 9h et 22h pour te surprendre et te motiver 
-                tout au long de la journée.
+                Motivation · Discipline · Succès · Persévérance · Mindset positif
+              </p>
+            </div>
+            <div className="pt-2 mt-3 border-t border-white/10">
+              <p className="text-xs text-muted-foreground">
+                Les messages arrivent à des moments aléatoires pour te surprendre et te booster tout au long de la journée
               </p>
             </div>
           </div>

@@ -310,25 +310,31 @@ const Index = () => {
 
 
         {/* Inspirational Message */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/20">
-          <Button
+        <section className="space-y-3">
+          <button
             onClick={() => setPhilosophyOpen(!philosophyOpen)}
-            variant="outline"
-            className="w-full border-primary/40 hover:bg-primary/10 h-auto py-3"
+            className="w-full group"
           >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-3">
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-primary shadow-glow">
-                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <div className="glass rounded-xl p-4 shadow-elevation border border-primary/30 hover:border-primary/50 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                      Philosophie de l&apos;application
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Découvre notre vision</p>
+                  </div>
                 </div>
-                <h3 className="text-sm font-bold text-foreground">Philosophie de l&apos;application</h3>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${philosophyOpen ? 'rotate-180' : ''}`} />
               </div>
-              <ChevronDown className={`w-5 h-5 text-primary transition-transform ${philosophyOpen ? 'rotate-180' : ''}`} />
             </div>
-          </Button>
+          </button>
           
           {philosophyOpen && (
-            <div className="space-y-3 text-sm text-muted-foreground leading-relaxed mt-4 pt-4 border-t border-white/10">
+            <div className="glass rounded-xl p-5 space-y-3 text-sm text-muted-foreground leading-relaxed border border-primary/20 animate-accordion-down">
               <p>
                 Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
                 jour après jour. Next You 2.0 n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
