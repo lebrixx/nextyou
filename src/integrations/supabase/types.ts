@@ -246,6 +246,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          notification_delay: number | null
           notification_enabled: boolean
           reminder_date: string
           reminder_time: string | null
@@ -258,6 +259,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          notification_delay?: number | null
           notification_enabled?: boolean
           reminder_date: string
           reminder_time?: string | null
@@ -270,6 +272,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          notification_delay?: number | null
           notification_enabled?: boolean
           reminder_date?: string
           reminder_time?: string | null

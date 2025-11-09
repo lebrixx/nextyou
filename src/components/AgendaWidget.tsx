@@ -24,9 +24,12 @@ const AgendaWidget = () => {
   const locale = localeMap[language];
   const upcomingReminders = reminders.slice(0, 3);
 
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  // Show 7 days starting from today (rolling week)
+  const today = new Date();
+  const weekDays = eachDayOfInterval({ 
+    start: today, 
+    end: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 6) 
+  });
 
   const getRemindersForDay = (day: Date) => {
     return reminders.filter(r => isSameDay(parseISO(r.reminder_date), day));
@@ -146,7 +149,7 @@ const AgendaWidget = () => {
                         )}
                         <p className="text-xs text-muted-foreground">
                           {format(parseISO(reminder.reminder_date), 'EEEE dd MMMM yyyy', { locale })}
-                          {reminder.reminder_time && ` à ${reminder.reminder_time}`}
+                          {reminder.reminder_time && ` ${t('at')} ${reminder.reminder_time}`}
                         </p>
                       </div>
                       <div className="flex gap-1">

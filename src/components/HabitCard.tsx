@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, Flame } from "lucide-react";
 import { Button } from "./ui/button";
 import HabitIcon, { HabitIconType } from "./HabitIcon";
+import { useTranslation } from "@/lib/i18n";
 
 interface HabitCardProps {
   id: string;
@@ -12,6 +13,8 @@ interface HabitCardProps {
 }
 
 const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardProps) => {
+  const { t } = useTranslation();
+  
   return (
     <div className={`glass rounded-xl p-4 transition-all duration-300 border ${
       completed 
@@ -42,7 +45,7 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardPro
               <span className={`text-xs font-semibold ${
                 completed ? "text-muted-foreground/70" : "text-muted-foreground"
               }`}>
-                {streak} jours
+                {streak} {t('days')}
               </span>
             </div>
           </div>

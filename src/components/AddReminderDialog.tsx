@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -15,6 +16,7 @@ interface AddReminderDialogProps {
     reminder_date: string;
     reminder_time?: string;
     notification_enabled: boolean;
+    notification_delay: number;
   }) => void;
 }
 
@@ -26,6 +28,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [notificationDelay, setNotificationDelay] = useState('0');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
       reminder_date: date,
       reminder_time: time || undefined,
       notification_enabled: notificationEnabled,
+      notification_delay: parseInt(notificationDelay),
     });
 
     // Reset form
@@ -46,6 +50,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
     setDate('');
     setTime('');
     setNotificationEnabled(false);
+    setNotificationDelay('0');
     setOpen(false);
   };
 
@@ -121,6 +126,26 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
               onCheckedChange={setNotificationEnabled}
             />
           </div>
+
+          {notificationEnabled && (
+            <div className="space-y-2">
+              <Label htmlFor="delay" className="text-foreground">{t('notificationDelay')}</Label>
+              <Select value={notificationDelay} onValueChange={setNotificationDelay}>
+                <SelectTrigger className="glass border-white/10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="glass-strong">
+                  <SelectItem value="0">{t('notifyAtTime')}</SelectItem>
+                  <SelectItem value="5">{t('notify5MinBefore')}</SelectItem>
+                  <SelectItem value="15">{t('notify15MinBefore')}</SelectItem>
+                  <SelectItem value="30">{t('notify30MinBefore')}</SelectItem>
+                  <SelectItem value="60">{t('notify1HourBefore')}</SelectItem>
+                  <SelectItem value="120">{t('notify2HoursBefore')}</SelectItem>
+                  <SelectItem value="1440">{t('notify1DayBefore')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <Button

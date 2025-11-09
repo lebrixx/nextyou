@@ -229,17 +229,17 @@ const Index = () => {
                 ))}
               </div>
               <div className="mt-3 pt-3 border-t border-white/5">
-                <p className="text-[10px] text-muted-foreground text-center">
-                  💡 Ajoute les compteurs en widget pour les voir directement sur ton écran d'accueil
-                </p>
+              <p className="text-[10px] text-muted-foreground text-center">
+                💡 {t('addTimerWidget')}
+              </p>
               </div>
             </div>
           ) : (
             <div className="glass rounded-xl p-6 text-center border border-white/5">
               <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-2">Aucun compteur configuré</p>
+              <p className="text-sm text-muted-foreground mb-2">{t('noTimersConfigured')}</p>
               <p className="text-xs text-muted-foreground/70">
-                Va dans l'onglet "Chrono" pour créer tes compteurs personnalisés
+                {t('goToTimerTab')}
               </p>
             </div>
           )}
@@ -264,7 +264,7 @@ const Index = () => {
                     <div className="flex-1">
                       <h3 className="text-base font-bold text-foreground mb-1">{goal.title}</h3>
                       <p className="text-[10px] text-muted-foreground">
-                        {goal.actions.length} action{goal.actions.length > 1 ? "s" : ""} planifiée{goal.actions.length > 1 ? "s" : ""}
+                        {goal.actions.length} {t('actionsPlanned')}
                       </p>
                     </div>
                   </div>
@@ -277,7 +277,7 @@ const Index = () => {
                         </div>
                       ))}
                       {goal.actions.length > 2 && (
-                        <p className="text-[10px] text-primary ml-5">+{goal.actions.length - 2} autre{goal.actions.length - 2 > 1 ? "s" : ""} action{goal.actions.length - 2 > 1 ? "s" : ""}</p>
+                        <p className="text-[10px] text-primary ml-5">+{goal.actions.length - 2} {t('moreActions')}</p>
                       )}
                     </div>
                   )}
@@ -300,10 +300,10 @@ const Index = () => {
             {habits.length === 0 ? (
               <div className="glass rounded-xl p-8 text-center">
                 <p className="text-muted-foreground text-sm mb-3">
-                  Tu n'as pas encore d'habitudes
+                  {t('noHabitsYet')}
                 </p>
                 <p className="text-xs text-muted-foreground/70">
-                  Clique sur "Ajouter" pour créer ta première habitude
+                  {t('clickToAddHabit')}
                 </p>
               </div>
             ) : (

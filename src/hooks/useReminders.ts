@@ -10,6 +10,7 @@ export interface Reminder {
   reminder_date: string;
   reminder_time?: string;
   notification_enabled: boolean;
+  notification_delay: number;
   completed: boolean;
   created_at: string;
   updated_at: string;

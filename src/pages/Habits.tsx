@@ -13,6 +13,7 @@ import { HabitIconType } from "@/components/HabitIcon";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { useHabitReset } from "@/hooks/useHabitReset";
+import { useTranslation } from "@/lib/i18n";
 
 interface Habit {
   id: string;
@@ -34,6 +35,7 @@ interface Goal {
 }
 
 const Habits = () => {
+  const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
   
   const [habits, setHabits] = useState<Habit[]>(() => {
@@ -163,10 +165,10 @@ const Habits = () => {
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Habitudes</span>
+          {t('myHabits')}
         </h1>
         <p className="text-muted-foreground text-sm mb-4">
-          Gère et suis tes habitudes quotidiennes
+          {t('manageHabits')}
         </p>
         
         <div className="space-y-2">
@@ -175,7 +177,7 @@ const Habits = () => {
             className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
           >
             <Plus className="w-4 h-4 mr-1.5" />
-            Nouvelle habitude
+            {t('newHabit')}
           </Button>
           <HabitStats habits={habits} />
         </div>
@@ -187,23 +189,22 @@ const Habits = () => {
             <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
               <Target className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">Commence ton voyage</h3>
+            <h3 className="text-lg font-bold text-foreground">{t('startJourney')}</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-              Créer une habitude, c'est le premier pas vers la meilleure version de toi-même. 
-              Chaque petite action répétée devient une grande transformation.
+              {t('habitDescription')}
             </p>
             <p className="text-xs text-muted-foreground/70 pt-2">
-              Exemple: "Lire 10 pages par jour" ou "Méditer 5 minutes"
+              {t('habitExample')}
             </p>
           </div>
         ) : (
           <>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-muted-foreground">
-                {habits.length} habitude{habits.length > 1 ? "s" : ""} active{habits.length > 1 ? "s" : ""}
+                {habits.length} {t('habitActive')}
               </p>
               <p className="text-xs text-success">
-                {habits.filter((h) => h.completed).length} complétées aujourd'hui
+                {habits.filter((h) => h.completed).length} {t('completedToday')}
               </p>
             </div>
 
