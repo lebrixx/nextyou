@@ -32,6 +32,7 @@ const ICONS: HabitIconType[] = [
 const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
   const [name, setName] = useState("");
   const [selectedIcon, setSelectedIcon] = useState<HabitIconType>("sport");
+  const [reminderTime, setReminderTime] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +89,22 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
                 </button>
               ))}
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reminder-time" className="text-foreground text-sm">
+              Rappel (optionnel)
+            </Label>
+            <Input
+              id="reminder-time"
+              type="time"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+              className="glass border-white/10 focus:border-primary/50"
+              placeholder="Ex: 09:00"
+            />
+            <p className="text-xs text-muted-foreground">
+              Reçois une notification à cette heure chaque jour
+            </p>
           </div>
           <div className="flex gap-2 pt-2">
             <Button

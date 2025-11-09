@@ -2,8 +2,11 @@ import { useState, useEffect } from "react";
 import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
+import PomodoroTimer from "@/components/PomodoroTimer";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +36,15 @@ const Timer = () => {
   const [timerToReset, setTimerToReset] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    loadUser();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -126,6 +138,13 @@ const Timer = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
+        <Tabs defaultValue="counters" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 glass mb-6">
+            <TabsTrigger value="counters">Compteurs</TabsTrigger>
+            <TabsTrigger value="pomodoro">Pomodoro</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="counters" className="space-y-4">
         {timers.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center space-y-4 border border-primary/20">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center">
@@ -321,6 +340,12 @@ const Timer = () => {
             </div>
           )}
         </section>
+          </TabsContent>
+
+          <TabsContent value="pomodoro">
+            <PomodoroTimer userId={user?.id} />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Navigation />

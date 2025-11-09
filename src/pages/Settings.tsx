@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { applyTheme, getTheme, Theme } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
+import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -97,6 +98,47 @@ const Settings = () => {
       description: "À bientôt sur Next You 2.0 !",
     });
     navigate("/");
+  };
+
+  const handleExportAll = async () => {
+    if (!user) return;
+
+    const { data: habits } = await supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', user.id);
+
+    const { data: completions } = await supabase
+      .from('habit_completions')
+      .select('*')
+      .eq('user_id', user.id);
+
+    const { data: badges } = await supabase
+      .from('badges')
+      .select('*')
+      .eq('user_id', user.id);
+
+    const { data: pomodoro } = await supabase
+      .from('pomodoro_sessions')
+      .select('*')
+      .eq('user_id', user.id);
+
+    exportToJSON(
+      {
+        habits: habits || [],
+        completions: completions || [],
+        badges: badges || [],
+        pomodoro_sessions: pomodoro || [],
+        profile,
+        exported_at: new Date().toISOString(),
+      },
+      generateExportFilename('nextyou_complete', 'json')
+    );
+
+    toast({
+      title: "Export réussi",
+      description: "Toutes tes données ont été exportées",
+    });
   };
 
   return (
@@ -233,6 +275,33 @@ const Settings = () => {
             </div>
           </div>
         </section>
+
+        {/* Export Data */}
+        {user && (
+          <section className="space-y-3">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+                <Download className="w-4 h-4 text-primary-foreground" />
+              </div>
+              Données
+            </h2>
+            <div className="glass rounded-xl p-4 space-y-3">
+              <div>
+                <p className="font-semibold text-foreground text-sm mb-1">Exporter toutes mes données</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Télécharge une copie complète de tes habitudes, badges, et statistiques
+                </p>
+              </div>
+              <Button
+                onClick={handleExportAll}
+                className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Exporter en JSON
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Appearance */}
         <section className="space-y-3">

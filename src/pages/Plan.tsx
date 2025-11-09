@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Bell, Smartphone, ChevronDown } from "lucide-react";
+import { Sparkles, Bell, Smartphone, ChevronDown, Calendar, Download } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/use-toast";
+import HabitCalendar from "@/components/HabitCalendar";
+import BadgeDisplay from "@/components/BadgeDisplay";
+import { supabase } from "@/integrations/supabase/client";
+import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
+import useBadges from "@/hooks/useBadges";
 
 const Plan = () => {
   const [quotesPerDay, setQuotesPerDay] = useState(() => {
@@ -13,10 +18,83 @@ const Plan = () => {
   });
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
+  const [user, setUser] = useState<any>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [completions, setCompletions] = useState<any[]>([]);
+  const [habits, setHabits] = useState<any[]>([]);
 
   useEffect(() => {
     localStorage.setItem("quotes_per_day", quotesPerDay.toString());
+    loadUserData();
   }, [quotesPerDay]);
+
+  const loadUserData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      
+      const { data: badgesData } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('user_id', user.id);
+      setBadges(badgesData || []);
+
+      const { data: habitsData } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id);
+      setHabits(habitsData || []);
+
+      const { data: completionsData } = await supabase
+        .from('habit_completions')
+        .select('*')
+        .eq('user_id', user.id);
+      setCompletions(completionsData || []);
+    }
+  };
+
+  // Calculate stats for badges
+  const stats = {
+    totalCompletions: completions.length,
+    bestStreak: Math.max(...habits.map(h => h.best_streak || 0), 0),
+    totalHabits: habits.length,
+    perfectWeek: false, // TODO: Calculate based on completions
+  };
+
+  // Auto-unlock badges
+  useBadges(user?.id, stats);
+
+  const handleExportCSV = () => {
+    exportToCSV(
+      habits.map(h => ({
+        name: h.name,
+        streak: h.streak,
+        best_streak: h.best_streak,
+        created_at: h.created_at,
+      })),
+      generateExportFilename('habits', 'csv')
+    );
+    toast({
+      title: "Export réussi",
+      description: "Tes données ont été exportées en CSV",
+    });
+  };
+
+  const handleExportJSON = () => {
+    exportToJSON(
+      {
+        habits,
+        completions,
+        badges,
+        exported_at: new Date().toISOString(),
+      },
+      generateExportFilename('nextyou_data', 'json')
+    );
+    toast({
+      title: "Export réussi",
+      description: "Toutes tes données ont été exportées en JSON",
+    });
+  };
 
   const handleActivateNotifications = async () => {
     try {
@@ -57,6 +135,45 @@ const Plan = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-6 max-w-2xl mx-auto">
+        {/* Calendar Heatmap */}
+        {user && completions.length > 0 && (
+          <HabitCalendar completions={completions} />
+        )}
+
+        {/* Badges */}
+        {user && (
+          <BadgeDisplay badges={badges} />
+        )}
+
+        {/* Export Data */}
+        {user && habits.length > 0 && (
+          <section className="glass rounded-xl p-6 space-y-4 border border-primary/20">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-primary shadow-glow mb-3">
+                <Download className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <h2 className="text-lg font-bold text-foreground mb-1">Exporter mes données</h2>
+              <p className="text-xs text-muted-foreground">Sauvegarde et partage tes progrès</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleExportCSV}
+                variant="outline"
+                className="flex-1 glass border-primary/30"
+              >
+                CSV
+              </Button>
+              <Button
+                onClick={handleExportJSON}
+                variant="outline"
+                className="flex-1 glass border-primary/30"
+              >
+                JSON
+              </Button>
+            </div>
+          </section>
+        )}
+
         {/* Notification Frequency */}
         <section className="glass rounded-xl p-6 space-y-5 border border-primary/20">
           <div className="text-center">
