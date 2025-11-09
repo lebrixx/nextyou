@@ -14,6 +14,9 @@ import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useTranslation } from "@/lib/i18n";
+import BadgeDisplay from "@/components/BadgeDisplay";
+import { supabase } from "@/integrations/supabase/client";
+import useBadges from "@/hooks/useBadges";
 
 interface Habit {
   id: string;
@@ -46,6 +49,10 @@ const Habits = () => {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
+  const [badgesDialogOpen, setBadgesDialogOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [completions, setCompletions] = useState<any[]>([]);
   
   // Goals state
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -64,6 +71,45 @@ const Habits = () => {
   useEffect(() => {
     localStorage.setItem("habitflow_goals", JSON.stringify(goals));
   }, [goals]);
+
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUser(user);
+      
+      const { data: badgesData } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('user_id', user.id);
+      setBadges(badgesData || []);
+
+      const { data: habitsData } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const { data: completionsData } = await supabase
+        .from('habit_completions')
+        .select('*')
+        .eq('user_id', user.id);
+      setCompletions(completionsData || []);
+    }
+  };
+
+  // Calculate stats for badges
+  const stats = {
+    totalCompletions: completions.length,
+    bestStreak: Math.max(...habits.map(h => h.streak || 0), 0),
+    totalHabits: habits.length,
+    perfectWeek: false,
+  };
+
+  // Auto-unlock badges
+  useBadges(user?.id, stats);
 
   const toggleHabit = (id: string) => {
     const updatedHabits = habits.map((habit) => {
@@ -180,6 +226,15 @@ const Habits = () => {
             {t('newHabit')}
           </Button>
           <HabitStats habits={habits} />
+          {user && (
+            <Button
+              onClick={() => setBadgesDialogOpen(true)}
+              variant="outline"
+              className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm"
+            >
+              🏆 {t('myBadges')}
+            </Button>
+          )}
         </div>
       </header>
 
@@ -217,6 +272,18 @@ const Habits = () => {
 
       <Navigation />
       <AddHabitDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addHabit} />
+      
+      {/* Badges Dialog */}
+      <Dialog open={badgesDialogOpen} onOpenChange={setBadgesDialogOpen}>
+        <DialogContent className="glass max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Badges</span>
+            </DialogTitle>
+          </DialogHeader>
+          {user && <BadgeDisplay badges={badges} />}
+        </DialogContent>
+      </Dialog>
       
       {/* Plan Dialog */}
       <Dialog open={planOpen} onOpenChange={setPlanOpen}>

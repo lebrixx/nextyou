@@ -3,17 +3,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { quotes, getRandomQuotes } from '@/data/quotes';
 
 export const useNotifications = () => {
-  useEffect(() => {
-    // Request notification permissions
-    const requestPermissions = async () => {
-      const result = await LocalNotifications.requestPermissions();
-      if (result.display === 'granted') {
-        await scheduleQuoteNotifications();
-      }
-    };
-
-    requestPermissions();
-  }, []);
+  // Removed auto-triggering useEffect to prevent unwanted notifications
 
   const scheduleQuoteNotifications = async () => {
     // Clear existing notifications

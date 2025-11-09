@@ -140,11 +140,6 @@ const Plan = () => {
           <HabitCalendar completions={completions} />
         )}
 
-        {/* Badges */}
-        {user && (
-          <BadgeDisplay badges={badges} />
-        )}
-
         {/* Export Data */}
         {user && habits.length > 0 && (
           <section className="glass rounded-xl p-6 space-y-4 border border-primary/20">
@@ -302,7 +297,7 @@ const Plan = () => {
           <div className="text-center space-y-3">
             <div className="text-3xl">💪</div>
             <div>
-              <h3 className="text-lg font-bold text-foreground mb-2">+160 Messages Inspirants</h3>
+              <h3 className="text-lg font-bold text-foreground mb-2">+250 Messages Inspirants</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Motivation · Discipline · Succès · Persévérance · Mindset positif
               </p>
