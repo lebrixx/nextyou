@@ -5,9 +5,11 @@ import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
+import AgendaWidget from "@/components/AgendaWidget";
 import { Button } from "@/components/ui/button";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
+import { useTranslation } from "@/lib/i18n";
 
 interface TimerData {
   id: string;
@@ -35,6 +37,7 @@ interface Goal {
 }
 
 const Index = () => {
+  const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
   
   const [habits, setHabits] = useState<Habit[]>(() => {
@@ -167,7 +170,7 @@ const Index = () => {
           </h1>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
-              Citation du jour
+              {t('todayQuote')}
             </p>
             <p className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent text-center leading-relaxed">
               "{currentQuote.text}"
@@ -182,17 +185,20 @@ const Index = () => {
             className="glass border-primary/30 text-foreground hover:bg-primary/10"
           >
             <HelpCircle className="w-4 h-4 mr-2" />
-            Présentation de l&apos;app
+            {t('appPresentation')}
           </Button>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="px-6 space-y-6 max-w-2xl mx-auto">
+        {/* Agenda Widget */}
+        <AgendaWidget />
+
         {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
           <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
-            Performance Aujourd&apos;hui
+            {t('performanceToday')}
           </p>
           <div className="flex items-baseline justify-center gap-1">
             <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -201,14 +207,14 @@ const Index = () => {
             <span className="text-2xl font-semibold text-muted-foreground">/</span>
             <span className="text-2xl font-semibold text-foreground">{totalHabits}</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">habitudes complétées</p>
+          <p className="text-xs text-muted-foreground mt-2">{t('completedHabits')}</p>
         </section>
 
         {/* Timers Section */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
-            Mes compteurs
+            {t('myTimers')}
           </h2>
           {timers.length > 0 ? (
             <div className="glass rounded-xl p-4 shadow-elevation border border-white/5">
@@ -245,7 +251,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
-                Mes objectifs
+                {t('myGoals')}
               </h2>
             </div>
             <div className="space-y-3">
@@ -286,8 +292,8 @@ const Index = () => {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-foreground tracking-tight mb-0.5">Aujourd'hui</h2>
-              <p className="text-muted-foreground text-xs">Tes habitudes du jour</p>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight mb-0.5">{t('today')}</h2>
+              <p className="text-muted-foreground text-xs">{t('todayHabits')}</p>
             </div>
           </div>
           <div className="space-y-3">
@@ -323,9 +329,9 @@ const Index = () => {
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
-                      Philosophie de l&apos;application
+                      {t('appPhilosophy')}
                     </h3>
-                    <p className="text-xs text-muted-foreground">Découvre notre vision</p>
+                    <p className="text-xs text-muted-foreground">{t('discoverVision')}</p>
                   </div>
                 </div>
                 <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${philosophyOpen ? 'rotate-180' : ''}`} />

@@ -240,6 +240,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          completed: boolean
+          created_at: string
+          description: string | null
+          id: string
+          notification_enabled: boolean
+          reminder_date: string
+          reminder_time: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          notification_enabled?: boolean
+          reminder_date: string
+          reminder_time?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          notification_enabled?: boolean
+          reminder_date?: string
+          reminder_time?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       timer_sessions: {
         Row: {
           completed_at: string | null

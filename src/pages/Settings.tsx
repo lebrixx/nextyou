@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn, Download } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -10,9 +10,12 @@ import { toast } from "@/hooks/use-toast";
 import { applyTheme, getTheme, Theme } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
+import { useTranslation, Language } from "@/lib/i18n";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { language, setLanguage, t } = useTranslation();
   const [notifications, setNotifications] = useState({
     daily: true,
     motivational: true,
@@ -302,6 +305,36 @@ const Settings = () => {
             </div>
           </section>
         )}
+
+        {/* Language */}
+        <section className="space-y-3">
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
+              <Globe className="w-4 h-4 text-primary-foreground" />
+            </div>
+            {t('language')}
+          </h2>
+          <div className="glass rounded-xl p-4">
+            <div className="mb-3">
+              <p className="font-semibold text-foreground text-sm mb-2">{t('language')}</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Choisis ta langue préférée
+              </p>
+            </div>
+            <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
+              <SelectTrigger className="glass border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="glass-strong border-white/20">
+                <SelectItem value="fr">{t('french')}</SelectItem>
+                <SelectItem value="en">{t('english')}</SelectItem>
+                <SelectItem value="es">{t('spanish')}</SelectItem>
+                <SelectItem value="de">{t('german')}</SelectItem>
+                <SelectItem value="it">{t('italian')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </section>
 
         {/* Appearance */}
         <section className="space-y-3">

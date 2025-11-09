@@ -11,27 +11,37 @@ interface TourStep {
 const tourSteps: TourStep[] = [
   {
     title: "🏠 Accueil",
-    description: "Visualise tes progrès quotidiens, tes compteurs actifs et tes objectifs. C'est ton tableau de bord personnel pour suivre ta transformation.",
+    description: "Visualise tes progrès quotidiens, tes compteurs actifs, tes rappels et tes objectifs. C'est ton tableau de bord personnel pour suivre ta transformation.",
     icon: "🏠"
   },
   {
     title: "✅ Habitudes",
-    description: "Crée et gère tes habitudes quotidiennes avec des statistiques détaillées. Chaque validation augmente ta série (streak). Analyse tes performances et visualise ta progression pour rester motivé.",
+    description: "Crée et gère tes habitudes quotidiennes avec des statistiques détaillées. Chaque validation augmente ta série (streak). Analyse tes performances et visualise ta progression sur un calendrier pour rester motivé.",
     icon: "✅"
   },
   {
-    title: "⏱️ Chronomètres",
-    description: "Mesure le temps écoulé depuis un événement important : début d'une nouvelle habitude, arrêt d'une addiction, ou tout engagement personnel. Chaque seconde compte !",
+    title: "📊 Analytics",
+    description: "Explore tes statistiques, visualise ton calendrier d'habitudes, consulte tes badges débloqués et exporte tes données. Analyse tes performances pour progresser encore plus !",
+    icon: "📊"
+  },
+  {
+    title: "⏱️ Chronomètres & Pomodoro",
+    description: "Mesure le temps écoulé depuis un événement important ou utilise la technique Pomodoro pour booster ta productivité. Sessions de 25 minutes avec pauses courtes et longues automatiques.",
     icon: "⏱️"
   },
   {
-    title: "💬 Citations",
-    description: "Reçois des messages motivants pour rester inspiré. Configure la fréquence des notifications et ajoute les citations en widget sur ton écran d'accueil.",
-    icon: "💬"
+    title: "📅 Agenda & Rappels",
+    description: "Planifie tes tâches et rappels importants. Visualise ta semaine, active des notifications personnalisées et ne rate plus jamais une échéance importante.",
+    icon: "📅"
+  },
+  {
+    title: "🏆 Badges & Récompenses",
+    description: "Débloque des badges en accomplissant tes objectifs : séries de 7, 30, 100 jours, première habitude, et bien plus. Chaque accomplissement est célébré !",
+    icon: "🏆"
   },
   {
     title: "⚙️ Réglages",
-    description: "Personnalise ton expérience : thème de couleurs, notifications, et gestion de ton compte. Connecte-toi pour synchroniser tes données.",
+    description: "Personnalise ton expérience : choisis ta langue parmi 5 disponibles, thème de couleurs, notifications, et gestion de ton compte. Connecte-toi pour synchroniser tes données sur tous tes appareils.",
     icon: "⚙️"
   }
 ];
