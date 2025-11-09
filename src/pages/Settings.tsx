@@ -148,7 +148,7 @@ const Settings = () => {
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Réglages
+          {t('settings')}
         </h1>
         <p className="text-muted-foreground text-sm">Personnalise ton expérience</p>
       </header>
@@ -237,7 +237,7 @@ const Settings = () => {
             <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
               <Bell className="w-4 h-4 text-primary-foreground" />
             </div>
-            Notifications
+            {t('notifications')}
           </h2>
           <div className="glass rounded-xl divide-y divide-white/5">
             <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">

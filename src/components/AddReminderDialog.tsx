@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import TimePickerWheel from '@/components/TimePickerWheel';
 
 interface AddReminderDialogProps {
   onAdd: (reminder: {
@@ -27,7 +28,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
-  const [notificationEnabled, setNotificationEnabled] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [notificationDelay, setNotificationDelay] = useState('0');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -49,7 +50,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
     setDescription('');
     setDate('');
     setTime('');
-    setNotificationEnabled(false);
+    setNotificationEnabled(true);
     setNotificationDelay('0');
     setOpen(false);
   };
@@ -106,13 +107,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
             
             <div className="space-y-2">
               <Label htmlFor="time" className="text-foreground">{t('time')}</Label>
-              <Input
-                id="time"
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="glass border-white/10"
-              />
+              <TimePickerWheel value={time} onChange={setTime} />
             </div>
           </div>
 

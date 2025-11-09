@@ -78,6 +78,8 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    padding-top: var(--safe-area-inset-top);
+    padding-bottom: var(--safe-area-inset-bottom);
   }
 }
 
