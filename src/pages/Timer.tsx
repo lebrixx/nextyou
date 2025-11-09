@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, RotateCcw, Trash2, Timer as TimerIcon } from "lucide-react";
+import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ const Timer = () => {
   const [timerToDelete, setTimerToDelete] = useState<string | null>(null);
   const [timerToReset, setTimerToReset] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -249,6 +250,77 @@ const Timer = () => {
             );
           })
         )}
+
+        {/* Widget Instructions Section */}
+        <section className="space-y-3 mt-8">
+          <button
+            onClick={() => setWidgetSectionOpen(!widgetSectionOpen)}
+            className="w-full group"
+          >
+            <div className="glass rounded-xl p-4 border border-primary/30 hover:border-primary/50 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Smartphone className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <h2 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                      Widget Écran d&apos;Accueil
+                    </h2>
+                    <p className="text-xs text-muted-foreground">Affiche tes compteurs en permanence</p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-300 ${widgetSectionOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </div>
+          </button>
+
+          {widgetSectionOpen && (
+            <div className="glass rounded-xl p-5 space-y-4 border border-primary/20 animate-accordion-down">
+              <div className="bg-gradient-primary/10 rounded-lg p-4 border border-primary/30">
+                <p className="text-sm font-semibold text-primary mb-2">⏱️ Tes compteurs toujours visibles</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Place tes compteurs en widget pour voir ta progression en temps réel sans ouvrir l&apos;app. 
+                  Parfait pour rester motivé et suivre tes engagements à tout moment !
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="rounded-lg p-4 bg-background/50 border border-white/10">
+                  <p className="font-semibold text-foreground mb-2 text-sm flex items-center gap-2">
+                    <span>📱</span> iPhone / iPad
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+                    <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
+                    <li>Appuie sur le <span className="text-primary font-semibold">+</span> en haut à gauche</li>
+                    <li>Cherche <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Sélectionne le widget Compteur</li>
+                    <li>Choisis quel compteur afficher et place-le</li>
+                  </ol>
+                </div>
+
+                <div className="rounded-lg p-4 bg-background/50 border border-white/10">
+                  <p className="font-semibold text-foreground mb-2 text-sm flex items-center gap-2">
+                    <span>🤖</span> Android
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+                    <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
+                    <li>Appuie sur <span className="text-primary font-semibold">&quot;Widgets&quot;</span></li>
+                    <li>Trouve <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Choisis le widget Compteur</li>
+                    <li>Sélectionne quel compteur tu veux afficher</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="text-center pt-2">
+                <p className="text-xs text-primary font-medium">
+                  ⚡ Mise à jour en temps réel de tes compteurs
+                </p>
+              </div>
+            </div>
+          )}
+        </section>
       </main>
 
       <Navigation />
