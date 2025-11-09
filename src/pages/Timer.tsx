@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, RotateCcw, Trash2, Timer as TimerIcon } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
 import { Button } from "@/components/ui/button";
@@ -105,32 +105,47 @@ const Timer = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6">
+      <header className="px-6 pt-8 pb-6 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
+          <TimerIcon className="w-8 h-8 text-primary-foreground" />
+        </div>
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Chrono<span className="bg-gradient-primary bg-clip-text text-transparent">mètres</span>
+          Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Compteurs</span>
         </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-          Chaque seconde compte. Chaque chronomètre représente un <span className="text-primary font-semibold">engagement envers toi-même</span>. Marque le début de ta transformation, célèbre ta liberté retrouvée, ou mesure le chemin parcouru vers la meilleure version de toi. Ce n'est pas qu'un compteur — c'est le témoignage vivant de ta <span className="text-primary font-semibold">détermination</span>.
+        <p className="text-muted-foreground text-sm leading-relaxed mb-4 max-w-md mx-auto">
+          Mesure tes progrès, célèbre chaque seconde de transformation
         </p>
         <Button
           onClick={() => setDialogOpen(true)}
-          className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-9 text-sm"
+          className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold h-11 px-6"
         >
-          <Plus className="w-4 h-4 mr-1.5" />
-          Créer un nouveau compteur
+          <Plus className="w-4 h-4 mr-2" />
+          Nouveau compteur
         </Button>
       </header>
 
       <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
         {timers.length === 0 ? (
-          <div className="glass rounded-xl p-8 text-center space-y-3">
-            <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
-              <Plus className="w-7 h-7 text-primary" />
+          <div className="glass rounded-xl p-8 text-center space-y-4 border border-primary/20">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center">
+              <TimerIcon className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h3 className="text-lg font-bold text-foreground">Aucun compteur</h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-              Lance ton premier chronomètre aujourd'hui. Que ce soit pour célébrer le début d'une nouvelle habitude, marquer ta victoire sur une addiction, ou simplement mesurer ton évolution — <span className="text-primary font-semibold">chaque moment compte</span>.
-            </p>
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-2">Commence ton parcours</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+                Crée ton premier compteur pour mesurer ta transformation. Chaque seconde compte dans ton évolution personnelle.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                onClick={() => setDialogOpen(true)}
+                variant="outline"
+                className="border-primary/40 hover:bg-primary/10"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Créer un compteur
+              </Button>
+            </div>
           </div>
         ) : (
           timers.map((timer) => {
@@ -139,14 +154,19 @@ const Timer = () => {
             return (
               <div
                 key={timer.id}
-                className="glass rounded-xl p-5 hover:shadow-elevation transition-all duration-300"
+                className="glass rounded-xl p-6 border border-primary/20 hover:border-primary/30 transition-all duration-300 shadow-elevation"
               >
-              <h3 className="text-base font-semibold text-foreground mb-4 text-center">
-                {timer.name}
-              </h3>
+              <div className="flex items-center justify-center gap-2 mb-5">
+                <div className="w-8 h-8 rounded-lg bg-gradient-primary shadow-glow flex items-center justify-center shrink-0">
+                  <TimerIcon className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {timer.name}
+                </h3>
+              </div>
 
               {/* Timer Display */}
-              <div className="grid grid-cols-5 gap-2 mb-4">
+              <div className="grid grid-cols-5 gap-2 mb-5">
                 <div className="flex flex-col items-center">
                   <div className="glass-strong rounded-lg p-3 w-full shadow-elevation">
                     <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent text-center tabular-nums">
@@ -200,9 +220,9 @@ const Timer = () => {
               </div>
 
               {/* Widget Info */}
-              <div className="text-center mb-4 glass-strong rounded-lg p-3">
-                <p className="text-[10px] text-muted-foreground">
-                  💡 Ajoute ce compteur en widget sur ton écran d&apos;accueil pour le voir en permanence
+              <div className="text-center mb-4 bg-primary/5 rounded-lg p-3 border border-primary/20">
+                <p className="text-xs text-muted-foreground">
+                  <span className="text-primary font-semibold">💡 Astuce :</span> Ajoute ce compteur en widget sur ton écran d&apos;accueil
                 </p>
               </div>
 
@@ -211,17 +231,17 @@ const Timer = () => {
                 <Button
                   onClick={() => confirmReset(timer.id)}
                   variant="outline"
-                  className="flex-1 border-muted text-muted-foreground hover:bg-muted/10 h-9 text-sm"
+                  className="flex-1 glass border-white/20 text-foreground hover:bg-white/5 h-10"
                 >
-                  <RotateCcw className="w-4 h-4 mr-1.5" />
+                  <RotateCcw className="w-4 h-4 mr-2" />
                   Réinitialiser
                 </Button>
                 <Button
                   onClick={() => confirmDelete(timer.id)}
                   variant="outline"
-                  className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 h-9 text-sm"
+                  className="flex-1 border-destructive/50 text-destructive hover:bg-destructive/10 h-10"
                 >
-                  <Trash2 className="w-4 h-4 mr-1.5" />
+                  <Trash2 className="w-4 h-4 mr-2" />
                   Supprimer
                 </Button>
               </div>
