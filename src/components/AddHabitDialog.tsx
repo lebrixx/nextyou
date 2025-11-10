@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { HabitIconType } from "./HabitIcon";
 import HabitIcon from "./HabitIcon";
+import { z } from "zod";
+import { toast } from "sonner";
+
+const habitSchema = z.object({
+  name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom doit contenir maximum 100 caractères"),
+});
 
 interface AddHabitDialogProps {
   open: boolean;
@@ -36,12 +42,19 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
-      onAdd(name.trim(), selectedIcon);
-      setName("");
-      setSelectedIcon("sport");
-      onOpenChange(false);
+    
+    const result = habitSchema.safeParse({ name: name.trim() });
+    
+    if (!result.success) {
+      const firstError = result.error.errors[0];
+      toast.error(firstError.message);
+      return;
     }
+
+    onAdd(result.data.name, selectedIcon);
+    setName("");
+    setSelectedIcon("sport");
+    onOpenChange(false);
   };
 
   return (
