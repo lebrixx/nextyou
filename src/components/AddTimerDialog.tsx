@@ -3,12 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { z } from "zod";
 import { toast } from "sonner";
-
-const timerSchema = z.object({
-  name: z.string().trim().min(1, "Le nom est requis").max(100, "Le nom doit contenir maximum 100 caractères"),
-});
 
 interface AddTimerDialogProps {
   open: boolean;
@@ -22,15 +17,14 @@ const AddTimerDialog = ({ open, onOpenChange, onAdd }: AddTimerDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const result = timerSchema.safeParse({ name: name.trim() });
+    const trimmedName = name.trim();
     
-    if (!result.success) {
-      const firstError = result.error.errors[0];
-      toast.error(firstError.message);
+    if (!trimmedName || trimmedName.length > 100) {
+      toast.error("Le nom est requis et doit contenir maximum 100 caractères");
       return;
     }
 
-    onAdd(result.data.name);
+    onAdd(trimmedName);
     setName("");
     onOpenChange(false);
   };

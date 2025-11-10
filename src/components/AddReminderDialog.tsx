@@ -9,15 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import TimePickerWheel from '@/components/TimePickerWheel';
-import { z } from 'zod';
 import { toast } from 'sonner';
-
-const reminderSchema = z.object({
-  title: z.string().trim().min(1, "Le titre est requis").max(100, "Le titre doit contenir maximum 100 caractères"),
-  description: z.string().max(1000, "La description doit contenir maximum 1000 caractères").optional(),
-  reminder_date: z.string().refine(val => !isNaN(Date.parse(val)), "Date invalide"),
-  reminder_time: z.string().optional(),
-});
 
 interface AddReminderDialogProps {
   onAdd: (reminder: {
@@ -43,25 +35,29 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
-    const result = reminderSchema.safeParse({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      reminder_date: date,
-      reminder_time: time || undefined,
-    });
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
 
-    if (!result.success) {
-      const firstError = result.error.errors[0];
-      toast.error(firstError.message);
+    if (!trimmedTitle || trimmedTitle.length > 100) {
+      toast.error("Le titre est requis et doit contenir maximum 100 caractères");
+      return;
+    }
+
+    if (trimmedDescription.length > 1000) {
+      toast.error("La description doit contenir maximum 1000 caractères");
+      return;
+    }
+
+    if (!date || isNaN(Date.parse(date))) {
+      toast.error("Date invalide");
       return;
     }
 
     onAdd({
-      title: result.data.title,
-      description: result.data.description,
-      reminder_date: result.data.reminder_date,
-      reminder_time: result.data.reminder_time,
+      title: trimmedTitle,
+      description: trimmedDescription || undefined,
+      reminder_date: date,
+      reminder_time: time || undefined,
       notification_enabled: notificationEnabled,
       notification_delay: parseInt(notificationDelay),
     });
