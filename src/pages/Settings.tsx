@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Settings as SettingsIcon, Crown } from "lucide-react";
-import { LocalNotifications } from '@capacitor/local-notifications';
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -145,20 +144,12 @@ const Settings = () => {
     });
   };
 
-  const handleOpenNotificationSettings = async () => {
-    try {
-      await LocalNotifications.requestPermissions();
-      toast({
-        title: "Paramètres de notification",
-        description: "Vérifie les paramètres de ton téléphone pour autoriser les notifications",
-      });
-    } catch (error) {
-      toast({
-        title: "Information",
-        description: "Va dans les paramètres de ton téléphone > Next You 2.0 > Notifications",
-        variant: "destructive",
-      });
-    }
+  const handleOpenNotificationSettings = () => {
+    toast({
+      title: "Paramètres de notification",
+      description: "Va dans : Paramètres > Next You 2.0 > Notifications pour activer les alertes",
+      duration: 5000,
+    });
   };
 
   return (
@@ -300,7 +291,7 @@ const Settings = () => {
                 className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
               >
                 <SettingsIcon className="w-4 h-4 mr-2" />
-                Paramètres de notification
+                Aller dans les paramètres
               </Button>
             </div>
           </div>
