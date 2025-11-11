@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useTranslation } from "@/lib/i18n";
+import { toast } from "@/hooks/use-toast";
 
 interface TimerData {
   id: string;
@@ -45,10 +46,32 @@ const Index = () => {
   useEffect(() => {
     const requestNotificationPermissions = async () => {
       try {
+        // Check current permission status
+        const permStatus = await LocalNotifications.checkPermissions();
+        
+        if (permStatus.display === 'granted') {
+          console.log('Notifications already granted');
+          return;
+        }
+        
+        // Request permissions
         const result = await LocalNotifications.requestPermissions();
-        console.log('Notification permissions:', result);
+        console.log('Notification permissions result:', result);
+        
+        if (result.display === 'denied') {
+          toast({
+            title: "Notifications désactivées",
+            description: "Va dans les paramètres pour activer les notifications",
+            variant: "destructive",
+          });
+        }
       } catch (error) {
         console.error('Error requesting notification permissions:', error);
+        toast({
+          title: "Impossible d'activer les notifications",
+          description: "Vérifie les paramètres de l'application",
+          variant: "destructive",
+        });
       }
     };
     
