@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
+import { LocalNotifications } from '@capacitor/local-notifications';
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
@@ -39,6 +40,20 @@ interface Goal {
 const Index = () => {
   const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
+  
+  // Request notification permissions on startup
+  useEffect(() => {
+    const requestNotificationPermissions = async () => {
+      try {
+        const result = await LocalNotifications.requestPermissions();
+        console.log('Notification permissions:', result);
+      } catch (error) {
+        console.error('Error requesting notification permissions:', error);
+      }
+    };
+    
+    requestNotificationPermissions();
+  }, []);
   
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem("habitflow_habits");

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Settings as SettingsIcon, Crown } from "lucide-react";
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -144,6 +145,22 @@ const Settings = () => {
     });
   };
 
+  const handleOpenNotificationSettings = async () => {
+    try {
+      await LocalNotifications.requestPermissions();
+      toast({
+        title: "Paramètres de notification",
+        description: "Vérifie les paramètres de ton téléphone pour autoriser les notifications",
+      });
+    } catch (error) {
+      toast({
+        title: "Information",
+        description: "Va dans les paramètres de ton téléphone > Next You 2.0 > Notifications",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6">
@@ -275,6 +292,58 @@ const Settings = () => {
                 checked={notifications.sounds}
                 onCheckedChange={() => handleNotificationChange("sounds")}
               />
+            </div>
+            <div className="p-4">
+              <Button
+                onClick={handleOpenNotificationSettings}
+                variant="outline"
+                className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
+              >
+                <SettingsIcon className="w-4 h-4 mr-2" />
+                Paramètres de notification
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Premium Section */}
+        <section className="space-y-3">
+          <div className="glass rounded-xl p-6 relative overflow-hidden border border-primary/30 shadow-glow">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center animate-pulse-glow">
+                    <Crown className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      Passer Pro
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Débloque toutes les fonctionnalités</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Statistiques avancées illimitées</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Synchronisation multi-appareils</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Thèmes premium exclusifs</span>
+                </div>
+              </div>
+              <Button
+                disabled
+                className="w-full bg-gradient-primary text-primary-foreground shadow-glow cursor-not-allowed opacity-70"
+              >
+                Bientôt disponible ✨
+              </Button>
             </div>
           </div>
         </section>

@@ -14,8 +14,8 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/10 z-50 shadow-elevation">
-      <div className="flex justify-around items-center h-20 max-w-2xl mx-auto px-2">
+    <nav className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/10 z-[100] shadow-elevation">
+      <div className="flex justify-around items-center h-24 md:h-20 max-w-2xl mx-auto px-2 pb-safe-offset-2">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
