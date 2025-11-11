@@ -64,13 +64,30 @@ const AgendaWidget = () => {
               
               {!isOpen && upcomingReminders.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                  {upcomingReminders.map((reminder) => (
-                    <div key={reminder.id} className="flex items-center gap-2">
-                      <ChevronRight className="w-3 h-3 text-primary shrink-0" />
-                      <p className="text-xs text-muted-foreground truncate flex-1">
+                  {upcomingReminders.map((reminder, index) => (
+                    <div 
+                      key={reminder.id} 
+                      className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
+                        index === 0 
+                          ? 'bg-primary/10 border border-primary/30' 
+                          : 'hover:bg-white/5'
+                      }`}
+                    >
+                      <ChevronRight className={`w-4 h-4 shrink-0 ${
+                        index === 0 ? 'text-primary' : 'text-primary/70'
+                      }`} />
+                      <p className={`text-sm truncate flex-1 ${
+                        index === 0 
+                          ? 'text-foreground font-semibold' 
+                          : 'text-muted-foreground font-medium'
+                      }`}>
                         {reminder.title}
                       </p>
-                      <span className="text-xs text-muted-foreground/70">
+                      <span className={`text-xs font-semibold ${
+                        index === 0 
+                          ? 'text-primary' 
+                          : 'text-muted-foreground/70'
+                      }`}>
                         {format(parseISO(reminder.reminder_date), 'dd/MM', { locale })}
                       </span>
                     </div>
