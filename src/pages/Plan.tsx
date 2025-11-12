@@ -121,7 +121,7 @@ const Plan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-32">
       <header className="px-6 pt-8 pb-6 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
           <Sparkles className="w-8 h-8 text-primary-foreground" />
@@ -265,7 +265,7 @@ const Plan = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur le <span className="text-primary font-semibold">+</span> en haut à gauche</li>
-                    <li>Cherche <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Cherche <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
                     <li>Choisis le widget et place-le</li>
                   </ol>
                 </div>
@@ -277,7 +277,7 @@ const Plan = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur <span className="text-primary font-semibold">&quot;Widgets&quot;</span></li>
-                    <li>Trouve <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Trouve <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
                     <li>Fais glisser le widget à l&apos;endroit voulu</li>
                   </ol>
                 </div>

@@ -147,7 +147,7 @@ const Settings = () => {
   const handleOpenNotificationSettings = () => {
     toast({
       title: "Active les notifications",
-      description: "Ouvre : Paramètres > Next You 2.0 > Notifications et active les alertes",
+      description: "Ouvre : Paramètres > Next Me > Notifications et active les alertes",
       duration: 6000,
     });
   };
