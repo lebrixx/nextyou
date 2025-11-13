@@ -73,7 +73,7 @@ const Auth = () => {
 
         toast({
           title: "Connexion réussie",
-          description: "Bienvenue sur Next You 2.0 !",
+          description: "Bienvenue sur Next Me !",
         });
         navigate("/");
       } else {

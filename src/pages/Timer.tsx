@@ -312,7 +312,7 @@ const Timer = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur le <span className="text-primary font-semibold">+</span> en haut à gauche</li>
-                    <li>Cherche <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Cherche <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
                     <li>Sélectionne le widget Compteur</li>
                     <li>Choisis quel compteur afficher et place-le</li>
                   </ol>
@@ -325,7 +325,7 @@ const Timer = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur <span className="text-primary font-semibold">&quot;Widgets&quot;</span></li>
-                    <li>Trouve <span className="text-primary font-semibold">&quot;Next You 2.0&quot;</span></li>
+                    <li>Trouve <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
                     <li>Choisis le widget Compteur</li>
                     <li>Sélectionne quel compteur tu veux afficher</li>
                   </ol>

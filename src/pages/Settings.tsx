@@ -98,7 +98,7 @@ const Settings = () => {
     await supabase.auth.signOut();
     toast({
       title: "Déconnexion",
-      description: "À bientôt sur Next You 2.0 !",
+      description: "À bientôt sur Next Me !",
     });
     navigate("/");
   };
