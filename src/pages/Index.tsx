@@ -204,7 +204,7 @@ const Index = () => {
       <header className="px-6 pt-safe-offset-8 pb-6">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight leading-tight">
-            Next<span className="bg-gradient-primary bg-clip-text text-transparent"> You 2.0</span>
+            next<span className="bg-gradient-primary bg-clip-text text-transparent"> me</span>
           </h1>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
