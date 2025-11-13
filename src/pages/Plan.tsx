@@ -121,7 +121,7 @@ const Plan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background mb-safe-nav">
       <header className="px-6 pt-8 pb-6 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
           <Sparkles className="w-8 h-8 text-primary-foreground" />

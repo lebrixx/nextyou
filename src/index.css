@@ -91,4 +91,16 @@ All colors MUST be HSL.
   .glass-strong {
     @apply bg-card/60 backdrop-blur-2xl border border-white/10;
   }
+
+  .pb-safe {
+    padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
+  }
+
+  .pb-safe-2 {
+    padding-bottom: calc(2rem + var(--safe-area-inset-bottom));
+  }
+
+  .mb-safe-nav {
+    margin-bottom: calc(5rem + var(--safe-area-inset-bottom));
+  }
 }
