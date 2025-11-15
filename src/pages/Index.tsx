@@ -218,25 +218,27 @@ const Index = () => {
             <p className="text-sm font-bold bg-gradient-primary bg-clip-text text-transparent text-center leading-relaxed">
               "{currentQuote.text}"
             </p>
-            <p className="text-xs text-muted-foreground mt-1 text-center">
-              — {currentQuote.author}
-            </p>
-          </div>
-          <Button
-            onClick={() => setAssistantOpen(true)}
-            variant="outline"
-            className="glass border-primary/30 text-foreground hover:bg-primary/10"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Ton assistant personnel
-          </Button>
+          <p className="text-xs text-muted-foreground mt-1 text-center">
+            — {currentQuote.author}
+          </p>
         </div>
-      </header>
+      </div>
+    </header>
 
-      {/* Main Content */}
-      <main className="px-6 space-y-6 max-w-2xl mx-auto">
-        {/* Agenda Widget */}
-        <AgendaWidget />
+    {/* Main Content */}
+    <main className="px-6 space-y-6 max-w-2xl mx-auto">
+      {/* Agenda Widget */}
+      <AgendaWidget />
+
+      {/* AI Assistant Button */}
+      <Button
+        onClick={() => setAssistantOpen(true)}
+        size="lg"
+        className="w-full glass border-primary/40 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-foreground shadow-glow transition-all duration-300 hover:scale-[1.02] border"
+      >
+        <Sparkles className="w-5 h-5 mr-2 text-primary" />
+        <span className="font-semibold">Ton assistant personnel</span>
+      </Button>
 
         {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
