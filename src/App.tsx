@@ -10,8 +10,6 @@ import Plan from "./pages/Plan";
 import Timer from "./pages/Timer";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
-import Assistant from "./pages/Assistant";
-import Focus from "./pages/Focus";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,8 +26,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/habits" element={<Habits />} />
             <Route path="/analytics" element={<Plan />} />
-            <Route path="/assistant" element={<Assistant />} />
-            <Route path="/focus" element={<Focus />} />
             <Route path="/timer" element={<Timer />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

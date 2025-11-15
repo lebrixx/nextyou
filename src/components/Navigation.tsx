@@ -1,4 +1,4 @@
-import { Home, Target, Bot, Focus as FocusIcon, Settings } from "lucide-react";
+import { Home, Target, Sparkles, Timer, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "@/lib/i18n";
 
@@ -6,11 +6,11 @@ const Navigation = () => {
   const { t } = useTranslation();
   
   const navItems = [
-    { icon: Home, label: "Accueil", path: "/" },
-    { icon: Target, label: "Habitudes", path: "/habits" },
-    { icon: Bot, label: "Assistant", path: "/assistant" },
-    { icon: FocusIcon, label: "Focus", path: "/focus" },
-    { icon: Settings, label: "Réglages", path: "/settings" },
+    { icon: Home, label: t('home'), path: "/" },
+    { icon: Target, label: t('habits'), path: "/habits" },
+    { icon: Sparkles, label: t('quotes'), path: "/analytics" },
+    { icon: Timer, label: t('timer'), path: "/timer" },
+    { icon: Settings, label: t('settings'), path: "/settings" },
   ];
 
   return (
