@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +31,18 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
   const [userMessage, setUserMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<AIResponse | null>(null);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        setUserMessage("");
+        setSuggestions(null);
+        setIsLoading(false);
+      }, 300); // Wait for dialog close animation
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   const handleSubmit = async () => {
     if (!userMessage.trim()) {
@@ -129,8 +141,11 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
       description: `${newHabits.length} nouvelles habitudes ont été ajoutées`,
     });
 
-    setSuggestions(null);
     onOpenChange(false);
+  };
+
+  const handleNewSearch = () => {
+    setSuggestions(null);
   };
 
   return (
@@ -210,7 +225,7 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                   Ajouter toutes les habitudes
                 </Button>
                 <Button
-                  onClick={() => setSuggestions(null)}
+                  onClick={handleNewSearch}
                   variant="outline"
                   size="lg"
                 >
