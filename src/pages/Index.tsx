@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, Sparkles } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
@@ -7,6 +7,7 @@ import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
+import AIAssistantDialog from "@/components/AIAssistantDialog";
 import { Button } from "@/components/ui/button";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
@@ -116,6 +117,7 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tourOpen, setTourOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [philosophyOpen, setPhilosophyOpen] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
@@ -221,12 +223,12 @@ const Index = () => {
             </p>
           </div>
           <Button
-            onClick={() => setTourOpen(true)}
+            onClick={() => setAssistantOpen(true)}
             variant="outline"
             className="glass border-primary/30 text-foreground hover:bg-primary/10"
           >
-            <HelpCircle className="w-4 h-4 mr-2" />
-            {t('appPresentation')}
+            <Sparkles className="w-4 h-4 mr-2" />
+            Ton assistant personnel
           </Button>
         </div>
       </header>
@@ -408,6 +410,7 @@ const Index = () => {
 
       <Navigation />
       <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
+      <AIAssistantDialog open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );
 };
