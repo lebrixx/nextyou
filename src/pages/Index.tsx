@@ -43,36 +43,48 @@ const Index = () => {
   const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
   
-  // Request notification permissions on startup
+  // Request notification permissions on startup - ONCE only
   useEffect(() => {
     const requestNotificationPermissions = async () => {
       try {
+        // Check if we already asked
+        const hasAsked = localStorage.getItem('notification_permission_asked');
+        
         // Check current permission status
         const permStatus = await LocalNotifications.checkPermissions();
         
         if (permStatus.display === 'granted') {
           console.log('Notifications already granted');
+          localStorage.setItem('notification_permission_asked', 'true');
           return;
         }
         
-        // Request permissions
-        const result = await LocalNotifications.requestPermissions();
-        console.log('Notification permissions result:', result);
+        // Don't ask again if user already denied
+        if (hasAsked === 'true' && permStatus.display === 'denied') {
+          return;
+        }
         
-        if (result.display === 'denied') {
-          toast({
-            title: "Notifications désactivées",
-            description: "Va dans les paramètres pour activer les notifications",
-            variant: "destructive",
-          });
+        // Request permissions only if we haven't asked yet
+        if (!hasAsked || permStatus.display === 'prompt') {
+          const result = await LocalNotifications.requestPermissions();
+          console.log('Notification permissions result:', result);
+          localStorage.setItem('notification_permission_asked', 'true');
+          
+          if (result.display === 'denied') {
+            toast({
+              title: "Notifications désactivées",
+              description: "Tu peux les activer dans les paramètres iOS",
+              variant: "destructive",
+            });
+          } else if (result.display === 'granted') {
+            toast({
+              title: "Notifications activées",
+              description: "Tu recevras des rappels pour tes habitudes",
+            });
+          }
         }
       } catch (error) {
         console.error('Error requesting notification permissions:', error);
-        toast({
-          title: "Impossible d'activer les notifications",
-          description: "Vérifie les paramètres de l'application",
-          variant: "destructive",
-        });
       }
     };
     

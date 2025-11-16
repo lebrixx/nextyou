@@ -103,4 +103,11 @@ All colors MUST be HSL.
   .mb-safe-nav {
     margin-bottom: calc(5rem + var(--safe-area-inset-bottom));
   }
+
+  /* Force bottom positioning on iOS */
+  @supports (padding: max(0px)) {
+    .fixed.bottom-0 {
+      bottom: 0 !important;
+    }
+  }
 }
