@@ -7,6 +7,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "@/hooks/use-toast";
 import HabitCalendar from "@/components/HabitCalendar";
 import BadgeDisplay from "@/components/BadgeDisplay";
+import AIAssistantDialog from "@/components/AIAssistantDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
 import useBadges from "@/hooks/useBadges";
@@ -17,6 +18,7 @@ const Plan = () => {
     return saved ? parseInt(saved) : 3;
   });
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
   const [user, setUser] = useState<any>(null);
   const [badges, setBadges] = useState<any[]>([]);
@@ -138,6 +140,25 @@ const Plan = () => {
         {/* Calendar Heatmap */}
         {user && completions.length > 0 && (
           <HabitCalendar completions={completions} />
+        )}
+
+        {/* Mes Badges */}
+        {user && badges.length > 0 && (
+          <section className="space-y-4">
+            <BadgeDisplay badges={badges} />
+            
+            {/* AI Assistant Button */}
+            <Button
+              onClick={() => setAssistantOpen(true)}
+              size="lg"
+              className="w-full h-14 glass border-2 border-primary/50 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent hover:from-primary/30 hover:via-primary/20 hover:to-primary/5 text-foreground shadow-glow transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_80px_hsl(280_70%_60%/0.5)] group"
+            >
+              <Sparkles className="w-6 h-6 mr-3 text-primary group-hover:animate-pulse" />
+              <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Ton Assistant Personnel
+              </span>
+            </Button>
+          </section>
         )}
 
         {/* Export Data */}
@@ -312,6 +333,7 @@ const Plan = () => {
       </main>
 
       <Navigation />
+      <AIAssistantDialog open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );
 };

@@ -14,8 +14,9 @@ export const useNotifications = () => {
 
     // Get quotes per day from localStorage
     const quotesPerDay = parseInt(localStorage.getItem("quotes_per_day") || "3");
-    const totalDays = 30;
-    const totalNotifications = totalDays * quotesPerDay;
+    // iOS limite à 64 notifications locales - on planifie pour 20 jours max
+    const totalDays = Math.min(20, 30);
+    const totalNotifications = Math.min(totalDays * quotesPerDay, 64);
     
     const randomQuotes = getRandomQuotes(totalNotifications);
     
