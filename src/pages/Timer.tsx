@@ -3,6 +3,7 @@ import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown } 
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
 import PomodoroTimer from "@/components/PomodoroTimer";
+import { FocusMode } from "@/components/FocusMode";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -37,6 +38,8 @@ const Timer = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [focusModeOpen, setFocusModeOpen] = useState(false);
+  const [focusDuration, setFocusDuration] = useState(25);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -350,6 +353,14 @@ const Timer = () => {
 
       <Navigation />
       <AddTimerDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addTimer} />
+      <FocusMode 
+        open={focusModeOpen} 
+        onOpenChange={setFocusModeOpen}
+        duration={focusDuration}
+        onComplete={() => {
+          toast({ title: "Session terminée", description: `Tu as complété ${focusDuration} minutes de focus total!` });
+        }}
+      />
       
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

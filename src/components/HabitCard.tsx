@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, Flame } from "lucide-react";
 import { Button } from "./ui/button";
 import HabitIcon, { HabitIconType } from "./HabitIcon";
+import { TwoMinuteRuleBadge } from "./TwoMinuteRuleBadge";
 import { useTranslation } from "@/lib/i18n";
 
 interface HabitCardProps {
@@ -10,9 +11,12 @@ interface HabitCardProps {
   streak: number;
   completed: boolean;
   onToggle: (id: string) => void;
+  habit?: any;
+  completions?: any[];
+  onUpdate?: () => void;
 }
 
-const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardProps) => {
+const HabitCard = ({ id, name, icon, streak, completed, onToggle, habit, completions = [], onUpdate }: HabitCardProps) => {
   const { t } = useTranslation();
   
   return (
@@ -40,13 +44,16 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle }: HabitCardPro
             }`}>
               {name}
             </h3>
-            <div className="flex items-center gap-1.5">
-              <Flame className={`w-4 h-4 ${completed ? "text-primary/50" : "text-primary"}`} />
-              <span className={`text-xs font-semibold ${
-                completed ? "text-muted-foreground/70" : "text-muted-foreground"
-              }`}>
-                {streak} {t('days')}
-              </span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <Flame className={`w-4 h-4 ${completed ? "text-primary/50" : "text-primary"}`} />
+                <span className={`text-xs font-semibold ${
+                  completed ? "text-muted-foreground/70" : "text-muted-foreground"
+                }`}>
+                  {streak} {t('days')}
+                </span>
+              </div>
+              {habit && <TwoMinuteRuleBadge habit={habit} completions={completions} onUpdate={onUpdate} />}
             </div>
           </div>
         </div>
