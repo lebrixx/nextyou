@@ -44,6 +44,47 @@ export type Database = {
         }
         Relationships: []
       }
+      habit_blocks: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string
+          habit_id: string
+          id: string
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time: string
+          habit_id: string
+          id?: string
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string
+          habit_id?: string
+          id?: string
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_blocks_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_completions: {
         Row: {
           completed_at: string
@@ -129,10 +170,12 @@ export type Database = {
           icon: string
           id: string
           is_archived: boolean
+          is_two_minute_active: boolean | null
           name: string
           reminder_time: string | null
           streak: number
           target: number
+          two_minute_version: string | null
           updated_at: string
           user_id: string
         }
@@ -146,10 +189,12 @@ export type Database = {
           icon?: string
           id?: string
           is_archived?: boolean
+          is_two_minute_active?: boolean | null
           name: string
           reminder_time?: string | null
           streak?: number
           target?: number
+          two_minute_version?: string | null
           updated_at?: string
           user_id: string
         }
@@ -163,10 +208,12 @@ export type Database = {
           icon?: string
           id?: string
           is_archived?: boolean
+          is_two_minute_active?: boolean | null
           name?: string
           reminder_time?: string | null
           streak?: number
           target?: number
+          two_minute_version?: string | null
           updated_at?: string
           user_id?: string
         }

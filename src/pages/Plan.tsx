@@ -8,6 +8,8 @@ import { toast } from "@/hooks/use-toast";
 import HabitCalendar from "@/components/HabitCalendar";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import AIAssistantDialog from "@/components/AIAssistantDialog";
+import { HabitDifficultyAnalyzer } from "@/components/HabitDifficultyAnalyzer";
+import { HabitBlocks } from "@/components/HabitBlocks";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
 import useBadges from "@/hooks/useBadges";
@@ -158,6 +160,24 @@ const Plan = () => {
                 Ton Assistant Personnel
               </span>
             </Button>
+          </section>
+        )}
+
+        {/* Habit Difficulty Analyzer */}
+        {user && habits.length > 0 && (
+          <section className="space-y-4">
+            <HabitDifficultyAnalyzer 
+              habits={habits} 
+              stats={stats}
+              onHabitCreated={loadUserData}
+            />
+          </section>
+        )}
+
+        {/* NextMe Blocks - Planning Journalier */}
+        {user && habits.length > 0 && (
+          <section className="space-y-4">
+            <HabitBlocks userId={user?.id} habits={habits} />
           </section>
         )}
 

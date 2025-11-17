@@ -46,6 +46,31 @@ const badgeRules: BadgeRule[] = [
     description: '10 habitudes différentes complétées',
     condition: (stats) => stats.totalHabits >= 10,
   },
+  // Badges émotionnels
+  {
+    type: 'resilience_return',
+    name: 'Résilience',
+    description: 'Retour après une pause de 7+ jours',
+    condition: (stats) => stats.returnAfterBreak === true,
+  },
+  {
+    type: 'resilience_after_break',
+    name: 'Phoenix',
+    description: 'Reprise immédiate après rechute',
+    condition: (stats) => stats.immediateReturn === true,
+  },
+  {
+    type: 'hard_week_survivor',
+    name: 'Survivant',
+    description: 'Persévérance malgré une semaine difficile',
+    condition: (stats) => stats.hardWeekSurvivor === true,
+  },
+  {
+    type: 'low_energy_push',
+    name: 'Guerrier',
+    description: 'Continué malgré faible énergie',
+    condition: (stats) => stats.lowEnergyPush === true,
+  },
 ];
 
 export const useBadges = (userId: string | undefined, stats: any) => {

@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import HabitStats from "@/components/HabitStats";
 import AddHabitDialog from "@/components/AddHabitDialog";
+import { AntiOverloadBanner } from "@/components/AntiOverloadBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -237,6 +238,11 @@ const Habits = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-3 max-w-2xl mx-auto">
+        {/* Anti-Overload Banner */}
+        {user && habits.length > 0 && (
+          <AntiOverloadBanner habits={habits} completions={completions} />
+        )}
+
         {habits.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center space-y-3">
             <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
