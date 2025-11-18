@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, Sparkles } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
@@ -7,8 +7,6 @@ import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
-import AIAssistantDialog from "@/components/AIAssistantDialog";
-import { Button } from "@/components/ui/button";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useTranslation } from "@/lib/i18n";
@@ -129,7 +127,6 @@ const Index = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tourOpen, setTourOpen] = useState(false);
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [philosophyOpen, setPhilosophyOpen] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
@@ -242,17 +239,7 @@ const Index = () => {
       {/* Agenda Widget */}
       <AgendaWidget />
 
-      {/* AI Assistant Button */}
-      <Button
-        onClick={() => setAssistantOpen(true)}
-        size="lg"
-        className="w-full glass border-primary/40 bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/20 hover:to-primary/10 text-foreground shadow-glow transition-all duration-300 hover:scale-[1.02] border"
-      >
-        <Sparkles className="w-5 h-5 mr-2 text-primary" />
-        <span className="font-semibold">Ton assistant personnel</span>
-      </Button>
-
-        {/* Performance Quotidienne */}
+      {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
           <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
             {t('performanceToday')}
@@ -382,7 +369,7 @@ const Index = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Sparkles className="w-6 h-6 text-primary-foreground" />
+                    <Target className="w-6 h-6 text-primary-foreground" />
                   </div>
                   <div className="text-left">
                     <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
@@ -424,7 +411,6 @@ const Index = () => {
 
       <Navigation />
       <AppTour open={tourOpen} onClose={() => setTourOpen(false)} />
-      <AIAssistantDialog open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );
 };
