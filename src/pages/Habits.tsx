@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Target, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, Target, ChevronRight, Trash2, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import HabitStats from "@/components/HabitStats";
 import AddHabitDialog from "@/components/AddHabitDialog";
+import AIAssistantDialog from "@/components/AIAssistantDialog";
 import { AntiOverloadBanner } from "@/components/AntiOverloadBanner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ const Habits = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
   const [badgesDialogOpen, setBadgesDialogOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [badges, setBadges] = useState<any[]>([]);
   const [completions, setCompletions] = useState<any[]>([]);
@@ -233,6 +235,16 @@ const Habits = () => {
             className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm font-semibold"
           >
             🏆 {t('myBadges')}
+          </Button>
+          
+          {/* AI Assistant Button - Joli et attractif */}
+          <Button
+            onClick={() => setAssistantOpen(true)}
+            className="w-full bg-gradient-to-r from-purple-600 via-primary to-pink-600 hover:from-purple-700 hover:via-primary/90 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 h-11 text-sm font-bold relative overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+            <Sparkles className="w-5 h-5 mr-2 relative z-10" />
+            <span className="relative z-10">Ton Assistant Personnel ✨</span>
           </Button>
         </div>
       </header>
@@ -471,6 +483,9 @@ const Habits = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* AI Assistant Dialog */}
+      <AIAssistantDialog open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );
 };
