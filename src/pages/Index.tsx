@@ -41,40 +41,36 @@ const Index = () => {
   const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
   
-  // Request notification permissions on startup - ONCE only
+  // Request notification permissions on startup
   useEffect(() => {
     const requestNotificationPermissions = async () => {
       try {
-        // Check if we already asked
-        const hasAsked = localStorage.getItem('notification_permission_asked');
+        // Small delay to let the app fully load
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Check current permission status
         const permStatus = await LocalNotifications.checkPermissions();
+        console.log('Current notification permission status:', permStatus);
         
+        // If already granted, nothing to do
         if (permStatus.display === 'granted') {
           console.log('Notifications already granted');
-          localStorage.setItem('notification_permission_asked', 'true');
           return;
         }
         
-        // Don't ask again if user already denied
-        if (hasAsked === 'true' && permStatus.display === 'denied') {
+        // If denied, don't ask again (user needs to go to system settings)
+        if (permStatus.display === 'denied') {
+          console.log('Notifications denied, user must enable in system settings');
           return;
         }
         
-        // Request permissions only if we haven't asked yet
-        if (!hasAsked || permStatus.display === 'prompt') {
+        // If prompt or prompt-with-rationale, request permissions
+        if (permStatus.display === 'prompt' || permStatus.display === 'prompt-with-rationale') {
+          console.log('Requesting notification permissions...');
           const result = await LocalNotifications.requestPermissions();
           console.log('Notification permissions result:', result);
-          localStorage.setItem('notification_permission_asked', 'true');
           
-          if (result.display === 'denied') {
-            toast({
-              title: "Notifications désactivées",
-              description: "Tu peux les activer dans les paramètres iOS",
-              variant: "destructive",
-            });
-          } else if (result.display === 'granted') {
+          if (result.display === 'granted') {
             toast({
               title: "Notifications activées",
               description: "Tu recevras des rappels pour tes habitudes",
@@ -83,6 +79,12 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error requesting notification permissions:', error);
+        // If there's an error, try a direct request anyway
+        try {
+          await LocalNotifications.requestPermissions();
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+        }
       }
     };
     

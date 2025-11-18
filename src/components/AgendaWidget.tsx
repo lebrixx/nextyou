@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, ChevronDown, ChevronRight, Bell, Check, Trash2 } from 'lucide-react';
+import { Calendar, ChevronDown, Bell, Check, Trash2 } from 'lucide-react';
 import { format, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
 import { fr, enUS, es, de, it } from 'date-fns/locale';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -40,17 +40,17 @@ const AgendaWidget = () => {
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <button className="w-full group">
-            <div className="glass rounded-xl p-4 shadow-elevation border border-primary/20 hover:border-primary/40 transition-all">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Calendar className="w-6 h-6 text-primary-foreground" />
+            <div className="glass rounded-2xl p-6 shadow-elevation border border-primary/30 hover:border-primary/50 transition-all hover:shadow-glow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Calendar className="w-7 h-7 text-primary-foreground" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                       {t('agenda')}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground font-medium">
                       {upcomingReminders.length > 0 
                         ? `${upcomingReminders.length} ${t('agendaPreview').toLowerCase()}`
                         : t('noReminders')}
@@ -58,38 +58,64 @@ const AgendaWidget = () => {
                   </div>
                 </div>
                 <ChevronDown 
-                  className={`w-5 h-5 text-primary transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+                  className={`w-6 h-6 text-primary transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
                 />
               </div>
               
               {!isOpen && upcomingReminders.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
                   {upcomingReminders.map((reminder, index) => (
                     <div 
                       key={reminder.id} 
-                      className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
+                      className={`flex flex-col gap-2 p-4 rounded-xl transition-all ${
                         index === 0 
-                          ? 'bg-primary/10 border border-primary/30' 
-                          : 'hover:bg-white/5'
+                          ? 'bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/40 shadow-lg' 
+                          : 'bg-white/5 hover:bg-white/10 border border-white/10'
                       }`}
                     >
-                      <ChevronRight className={`w-4 h-4 shrink-0 ${
-                        index === 0 ? 'text-primary' : 'text-primary/70'
-                      }`} />
-                      <p className={`text-sm truncate flex-1 ${
-                        index === 0 
-                          ? 'text-foreground font-semibold' 
-                          : 'text-muted-foreground font-medium'
-                      }`}>
-                        {reminder.title}
-                      </p>
-                      <span className={`text-xs font-semibold ${
-                        index === 0 
-                          ? 'text-primary' 
-                          : 'text-muted-foreground/70'
-                      }`}>
-                        {format(parseISO(reminder.reminder_date), 'dd/MM', { locale })}
-                      </span>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <Bell className={`w-5 h-5 shrink-0 mt-0.5 ${
+                            index === 0 ? 'text-primary' : 'text-primary/60'
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-bold mb-1 ${
+                              index === 0 
+                                ? 'text-foreground' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              {reminder.title}
+                            </p>
+                            {reminder.description && (
+                              <p className={`text-xs line-clamp-2 ${
+                                index === 0 
+                                  ? 'text-foreground/80' 
+                                  : 'text-muted-foreground/70'
+                              }`}>
+                                {reminder.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
+                            index === 0 
+                              ? 'bg-primary/30 text-primary' 
+                              : 'bg-white/10 text-muted-foreground'
+                          }`}>
+                            {format(parseISO(reminder.reminder_date), 'EEE dd', { locale })}
+                          </span>
+                          {reminder.reminder_time && (
+                            <span className={`text-xs font-semibold ${
+                              index === 0 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground/70'
+                            }`}>
+                              {reminder.reminder_time}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
