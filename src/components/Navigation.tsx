@@ -1,9 +1,16 @@
 import { Home, Target, Sparkles, Timer, Settings } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "@/lib/i18n";
+import { useEffect } from "react";
 
 const Navigation = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  
+  // Scroll to top whenever route changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location.pathname]);
   
   const navItems = [
     { icon: Home, label: t('home'), path: "/" },
