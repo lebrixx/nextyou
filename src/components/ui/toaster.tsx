@@ -18,7 +18,7 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport />
+      <ToastViewport className="pb-safe" style={{ bottom: 'max(5.5rem, calc(5.5rem + env(safe-area-inset-bottom)))' }} />
     </ToastProvider>
   );
 }

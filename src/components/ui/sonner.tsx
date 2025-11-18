@@ -13,6 +13,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       position="bottom-center"
       offset="140px"
       duration={2000}
+      style={{ bottom: 'max(5.5rem, calc(5.5rem + env(safe-area-inset-bottom)))' }}
       toastOptions={{
         classNames: {
           toast:
