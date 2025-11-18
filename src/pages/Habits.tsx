@@ -15,6 +15,7 @@ import { HabitIconType } from "@/components/HabitIcon";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { useHabitReset } from "@/hooks/useHabitReset";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { useTranslation } from "@/lib/i18n";
 import BadgeDisplay from "@/components/BadgeDisplay";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ interface Goal {
 const Habits = () => {
   const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
+  useNotificationScheduler(); // Schedule all notifications
   
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem("habitflow_habits");

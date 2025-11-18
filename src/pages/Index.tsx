@@ -10,6 +10,7 @@ import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "@/hooks/use-toast";
 
@@ -41,6 +42,7 @@ interface Goal {
 const Index = () => {
   const { t } = useTranslation();
   useHabitReset(); // Reset habits at midnight
+  useNotificationScheduler(); // Schedule all notifications
   
   // Request notification permissions on startup
   useEffect(() => {

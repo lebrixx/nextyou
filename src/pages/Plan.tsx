@@ -4,6 +4,7 @@ import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { toast } from "@/hooks/use-toast";
 import HabitCalendar from "@/components/HabitCalendar";
 import BadgeDisplay from "@/components/BadgeDisplay";
@@ -20,6 +21,7 @@ const Plan = () => {
   });
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
+  useNotificationScheduler(); // Schedule all notifications
   const [user, setUser] = useState<any>(null);
   const [badges, setBadges] = useState<any[]>([]);
   const [completions, setCompletions] = useState<any[]>([]);

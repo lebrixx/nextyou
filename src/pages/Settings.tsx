@@ -12,10 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
 import { useTranslation, Language } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useTranslation();
+  const { refreshNotifications } = useNotificationScheduler();
   const [notifications, setNotifications] = useState({
     daily: true,
     motivational: true,
@@ -284,7 +286,7 @@ const Settings = () => {
                 onCheckedChange={() => handleNotificationChange("sounds")}
               />
             </div>
-            <div className="p-4">
+            <div className="p-4 space-y-2">
               <Button
                 onClick={handleOpenNotificationSettings}
                 variant="outline"
@@ -292,6 +294,20 @@ const Settings = () => {
               >
                 <SettingsIcon className="w-4 h-4 mr-2" />
                 Aller dans les paramètres
+              </Button>
+              <Button
+                onClick={async () => {
+                  await refreshNotifications();
+                  toast({
+                    title: "Notifications actualisées",
+                    description: "Toutes les notifications ont été reprogrammées",
+                  });
+                }}
+                variant="outline"
+                className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Actualiser les notifications
               </Button>
             </div>
           </div>

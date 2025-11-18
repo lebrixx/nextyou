@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -56,6 +57,39 @@ export const useReminders = () => {
     }
   };
 
+  const scheduleNotificationForReminder = async (reminder: Reminder) => {
+    try {
+      if (!reminder.notification_enabled) return;
+
+      const date = new Date(reminder.reminder_date);
+      
+      if (reminder.reminder_time) {
+        const [hours, minutes] = reminder.reminder_time.split(':').map(Number);
+        date.setHours(hours, minutes, 0, 0);
+      } else {
+        date.setHours(9, 0, 0, 0);
+      }
+
+      const delayMinutes = reminder.notification_delay || 0;
+      date.setMinutes(date.getMinutes() - delayMinutes);
+
+      if (date.getTime() > Date.now()) {
+        const notificationId = parseInt(reminder.id.replace(/-/g, '').substring(0, 8), 16);
+        
+        await LocalNotifications.schedule({
+          notifications: [{
+            id: notificationId,
+            title: `📅 Rappel: ${reminder.title}`,
+            body: reminder.description || 'Tu as un rappel',
+            schedule: { at: date },
+          }]
+        });
+      }
+    } catch (error) {
+      console.error('Error scheduling reminder notification:', error);
+    }
+  };
+
   const addReminder = async (reminder: Omit<Reminder, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'completed'>) => {
     if (!user) {
       toast({
@@ -67,15 +101,22 @@ export const useReminders = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('reminders')
         .insert({
           ...reminder,
           user_id: user.id,
           completed: false,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Schedule notification for the new reminder
+      if (data) {
+        await scheduleNotificationForReminder(data);
+      }
 
       toast({
         title: "Rappel ajouté",
@@ -101,6 +142,14 @@ export const useReminders = () => {
 
       if (error) throw error;
 
+      // Cancel notification for completed reminder
+      try {
+        const notificationId = parseInt(id.replace(/-/g, '').substring(0, 8), 16);
+        await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+      } catch (e) {
+        console.log('Could not cancel notification:', e);
+      }
+
       toast({
         title: "Rappel complété",
         description: "Le rappel a été marqué comme terminé",
@@ -124,6 +173,14 @@ export const useReminders = () => {
         .eq('id', id);
 
       if (error) throw error;
+
+      // Cancel notification for deleted reminder
+      try {
+        const notificationId = parseInt(id.replace(/-/g, '').substring(0, 8), 16);
+        await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+      } catch (e) {
+        console.log('Could not cancel notification:', e);
+      }
 
       toast({
         title: "Rappel supprimé",
