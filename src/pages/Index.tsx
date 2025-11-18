@@ -233,10 +233,10 @@ const Index = () => {
       {/* Header with Daily Quote */}
       <header className="px-6 pt-safe-offset-12 pb-8">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-7xl md:text-8xl font-extrabold mb-8 tracking-tight leading-none relative">
-            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">next</span>
+          <h1 className="text-7xl md:text-8xl font-extrabold mb-12 tracking-tight leading-none relative">
+            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Next</span>
             <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
-              me
+              Me
               <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
             </span>
           </h1>
