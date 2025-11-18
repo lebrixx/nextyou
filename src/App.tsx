@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
+import { initPushNotifications } from "./pushNotifications";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Plan from "./pages/Plan";
@@ -14,7 +16,13 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  // Initialiser les notifications push au démarrage de l'app
+  useEffect(() => {
+    initPushNotifications();
+  }, []);
+
+  return (
   <QueryClientProvider client={queryClient}>
     <I18nProvider>
       <TooltipProvider>
@@ -35,6 +43,7 @@ const App = () => (
       </TooltipProvider>
     </I18nProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
