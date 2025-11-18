@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { PushNotifications } from '@capacitor/push-notifications';
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
@@ -48,43 +49,57 @@ const Index = () => {
         // Small delay to let the app fully load
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Check current permission status
-        const permStatus = await LocalNotifications.checkPermissions();
-        console.log('Current notification permission status:', permStatus);
+        // Check both Push and Local notifications permissions
+        let hasPermission = false;
         
-        // If already granted, nothing to do
-        if (permStatus.display === 'granted') {
+        // Check Push Notifications (iOS)
+        try {
+          const pushStatus = await PushNotifications.checkPermissions();
+          console.log('Push notification status:', pushStatus);
+          if (pushStatus.receive === 'granted') {
+            hasPermission = true;
+          }
+        } catch (pushError) {
+          console.log('Push notifications not available (web):', pushError);
+        }
+        
+        // Check Local Notifications
+        try {
+          const localStatus = await LocalNotifications.checkPermissions();
+          console.log('Local notification status:', localStatus);
+          if (localStatus.display === 'granted') {
+            hasPermission = true;
+          }
+        } catch (localError) {
+          console.log('Local notifications check error:', localError);
+        }
+        
+        // If already has permission, don't show toast again
+        if (hasPermission) {
           console.log('Notifications already granted');
           return;
         }
         
-        // If denied, don't ask again (user needs to go to system settings)
-        if (permStatus.display === 'denied') {
-          console.log('Notifications denied, user must enable in system settings');
-          return;
-        }
-        
-        // If prompt or prompt-with-rationale, request permissions
-        if (permStatus.display === 'prompt' || permStatus.display === 'prompt-with-rationale') {
-          console.log('Requesting notification permissions...');
-          const result = await LocalNotifications.requestPermissions();
-          console.log('Notification permissions result:', result);
-          
-          if (result.display === 'granted') {
-            toast({
-              title: "Notifications activées",
-              description: "Tu recevras des rappels pour tes habitudes",
-            });
+        // Try to request Local Notifications permissions
+        try {
+          const localStatus = await LocalNotifications.checkPermissions();
+          if (localStatus.display === 'prompt' || localStatus.display === 'prompt-with-rationale') {
+            console.log('Requesting local notification permissions...');
+            const result = await LocalNotifications.requestPermissions();
+            console.log('Local notification permissions result:', result);
+            
+            if (result.display === 'granted') {
+              toast({
+                title: "Notifications activées",
+                description: "Tu recevras des rappels pour tes habitudes",
+              });
+            }
           }
+        } catch (error) {
+          console.log('Local notifications not available:', error);
         }
       } catch (error) {
-        console.error('Error requesting notification permissions:', error);
-        // If there's an error, try a direct request anyway
-        try {
-          await LocalNotifications.requestPermissions();
-        } catch (retryError) {
-          console.error('Retry failed:', retryError);
-        }
+        console.error('Error with notification permissions:', error);
       }
     };
     
