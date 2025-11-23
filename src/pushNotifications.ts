@@ -1,8 +1,13 @@
 import { PushNotifications } from '@capacitor/push-notifications';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export async function initPushNotifications() {
   try {
-    // Demander la permission de notifications
+    // Demander la permission pour les notifications locales
+    const localPermStatus = await LocalNotifications.requestPermissions();
+    console.log('Local notifications permission:', localPermStatus);
+
+    // Demander la permission de notifications push
     const permStatus = await PushNotifications.requestPermissions();
 
     if (permStatus.receive === 'granted') {
@@ -11,7 +16,6 @@ export async function initPushNotifications() {
       console.log('Push notifications registration lancée');
     } else {
       console.log('Notifications refusées :', permStatus);
-      return;
     }
 
     // Listener : token reçu avec succès
@@ -37,7 +41,16 @@ export async function initPushNotifications() {
       // TODO: naviguer vers la bonne section de l'app
     });
 
+    // Listener pour les notifications locales
+    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      console.log('Local notification reçue:', notification);
+    });
+
+    LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+      console.log('Local notification cliquée:', notification);
+    });
+
   } catch (error) {
-    console.error('Erreur initialisation push notifications :', error);
+    console.error('Erreur initialisation notifications :', error);
   }
 }

@@ -346,7 +346,13 @@ const Timer = () => {
           </TabsContent>
 
           <TabsContent value="pomodoro">
-            <PomodoroTimer userId={user?.id} />
+            <PomodoroTimer 
+              userId={user?.id}
+              onOpenFocusMode={(duration) => {
+                setFocusDuration(duration);
+                setFocusModeOpen(true);
+              }}
+            />
           </TabsContent>
         </Tabs>
       </main>
