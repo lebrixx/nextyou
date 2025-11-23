@@ -20,6 +20,7 @@ interface AIAssistantDialogProps {
 interface SuggestedHabit {
   name: string;
   icon: HabitIconType;
+  reason: string;
 }
 
 interface AIResponse {
@@ -150,25 +151,25 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[70vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Sparkles className="h-5 w-5 text-primary" />
             Ton Assistant Personnel
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Dis-moi tes objectifs et je te suggérerai des habitudes pour les atteindre
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2">
+        <div className="space-y-4 mt-2 overflow-y-auto flex-1 pr-2 pb-2">
           {!suggestions ? (
             <>
               <Textarea
                 placeholder="Ex: Je veux devenir plus musclé, avoir une meilleure santé..."
                 value={userMessage}
                 onChange={(e) => setUserMessage(e.target.value)}
-                className="min-h-[120px] text-base"
+                className="min-h-[100px] text-base resize-none"
                 disabled={isLoading}
               />
               <Button
@@ -193,36 +194,44 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
           ) : (
             <div className="space-y-4">
               <div className="p-4 bg-secondary/50 rounded-lg">
-                <p className="text-foreground font-medium">{suggestions.message}</p>
+                <p className="text-foreground font-medium text-sm">{suggestions.message}</p>
               </div>
 
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg">Habitudes suggérées :</h3>
+                <h3 className="font-semibold text-base">Habitudes suggérées :</h3>
                 {suggestions.habits.map((habit, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-card border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                    className="p-3 bg-card border border-border rounded-lg hover:bg-accent/50 transition-colors"
                   >
-                    <span className="text-foreground">{habit.name}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleAddHabit(habit)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Ajouter
-                    </Button>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex-1">
+                        <p className="text-foreground font-medium text-sm">{habit.name}</p>
+                        <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
+                          💡 {habit.reason}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAddHabit(habit)}
+                        className="shrink-0"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Ajouter
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-2 pt-2">
                 <Button
                   onClick={handleAddAllHabits}
                   className="flex-1"
                   size="lg"
                 >
-                  Ajouter toutes les habitudes
+                  Ajouter toutes
                 </Button>
                 <Button
                   onClick={handleNewSearch}

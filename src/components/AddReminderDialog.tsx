@@ -80,11 +80,11 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
           {t('addReminder')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="glass-strong border-white/20">
-        <DialogHeader>
+      <DialogContent className="glass-strong border-white/20 max-h-[70vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-foreground">{t('addReminder')}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="title" className="text-foreground">{t('title')}</Label>
             <Input
@@ -104,7 +104,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t('description')}
-              className="glass border-white/10"
+              className="glass border-white/10 resize-none"
               rows={3}
             />
           </div>
@@ -159,7 +159,7 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
             </div>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 sticky bottom-0 bg-background pb-2">
             <Button
               type="button"
               variant="outline"

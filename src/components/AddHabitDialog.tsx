@@ -53,14 +53,14 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass border-white/10">
-        <DialogHeader>
+      <DialogContent className="glass border-white/10 max-h-[70vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-foreground">Créer une nouvelle habitude</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
             Définis une nouvelle habitude à suivre quotidiennement
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 pr-2">
           <div className="space-y-2">
             <Label htmlFor="habit-name" className="text-foreground text-sm">
               Nom de l'habitude
@@ -75,7 +75,7 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
           </div>
           <div className="space-y-2">
             <Label className="text-foreground text-sm">Icône</Label>
-            <div className="grid grid-cols-7 gap-2 max-h-[200px] overflow-y-auto">
+            <div className="grid grid-cols-7 gap-2 max-h-[150px] overflow-y-auto">
               {ICONS.map((icon) => (
                 <button
                   key={icon}
@@ -113,7 +113,7 @@ const AddHabitDialog = ({ open, onOpenChange, onAdd }: AddHabitDialogProps) => {
               Reçois une notification à cette heure chaque jour
             </p>
           </div>
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-2 sticky bottom-0 bg-background pb-2">
             <Button
               type="button"
               variant="outline"
