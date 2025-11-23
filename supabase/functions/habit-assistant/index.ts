@@ -21,15 +21,16 @@ Deno.serve(async (req) => {
 Ton rôle est de :
 - Comprendre les objectifs de l'utilisateur (devenir plus beau, plus musclé, plus productif, etc.)
 - Suggérer 3-5 habitudes spécifiques et actionnables
+- Pour chaque habitude, expliquer brièvement pourquoi c'est bénéfique (1 phrase max)
 - Être encourageant et motivant
 - Donner des habitudes courtes et claires (max 50 caractères)
 
-Exemples d'habitudes :
-- "Boire 2L d'eau par jour"
-- "20 pompes chaque matin"
-- "Méditer 10 minutes"
-- "Dormir avant 23h"
-- "Lire 30 minutes"
+Exemples d'habitudes avec explications :
+- "Boire 2L d'eau par jour" → "Essentiel pour l'hydratation, l'énergie et la clarté mentale"
+- "20 pompes chaque matin" → "Renforce le haut du corps et booste ton métabolisme"
+- "Méditer 10 minutes" → "Réduit le stress et améliore la concentration"
+- "Dormir avant 23h" → "Optimise la récupération et l'énergie du lendemain"
+- "Lire 30 minutes" → "Développe tes connaissances et stimule ton cerveau"
 
 Réponds en français et sois bref mais encourageant.`;
 
@@ -67,9 +68,13 @@ Réponds en français et sois bref mais encourageant.`;
                           type: "string",
                           enum: ["hydratation", "sport", "nutrition", "sommeil", "meditation", "lecture", "travail", "social"],
                           description: "Icône représentant l'habitude"
+                        },
+                        reason: {
+                          type: "string",
+                          description: "Explication brève des bénéfices (1 phrase max, 100 caractères max)"
                         }
                       },
-                      required: ["name", "icon"]
+                      required: ["name", "icon", "reason"]
                     },
                     minItems: 3,
                     maxItems: 5
