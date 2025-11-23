@@ -193,24 +193,21 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
             </>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-secondary/50 rounded-lg">
-                <p className="text-foreground font-medium text-sm">{suggestions.message}</p>
-              </div>
+              {suggestions.message && (
+                <div className="p-3 bg-secondary/50 rounded-lg">
+                  <p className="text-foreground text-sm">{suggestions.message}</p>
+                </div>
+              )}
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <h3 className="font-semibold text-base">Habitudes suggérées :</h3>
                 {suggestions.habits.map((habit, index) => (
                   <div
                     key={index}
-                    className="p-3 bg-card border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                    className="p-4 bg-card border border-border rounded-lg hover:bg-accent/50 transition-colors space-y-3"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="flex-1">
-                        <p className="text-foreground font-medium text-sm">{habit.name}</p>
-                        <p className="text-muted-foreground text-xs mt-1 leading-relaxed">
-                          💡 {habit.reason}
-                        </p>
-                      </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-foreground font-semibold text-base">{habit.name}</p>
                       <Button
                         size="sm"
                         variant="outline"
@@ -221,6 +218,9 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                         Ajouter
                       </Button>
                     </div>
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      {habit.reason}
+                    </p>
                   </div>
                 ))}
               </div>

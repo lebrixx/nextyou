@@ -21,18 +21,16 @@ Deno.serve(async (req) => {
 Ton rôle est de :
 - Comprendre les objectifs de l'utilisateur (devenir plus beau, plus musclé, plus productif, etc.)
 - Suggérer 3-5 habitudes spécifiques et actionnables
-- Pour chaque habitude, expliquer brièvement pourquoi c'est bénéfique (1 phrase max)
-- Être encourageant et motivant
-- Donner des habitudes courtes et claires (max 50 caractères)
+- Pour chaque habitude, expliquer brièvement les bénéfices en 1-2 phrases courtes (max 150 caractères)
+- Donner des habitudes courtes et claires (max 50 caractères pour le nom)
+- Rester motivant et positif
 
-Exemples d'habitudes avec explications :
-- "Boire 2L d'eau par jour" → "Essentiel pour l'hydratation, l'énergie et la clarté mentale"
-- "20 pompes chaque matin" → "Renforce le haut du corps et booste ton métabolisme"
-- "Méditer 10 minutes" → "Réduit le stress et améliore la concentration"
-- "Dormir avant 23h" → "Optimise la récupération et l'énergie du lendemain"
-- "Lire 30 minutes" → "Développe tes connaissances et stimule ton cerveau"
+Exemples :
+- "Boire 2L d'eau par jour" → "Hydrate ton corps et booste ton énergie. Améliore ta peau et ta concentration."
+- "20 pompes chaque matin" → "Renforce ton corps et réveille tes muscles. Démarre ta journée avec de l'énergie."
+- "Méditer 10 minutes" → "Calme ton esprit et réduit le stress. Améliore ta concentration au quotidien."
 
-Réponds en français et sois bref mais encourageant.`;
+Réponds en français et reste concis.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -71,7 +69,7 @@ Réponds en français et sois bref mais encourageant.`;
                         },
                         reason: {
                           type: "string",
-                          description: "Explication brève des bénéfices (1 phrase max, 100 caractères max)"
+                          description: "Explication des bénéfices en 1-2 phrases courtes (max 150 caractères)"
                         }
                       },
                       required: ["name", "icon", "reason"]
@@ -81,10 +79,10 @@ Réponds en français et sois bref mais encourageant.`;
                   },
                   message: {
                     type: "string",
-                    description: "Message encourageant pour l'utilisateur"
+                    description: "Message encourageant très court (optionnel, max 100 caractères)"
                   }
                 },
-                required: ["habits", "message"]
+                required: ["habits"]
               }
             }
           }
