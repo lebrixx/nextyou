@@ -231,7 +231,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
-      <header className="px-6 pt-safe-offset-16 pb-8">
+      <header className="px-6 pt-safe-offset-20 pb-8">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-7xl md:text-8xl font-extrabold mb-12 tracking-tight leading-none relative">
             <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Next</span>
