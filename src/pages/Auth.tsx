@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Target } from "lucide-react";
+import { Target, Phone } from "lucide-react";
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -24,82 +23,41 @@ const Auth = () => {
     });
   }, [navigate]);
 
-  const handleAuth = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Basic validation
-      const trimmedEmail = email.trim();
-      const trimmedName = fullName.trim();
-
-      if (!trimmedEmail || trimmedEmail.length > 255) {
+      // Validate phone number (basic validation)
+      const trimmedPhone = phone.trim();
+      
+      if (!trimmedPhone || trimmedPhone.length < 10) {
         toast({
           title: "Erreur",
-          description: "Email invalide",
+          description: "Numéro de téléphone invalide",
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      if (password.length < 6 || password.length > 100) {
-        toast({
-          title: "Erreur",
-          description: "Le mot de passe doit contenir entre 6 et 100 caractères",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
+      // Send OTP
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: trimmedPhone,
+      });
 
-      if (!isLogin && (!trimmedName || trimmedName.length > 100)) {
-        toast({
-          title: "Erreur",
-          description: "Nom invalide",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
+      if (error) throw error;
 
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: trimmedEmail,
-          password,
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue sur Next Me !",
-        });
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email: trimmedEmail,
-          password,
-          options: {
-            data: {
-              full_name: trimmedName,
-            },
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Compte créé",
-          description: "Ton compte a été créé avec succès !",
-        });
-        navigate("/");
-      }
+      setOtpSent(true);
+      toast({
+        title: "Code envoyé",
+        description: "Un code de vérification a été envoyé à ton numéro",
+      });
     } catch (error: any) {
+      console.error("Error sending OTP:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'authentification",
+        description: error.message || "Impossible d'envoyer le code",
         variant: "destructive",
       });
     } finally {
@@ -107,91 +65,131 @@ const Auth = () => {
     }
   };
 
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!otp || otp.length !== 6) {
+        toast({
+          title: "Erreur",
+          description: "Le code doit contenir 6 chiffres",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phone.trim(),
+        token: otp,
+        type: 'sms',
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Connexion réussie",
+        description: "Bienvenue sur Next Me !",
+      });
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error verifying OTP:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Code invalide",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setOtpSent(false);
+    setOtp("");
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
-            <Target className="w-8 h-8 text-primary-foreground" />
+            <Phone className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">
-            Habit<span className="bg-gradient-primary bg-clip-text text-transparent">Flow</span>
+            Next <span className="bg-gradient-primary bg-clip-text text-transparent">Me</span>
           </h1>
           <p className="text-muted-foreground text-sm">
-            {isLogin ? "Connecte-toi pour continuer" : "Crée ton compte gratuitement"}
+            {otpSent ? "Entre le code reçu par SMS" : "Connecte-toi avec ton téléphone"}
           </p>
         </div>
 
-        <form onSubmit={handleAuth} className="glass rounded-2xl p-8 space-y-6 border border-white/10">
-          {!isLogin && (
+        {!otpSent ? (
+          <form onSubmit={handleSendOtp} className="glass rounded-2xl p-8 space-y-6 border border-white/10">
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-foreground">
-                Nom complet
+              <Label htmlFor="phone" className="text-foreground">
+                Numéro de téléphone
               </Label>
               <Input
-                id="fullName"
-                type="text"
-                placeholder="Jean Dupont"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required={!isLogin}
+                id="phone"
+                type="tel"
+                placeholder="+33 6 12 34 56 78"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
                 className="glass border-white/10 focus:border-primary/50"
               />
+              <p className="text-xs text-muted-foreground">Format international : +33...</p>
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="ton@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="glass border-white/10 focus:border-primary/50"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground">
-              Mot de passe
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="glass border-white/10 focus:border-primary/50"
-            />
-            {!isLogin && (
-              <p className="text-xs text-muted-foreground">Au moins 6 caractères</p>
-            )}
-          </div>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-primary text-primary-foreground shadow-glow font-bold h-11"
-          >
-            {loading ? "Chargement..." : isLogin ? "Se connecter" : "Créer mon compte"}
-          </Button>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-primary text-primary-foreground shadow-glow font-bold h-11"
             >
-              {isLogin ? "Pas encore de compte ? Créer un compte" : "Déjà un compte ? Se connecter"}
-            </button>
-          </div>
-        </form>
+              {loading ? "Envoi..." : "Recevoir le code"}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="glass rounded-2xl p-8 space-y-6 border border-white/10">
+            <div className="space-y-2">
+              <Label htmlFor="otp" className="text-foreground">
+                Code de vérification
+              </Label>
+              <Input
+                id="otp"
+                type="text"
+                inputMode="numeric"
+                placeholder="123456"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                maxLength={6}
+                className="glass border-white/10 focus:border-primary/50 text-center text-2xl tracking-widest"
+              />
+              <p className="text-xs text-muted-foreground">Code à 6 chiffres envoyé au {phone}</p>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading || otp.length !== 6}
+              className="w-full bg-gradient-primary text-primary-foreground shadow-glow font-bold h-11"
+            >
+              {loading ? "Vérification..." : "Se connecter"}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Changer de numéro
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
