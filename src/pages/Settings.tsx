@@ -156,7 +156,16 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6">
+      <header className="px-6 pt-8 pb-6 relative">
+        <Button
+          onClick={() => navigate("/premium")}
+          variant="ghost"
+          size="sm"
+          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
+        >
+          <Crown className="w-5 h-5 text-primary-foreground" />
+        </Button>
+        
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
           {t('settings')}
         </h1>

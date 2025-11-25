@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Bell, Smartphone, ChevronDown, Calendar, Download } from "lucide-react";
+import { Sparkles, Bell, Smartphone, ChevronDown, Calendar, Download, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/expor
 import useBadges from "@/hooks/useBadges";
 
 const Plan = () => {
+  const navigate = useNavigate();
   const [quotesPerDay, setQuotesPerDay] = useState(() => {
     const saved = localStorage.getItem("quotes_per_day");
     return saved ? parseInt(saved) : 3;
@@ -127,7 +129,16 @@ const Plan = () => {
 
   return (
     <div className="min-h-screen bg-background mb-safe-nav">
-      <header className="px-6 pt-8 pb-6 text-center">
+      <header className="px-6 pt-8 pb-6 text-center relative">
+        <Button
+          onClick={() => navigate("/premium")}
+          variant="ghost"
+          size="sm"
+          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
+        >
+          <Crown className="w-5 h-5 text-primary-foreground" />
+        </Button>
+        
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
           <Sparkles className="w-8 h-8 text-primary-foreground" />
         </div>
