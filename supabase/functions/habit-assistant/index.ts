@@ -9,14 +9,33 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, refine } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Tu es un assistant personnel qui aide les utilisateurs à atteindre leurs objectifs en suggérant des habitudes concrètes et réalisables.
+    // Adjust the system prompt based on whether we're refining
+    const systemPrompt = refine 
+      ? `Tu es un assistant personnel qui affine les suggestions d'habitudes pour les rendre ENCORE PLUS PRÉCISES et SPÉCIFIQUES.
+
+L'utilisateur a déjà reçu des suggestions générales, maintenant il veut des habitudes plus :
+- CONCRÈTES avec des chiffres précis (durées, quantités, fréquences)
+- DÉTAILLÉES avec des actions très spécifiques
+- PERSONNALISÉES pour son contexte
+
+Exemples de progression :
+Général → Précis :
+- "Faire du sport" → "30 min de HIIT à 7h le matin, 3x/semaine (Lundi/Mercredi/Vendredi)"
+- "Mieux manger" → "Préparer 3 repas avec 30g de protéines et 400g de légumes à 12h30"
+- "Lire plus" → "Lire 20 pages d'un livre de développement personnel entre 21h et 21h30"
+
+Suggère 3-5 habitudes ULTRA-PRÉCISES avec des détails concrets.
+Chaque explication (max 150 caractères) doit mentionner l'impact SPÉCIFIQUE.
+
+Réponds en français.`
+      : `Tu es un assistant personnel qui aide les utilisateurs à atteindre leurs objectifs en suggérant des habitudes concrètes et réalisables.
 
 Ton rôle est de :
 - Comprendre les objectifs de l'utilisateur (devenir plus beau, plus musclé, plus productif, etc.)

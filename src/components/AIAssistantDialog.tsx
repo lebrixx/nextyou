@@ -30,6 +30,7 @@ interface AIResponse {
 
 const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
   const [userMessage, setUserMessage] = useState("");
+  const [lastUserMessage, setLastUserMessage] = useState(""); // Track last search
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<AIResponse | null>(null);
 
@@ -45,8 +46,10 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
     }
   }, [open]);
 
-  const handleSubmit = async () => {
-    if (!userMessage.trim()) {
+  const handleSubmit = async (refine: boolean = false) => {
+    const messageToSend = refine ? lastUserMessage : userMessage;
+    
+    if (!messageToSend.trim()) {
       toast({
         title: "Message vide",
         description: "Écris ton objectif pour recevoir des suggestions",
@@ -66,7 +69,8 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
-            messages: [{ role: "user", content: userMessage }],
+            messages: [{ role: "user", content: messageToSend }],
+            refine: refine, // Indicate if we want more precise suggestions
           }),
         }
       );
@@ -78,7 +82,11 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
 
       const data: AIResponse = await response.json();
       setSuggestions(data);
-      setUserMessage("");
+      
+      if (!refine) {
+        setLastUserMessage(userMessage);
+        setUserMessage("");
+      }
     } catch (error) {
       console.error("Error calling AI assistant:", error);
       toast({
@@ -173,7 +181,7 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                 disabled={isLoading}
               />
               <Button
-                onClick={handleSubmit}
+                onClick={() => handleSubmit(false)}
                 disabled={isLoading || !userMessage.trim()}
                 className="w-full"
                 size="lg"
@@ -232,6 +240,25 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                   size="lg"
                 >
                   Ajouter toutes
+                </Button>
+                <Button
+                  onClick={() => handleSubmit(true)}
+                  disabled={isLoading}
+                  variant="secondary"
+                  size="lg"
+                  className="flex-1"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Affinement...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Affiner
+                    </>
+                  )}
                 </Button>
                 <Button
                   onClick={handleNewSearch}
