@@ -2,6 +2,27 @@
 
 Pour que les notifications fonctionnent correctement sur iOS, tu dois suivre ces étapes :
 
+## 0. Configuration Capacitor (CRITIQUE)
+
+**TRÈS IMPORTANT** : Dans `capacitor.config.ts`, la section `server` doit être commentée pour que l'app native fonctionne correctement :
+
+```typescript
+// server: {
+//   url: 'https://...',
+//   cleartext: true
+// },
+```
+
+Cette configuration est uniquement pour le développement avec hot-reload. Avec cette section active, l'app charge le contenu depuis le web et les plugins natifs (notifications, caméra, etc.) ne fonctionnent pas.
+
+Après avoir commenté cette section :
+```bash
+npm run build
+npx cap sync ios
+```
+
+Puis rebuild depuis Xcode.
+
 ## 1. Ajouter les permissions dans Info.plist
 
 Après avoir exécuté `npx cap add ios`, tu dois modifier le fichier `ios/App/App/Info.plist` :
