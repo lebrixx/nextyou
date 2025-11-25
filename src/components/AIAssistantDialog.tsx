@@ -233,30 +233,22 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                 ))}
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button
-                  onClick={handleAddAllHabits}
-                  className="flex-1"
-                  size="lg"
-                >
-                  Ajouter toutes
-                </Button>
+              <div className="space-y-2 pt-2">
                 <Button
                   onClick={() => handleSubmit(true)}
                   disabled={isLoading}
-                  variant="secondary"
+                  className="w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-90"
                   size="lg"
-                  className="flex-1"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Affinement...
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Affinement en cours...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Affiner
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Affiner les suggestions
                     </>
                   )}
                 </Button>
@@ -264,6 +256,7 @@ const AIAssistantDialog = ({ open, onOpenChange }: AIAssistantDialogProps) => {
                   onClick={handleNewSearch}
                   variant="outline"
                   size="lg"
+                  className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
                 >
                   Nouvelle recherche
                 </Button>
