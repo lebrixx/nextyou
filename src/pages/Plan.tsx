@@ -128,7 +128,7 @@ const Plan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background mb-safe-nav">
+    <div className="min-h-screen bg-background pb-20">
       <header className="px-6 pt-8 pb-6 text-center relative">
         <Button
           onClick={() => navigate("/premium")}
