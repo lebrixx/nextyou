@@ -7,80 +7,86 @@ export async function initPushNotifications() {
     const isNative = Capacitor.isNativePlatform();
     console.log('🔔 Initialisation des notifications - Platform:', isNative ? 'Native' : 'Web');
     
-    // ÉTAPE 1: Vérifier les permissions locales actuelles
-    const localCheckStatus = await LocalNotifications.checkPermissions();
-    console.log('📋 Statut actuel des permissions locales:', localCheckStatus);
-
-    // ÉTAPE 2: Demander les permissions si nécessaire
-    let localPermStatus = localCheckStatus;
-    if (localCheckStatus.display !== 'granted') {
-      console.log('🔔 Demande de permission pour les notifications locales...');
-      localPermStatus = await LocalNotifications.requestPermissions();
-      console.log('✅ Résultat permission locale:', localPermStatus);
-    } else {
-      console.log('✅ Permissions locales déjà accordées');
-    }
-
-    // ÉTAPE 3: Configuration spécifique iOS/Android
     if (isNative) {
+      // Sur iOS/Android, on utilise PushNotifications et LocalNotifications
       try {
-        // Vérifier d'abord les permissions push
+        // D'abord les push notifications (iOS nécessite ça)
         const pushCheckStatus = await PushNotifications.checkPermissions();
-        console.log('📋 Statut actuel des push notifications:', pushCheckStatus);
+        console.log('📋 Push notification status:', pushCheckStatus);
 
-        // Demander si nécessaire
         let pushPermStatus = pushCheckStatus;
         if (pushCheckStatus.receive !== 'granted') {
-          console.log('🔔 Demande de permission pour les push notifications...');
+          console.log('🔔 Demande de permissions notifications...');
           pushPermStatus = await PushNotifications.requestPermissions();
-          console.log('✅ Résultat permission push:', pushPermStatus);
-        } else {
-          console.log('✅ Push notifications déjà accordées');
+          console.log('✅ Résultat permissions:', pushPermStatus);
         }
 
         // Enregistrer l'appareil si autorisé
         if (pushPermStatus.receive === 'granted') {
           await PushNotifications.register();
-          console.log('📱 Appareil enregistré pour les push notifications');
+          console.log('📱 Appareil enregistré pour les notifications');
+          
+          // Maintenant qu'on a les permissions push, essayer les notifications locales
+          try {
+            const localPermStatus = await LocalNotifications.requestPermissions();
+            console.log('✅ Permissions locales:', localPermStatus);
+            
+            // Setup listeners locaux
+            LocalNotifications.addListener('localNotificationReceived', (notification) => {
+              console.log('📩 Notification locale reçue:', notification);
+            });
+
+            LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+              console.log('👆 Notification locale cliquée:', notification);
+            });
+          } catch (localError) {
+            console.log('ℹ️ Local notifications not available:', localError);
+          }
         } else {
-          console.warn('⚠️ Push notifications non autorisées:', pushPermStatus);
+          console.warn('⚠️ Notifications non autorisées');
         }
 
-        // Setup listeners (une seule fois)
+        // Setup push listeners
         PushNotifications.addListener('registration', (token) => {
-          console.log('🔑 Device token reçu:', token.value);
+          console.log('🔑 Device token:', token.value);
         });
 
         PushNotifications.addListener('registrationError', (err) => {
-          console.error('❌ Erreur registration push:', err);
+          console.error('❌ Erreur registration:', err);
         });
 
         PushNotifications.addListener('pushNotificationReceived', (notification) => {
-          console.log('📩 Push notification reçue:', notification);
+          console.log('📩 Notification reçue:', notification);
         });
 
         PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-          console.log('👆 Push notification cliquée:', notification);
+          console.log('👆 Notification cliquée:', notification);
         });
+
       } catch (error) {
-        console.error('❌ Erreur push notifications:', error);
+        console.error('❌ Erreur notifications native:', error);
       }
     } else {
-      console.log('ℹ️ Mode web - push notifications non disponibles');
+      // Sur web, uniquement les notifications locales
+      try {
+        const localPermStatus = await LocalNotifications.requestPermissions();
+        console.log('✅ Permissions web:', localPermStatus);
+        
+        LocalNotifications.addListener('localNotificationReceived', (notification) => {
+          console.log('📩 Notification locale reçue:', notification);
+        });
+
+        LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
+          console.log('👆 Notification locale cliquée:', notification);
+        });
+      } catch (error) {
+        console.log('ℹ️ Notifications web non disponibles:', error);
+      }
     }
 
-    // Setup listeners locaux (web et mobile)
-    LocalNotifications.addListener('localNotificationReceived', (notification) => {
-      console.log('📩 Notification locale reçue:', notification);
-    });
-
-    LocalNotifications.addListener('localNotificationActionPerformed', (notification) => {
-      console.log('👆 Notification locale cliquée:', notification);
-    });
-
-    console.log('✅ Initialisation des notifications terminée avec succès');
+    console.log('✅ Initialisation terminée');
 
   } catch (error) {
-    console.error('❌ Erreur critique lors de l\'initialisation des notifications:', error);
+    console.error('❌ Erreur critique:', error);
   }
 }
