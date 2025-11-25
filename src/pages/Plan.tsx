@@ -104,13 +104,14 @@ const Plan = () => {
     try {
       await scheduleQuoteNotifications();
       toast({
-        title: "Notifications activées",
+        title: "Notifications activées ✅",
         description: `Tu recevras ${quotesPerDay} citation${quotesPerDay > 1 ? 's' : ''} par jour entre 9h et 22h.`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Erreur activation notifications:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'activer les notifications.",
+        title: "Erreur d'activation",
+        description: error.message || "Vérifie que les notifications sont autorisées dans Réglages > Next Me > Notifications",
         variant: "destructive",
       });
     }
