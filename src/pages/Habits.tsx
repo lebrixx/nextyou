@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Target, ChevronRight, Trash2, Sparkles } from "lucide-react";
+import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import HabitStats from "@/components/HabitStats";
@@ -41,6 +42,7 @@ interface Goal {
 
 const Habits = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   useHabitReset(); // Reset habits at midnight
   useNotificationScheduler(); // Schedule all notifications
   
@@ -213,7 +215,16 @@ const Habits = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6">
+      <header className="px-6 pt-8 pb-6 relative">
+        <Button
+          onClick={() => navigate("/premium")}
+          variant="ghost"
+          size="sm"
+          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
+        >
+          <Crown className="w-5 h-5 text-primary-foreground" />
+        </Button>
+        
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
           {t('myHabits')}
         </h1>

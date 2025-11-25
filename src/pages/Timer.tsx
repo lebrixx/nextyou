@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown } from "lucide-react";
+import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown, Crown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
 import PomodoroTimer from "@/components/PomodoroTimer";
@@ -26,6 +27,7 @@ interface TimerData {
 }
 
 const Timer = () => {
+  const navigate = useNavigate();
   const [timers, setTimers] = useState<TimerData[]>(() => {
     const saved = localStorage.getItem("habitflow_timers");
     return saved ? JSON.parse(saved) : [];
@@ -121,7 +123,16 @@ const Timer = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6 text-center">
+      <header className="px-6 pt-8 pb-6 text-center relative">
+        <Button
+          onClick={() => navigate("/premium")}
+          variant="ghost"
+          size="sm"
+          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
+        >
+          <Crown className="w-5 h-5 text-primary-foreground" />
+        </Button>
+        
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
           <TimerIcon className="w-8 h-8 text-primary-foreground" />
         </div>
