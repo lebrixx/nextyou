@@ -17,6 +17,7 @@ import Assistant from "./pages/Assistant";
 import Badges from "./pages/Badges";
 import Stats from "./pages/Stats";
 import Quotes from "./pages/Quotes";
+import Social from "./pages/Social";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/assistant" element={<Assistant />} />
             <Route path="/badges" element={<Badges />} />
             <Route path="/stats" element={<Stats />} />
+            <Route path="/social" element={<Social />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
