@@ -11,20 +11,30 @@ interface HabitCardProps {
   streak: number;
   completed: boolean;
   onToggle: (id: string) => void;
+  onClick?: () => void;
   habit?: any;
   completions?: any[];
   onUpdate?: () => void;
 }
 
-const HabitCard = ({ id, name, icon, streak, completed, onToggle, habit, completions = [], onUpdate }: HabitCardProps) => {
+const HabitCard = ({ id, name, icon, streak, completed, onToggle, onClick, habit, completions = [], onUpdate }: HabitCardProps) => {
   const { t } = useTranslation();
   
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger card click if clicking on the toggle button
+    if ((e.target as HTMLElement).closest('button')) return;
+    onClick?.();
+  };
+  
   return (
-    <div className={`glass rounded-xl p-4 transition-all duration-300 border ${
-      completed 
-        ? "opacity-60 border-primary/30 bg-primary/5" 
-        : "hover:shadow-elevation hover:scale-[1.01] border-white/5"
-    } group`}>
+    <div 
+      className={`glass rounded-xl p-4 transition-all duration-300 border cursor-pointer ${
+        completed 
+          ? "opacity-60 border-primary/30 bg-primary/5" 
+          : "hover:shadow-elevation hover:scale-[1.01] border-white/5"
+      } group`}
+      onClick={handleCardClick}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-glow transition-all duration-300 ${
@@ -58,7 +68,10 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle, habit, complet
           </div>
         </div>
         <Button
-          onClick={() => onToggle(id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(id);
+          }}
           variant="ghost"
           size="icon"
           className={`w-10 h-10 rounded-lg transition-all duration-300 ${
