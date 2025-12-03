@@ -1,4 +1,4 @@
-import { Home, Target, Quote, Timer, Settings } from "lucide-react";
+import { Home, Target, Quote, Timer, Users } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "@/lib/i18n";
 import { useEffect } from "react";
@@ -17,7 +17,7 @@ const Navigation = () => {
     { icon: Target, label: t('habits'), path: "/habits" },
     { icon: Quote, label: t('quotes'), path: "/quotes" },
     { icon: Timer, label: t('timer'), path: "/timer" },
-    { icon: Settings, label: t('settings'), path: "/settings" },
+    { icon: Users, label: "Social", path: "/social" },
   ];
 
   return (
