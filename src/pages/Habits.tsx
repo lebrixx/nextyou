@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
+import EditHabitDialog from "@/components/EditHabitDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,8 @@ interface Habit {
   icon: HabitIconType;
   streak: number;
   completed: boolean;
+  reminderEnabled?: boolean;
+  reminderTime?: string;
 }
 
 interface Action {
@@ -50,6 +53,8 @@ const Habits = () => {
     ];
   });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [completions, setCompletions] = useState<any[]>([]);
@@ -63,6 +68,25 @@ const Habits = () => {
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [newActionText, setNewActionText] = useState("");
+
+  const handleEditHabit = (habit: Habit) => {
+    setSelectedHabit(habit);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveHabit = (updated: { id: string; name: string; reminderEnabled: boolean; reminderTime: string }) => {
+    setHabits(prev => prev.map(h => 
+      h.id === updated.id 
+        ? { ...h, name: updated.name, reminderEnabled: updated.reminderEnabled, reminderTime: updated.reminderTime }
+        : h
+    ));
+    toast({ title: "Habitude modifiée", description: "Tes modifications ont été enregistrées" });
+  };
+
+  const handleDeleteHabit = (id: string) => {
+    setHabits(prev => prev.filter(h => h.id !== id));
+    toast({ title: "Habitude supprimée", description: "L'habitude a été retirée de ta liste" });
+  };
 
   useEffect(() => {
     localStorage.setItem("habitflow_habits", JSON.stringify(habits));
@@ -277,7 +301,12 @@ const Habits = () => {
             </div>
 
             {sortedHabits.map((habit) => (
-              <HabitCard key={habit.id} {...habit} onToggle={toggleHabit} />
+              <HabitCard 
+                key={habit.id} 
+                {...habit} 
+                onToggle={toggleHabit} 
+                onClick={() => handleEditHabit(habit)}
+              />
             ))}
           </>
         )}
@@ -285,6 +314,13 @@ const Habits = () => {
 
       <Navigation />
       <AddHabitDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addHabit} />
+      <EditHabitDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen} 
+        habit={selectedHabit}
+        onSave={handleSaveHabit}
+        onDelete={handleDeleteHabit}
+      />
       
       {/* Plan Dialog */}
       <Dialog open={planOpen} onOpenChange={setPlanOpen}>

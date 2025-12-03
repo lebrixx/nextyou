@@ -16,6 +16,7 @@ import Premium from "./pages/Premium";
 import Assistant from "./pages/Assistant";
 import Badges from "./pages/Badges";
 import Stats from "./pages/Stats";
+import Quotes from "./pages/Quotes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/habits" element={<Habits />} />
             <Route path="/analytics" element={<Plan />} />
+            <Route path="/quotes" element={<Quotes />} />
             <Route path="/timer" element={<Timer />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/premium" element={<Premium />} />

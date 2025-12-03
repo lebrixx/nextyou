@@ -1,4 +1,4 @@
-import { Home, Target, Sparkles, Timer, Settings } from "lucide-react";
+import { Home, Target, Quote, Timer, Settings } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "@/lib/i18n";
 import { useEffect } from "react";
@@ -15,13 +15,22 @@ const Navigation = () => {
   const navItems = [
     { icon: Home, label: t('home'), path: "/" },
     { icon: Target, label: t('habits'), path: "/habits" },
-    { icon: Sparkles, label: t('quotes'), path: "/analytics" },
+    { icon: Quote, label: t('quotes'), path: "/quotes" },
     { icon: Timer, label: t('timer'), path: "/timer" },
     { icon: Settings, label: t('settings'), path: "/settings" },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 glass-strong border-t border-white/10 z-[9999] shadow-elevation backdrop-blur-xl" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-[9999] glass-strong border-t border-white/10 shadow-elevation backdrop-blur-xl"
+      style={{ 
+        position: 'fixed',
+        bottom: 0,
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
       <div className="flex justify-around items-center h-16 max-w-2xl mx-auto px-2">
         {navItems.map((item) => (
           <NavLink
