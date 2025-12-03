@@ -291,7 +291,7 @@ const Habits = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-muted-foreground">
                 {habits.length} {t('habitActive')}
               </p>
@@ -299,6 +299,10 @@ const Habits = () => {
                 {habits.filter((h) => h.completed).length} {t('completedToday')}
               </p>
             </div>
+            
+            <p className="text-xs text-muted-foreground/70 italic mb-3">
+              💡 Clique sur une habitude pour la modifier
+            </p>
 
             {sortedHabits.map((habit) => (
               <HabitCard 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Quote, Clock, Bell, Settings2, Shuffle, Crown, RefreshCw } from "lucide-react";
+import { Clock, Bell, Settings2, Shuffle, Crown, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import TimePickerWheel from "@/components/TimePickerWheel";
 import { toast } from "@/hooks/use-toast";
-import { quotes, getRandomQuote } from "@/data/quotes";
+import { quotes } from "@/data/quotes";
 import { useNotifications } from "@/hooks/useNotifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
 
@@ -26,9 +26,9 @@ interface QuoteSettings {
 
 const Quotes = () => {
   const navigate = useNavigate();
-  const { scheduleQuoteNotifications } = useNotifications();
-  const [currentQuote, setCurrentQuote] = useState(getRandomQuote());
+  const { scheduleQuoteNotifications, sendInstantQuote } = useNotifications();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingTest, setIsSendingTest] = useState(false);
   
   const [settings, setSettings] = useState<QuoteSettings>(() => {
     const saved = localStorage.getItem("quote_notification_settings");
@@ -50,8 +50,23 @@ const Quotes = () => {
     localStorage.setItem("quotes_per_day", settings.quotesPerDay.toString());
   }, [settings]);
 
-  const refreshQuote = () => {
-    setCurrentQuote(getRandomQuote());
+  const handleSendTestNotification = async () => {
+    setIsSendingTest(true);
+    try {
+      await sendInstantQuote();
+      toast({
+        title: "Notification envoyée",
+        description: "Tu devrais recevoir une citation dans quelques secondes",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer la notification test",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingTest(false);
+    }
   };
 
   const handleToggleNotifications = async (enabled: boolean) => {
@@ -201,33 +216,6 @@ const Quotes = () => {
       </header>
 
       <main className="px-6 space-y-5 max-w-2xl mx-auto">
-        {/* Current Quote */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-primary/20">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
-              <Quote className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">
-                Citation du moment
-              </p>
-            </div>
-          </div>
-          <p className="text-base font-bold text-foreground leading-relaxed mb-2">
-            "{currentQuote.text}"
-          </p>
-          <p className="text-sm text-muted-foreground mb-4">— {currentQuote.author}</p>
-          <Button
-            onClick={refreshQuote}
-            variant="outline"
-            size="sm"
-            className="glass border-primary/30 text-primary hover:bg-primary/10"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Nouvelle citation
-          </Button>
-        </section>
-
         {/* Notification Settings */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -389,8 +377,17 @@ const Quotes = () => {
               </div>
             )}
 
-            {/* Save Button */}
-            <div className="p-4">
+            {/* Test & Save Buttons */}
+            <div className="p-4 space-y-3">
+              <Button
+                onClick={handleSendTestNotification}
+                disabled={isSendingTest}
+                variant="outline"
+                className="w-full glass border-primary/30 text-primary hover:bg-primary/10"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {isSendingTest ? "Envoi en cours..." : "Envoyer une notification test"}
+              </Button>
               <Button
                 onClick={handleSaveSettings}
                 disabled={isLoading}

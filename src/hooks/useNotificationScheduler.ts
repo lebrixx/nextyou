@@ -72,19 +72,25 @@ export const useNotificationScheduler = () => {
   const scheduleQuoteNotifications = async () => {
     try {
       const quotesPerDay = parseInt(localStorage.getItem("quotes_per_day") || "3");
-      const totalDays = 20; // 20 days of quotes
-      const totalNotifications = Math.min(totalDays * quotesPerDay, 64);
+      const totalDays = 14; // 14 days of quotes
+      const totalNotifications = Math.min(totalDays * quotesPerDay, 60);
       
       const randomQuotes = getRandomQuotes(totalNotifications);
+      if (!randomQuotes || randomQuotes.length === 0) {
+        console.log('No quotes available');
+        return;
+      }
+      
       const notifications = [];
       let notificationId = 1000; // Start from 1000 for quotes
+      let quoteIndex = 0;
 
-      for (let day = 0; day < totalDays; day++) {
-        const hoursInDay = 14; // Between 9 AM and 11 PM
+      for (let day = 0; day < totalDays && quoteIndex < randomQuotes.length; day++) {
+        const hoursInDay = 14; // Between 8 AM and 10 PM
         const intervalHours = hoursInDay / quotesPerDay;
         
-        for (let i = 0; i < quotesPerDay; i++) {
-          const baseHour = 9 + Math.floor(i * intervalHours);
+        for (let i = 0; i < quotesPerDay && quoteIndex < randomQuotes.length; i++) {
+          const baseHour = 8 + Math.floor(i * intervalHours);
           const randomMinute = Math.floor(Math.random() * 60);
           
           const date = new Date();
@@ -93,13 +99,16 @@ export const useNotificationScheduler = () => {
 
           // Only schedule future notifications
           if (date.getTime() > Date.now()) {
-            const quote = randomQuotes[(day * quotesPerDay) + i];
-            notifications.push({
-              id: notificationId++,
-              title: '💪 Citation inspirante',
-              body: `"${quote.text}" - ${quote.author}`,
-              schedule: { at: date },
-            });
+            const quote = randomQuotes[quoteIndex];
+            if (quote && quote.text) {
+              notifications.push({
+                id: notificationId++,
+                title: '💪 Citation inspirante',
+                body: `"${quote.text}" - ${quote.author}`,
+                schedule: { at: date },
+              });
+            }
+            quoteIndex++;
           }
         }
       }
