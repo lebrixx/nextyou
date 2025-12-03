@@ -236,12 +236,22 @@ const Social = () => {
       return;
     }
     
-    // Check existing friendship
-    const { data: existing } = await supabase
+    // Check existing friendship - check both directions
+    const { data: existing1 } = await supabase
       .from('friendships')
       .select('id')
-      .or(`and(user_id.eq.${user.id},friend_id.eq.${friendProfile.id}),and(user_id.eq.${friendProfile.id},friend_id.eq.${user.id})`)
-      .single();
+      .eq('user_id', user.id)
+      .eq('friend_id', friendProfile.id)
+      .maybeSingle();
+    
+    const { data: existing2 } = await supabase
+      .from('friendships')
+      .select('id')
+      .eq('user_id', friendProfile.id)
+      .eq('friend_id', user.id)
+      .maybeSingle();
+    
+    const existing = existing1 || existing2;
     
     if (existing) {
       toast({ title: "Info", description: "Demande déjà envoyée ou ami existant" });
