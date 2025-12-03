@@ -31,6 +31,44 @@ interface Friend {
   status: string;
 }
 
+// Données de démonstration
+const mockFriends: Friend[] = [
+  {
+    id: 'demo-1',
+    profile: { id: 'demo-user-1', full_name: 'Marie Dupont', avatar_url: null, friend_code: 'MARIE123' },
+    status: 'accepted'
+  },
+  {
+    id: 'demo-2',
+    profile: { id: 'demo-user-2', full_name: 'Thomas Martin', avatar_url: null, friend_code: 'THOM456' },
+    status: 'accepted'
+  },
+  {
+    id: 'demo-3',
+    profile: { id: 'demo-user-3', full_name: 'Sophie Bernard', avatar_url: null, friend_code: 'SOPH789' },
+    status: 'accepted'
+  }
+];
+
+const mockGroups: Group[] = [
+  {
+    id: 'demo-group-1',
+    name: '🏃 Sport du matin',
+    description: 'On se motive pour faire du sport chaque matin !',
+    invite_code: 'SPORT123',
+    owner_id: 'demo-user-1',
+    member_count: 5
+  },
+  {
+    id: 'demo-group-2',
+    name: '📚 Lecture quotidienne',
+    description: 'Objectif : lire 20 pages par jour',
+    invite_code: 'READ456',
+    owner_id: 'demo-user-2',
+    member_count: 8
+  }
+];
+
 const Social = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -50,6 +88,11 @@ const Social = () => {
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [friendCode, setFriendCode] = useState("");
   const [groupInviteCode, setGroupInviteCode] = useState("");
+
+  // Utiliser les données réelles ou les données de démo
+  const displayedGroups = groups.length > 0 ? groups : mockGroups;
+  const displayedFriends = friends.length > 0 ? friends : mockFriends;
+  const isDemo = groups.length === 0 && friends.length === 0;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -493,104 +536,96 @@ const Social = () => {
 
         {/* Mes groupes */}
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            Mes groupes d'entraide
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Mes groupes d'entraide
+            </h2>
+            {isDemo && (
+              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">Démo</span>
+            )}
+          </div>
           
-          {groups.length === 0 ? (
-            <div className="glass rounded-xl p-6 text-center border border-white/5">
-              <Users className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Aucun groupe pour le moment</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Crée ou rejoins un groupe pour t'entraider
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {groups.map((group) => (
-                <div key={group.id} className="glass rounded-xl p-4 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                        <Users className="w-5 h-5 text-primary-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{group.name}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Code: {group.invite_code}
-                        </p>
-                      </div>
+          <div className="space-y-3">
+            {displayedGroups.map((group) => (
+              <div key={group.id} className="glass rounded-xl p-4 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary-foreground" />
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => sendGroupMotivation(group.id, group.name)}
-                      className="text-primary hover:bg-primary/10"
-                    >
-                      <Bell className="w-5 h-5" />
-                    </Button>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{group.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Code: {group.invite_code} {group.member_count && `• ${group.member_count} membres`}
+                      </p>
+                    </div>
                   </div>
-                  {group.description && (
-                    <p className="text-xs text-muted-foreground mt-2 ml-13">
-                      {group.description}
-                    </p>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => !isDemo && sendGroupMotivation(group.id, group.name)}
+                    className="text-primary hover:bg-primary/10"
+                    disabled={isDemo}
+                  >
+                    <Bell className="w-5 h-5" />
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
+                {group.description && (
+                  <p className="text-xs text-muted-foreground mt-2 ml-13">
+                    {group.description}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Mes amis */}
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-primary" />
-            Mes amis
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" />
+              Mes amis
+            </h2>
+            {isDemo && (
+              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">Démo</span>
+            )}
+          </div>
           
-          {friends.length === 0 ? (
-            <div className="glass rounded-xl p-6 text-center border border-white/5">
-              <UserPlus className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Aucun ami pour le moment</p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Ajoute des amis avec leur code ami
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {friends.map((friend) => (
-                <div key={friend.id} className="glass rounded-xl p-4 border border-white/5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={friend.profile.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                          {(friend.profile.full_name || 'A')[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-foreground">
-                          {friend.profile.full_name || 'Ami'}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {friend.profile.friend_code}
-                        </p>
-                      </div>
+          <div className="space-y-3">
+            {displayedFriends.map((friend) => (
+              <div key={friend.id} className="glass rounded-xl p-4 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={friend.profile.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                        {(friend.profile.full_name || 'A')[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        {friend.profile.full_name || 'Ami'}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {friend.profile.friend_code}
+                      </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => sendMotivation(friend.profile.id, friend.profile.full_name || 'Ami')}
-                      className="text-primary hover:bg-primary/10"
-                    >
-                      <Send className="w-5 h-5" />
-                    </Button>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => !isDemo && sendMotivation(friend.profile.id, friend.profile.full_name || 'Ami')}
+                    className="text-primary hover:bg-primary/10"
+                    disabled={isDemo}
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Info box */}
