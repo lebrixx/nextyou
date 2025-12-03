@@ -63,58 +63,39 @@ const AgendaWidget = () => {
               </div>
               
               {!isOpen && upcomingReminders.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+                <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
                   {upcomingReminders.map((reminder, index) => (
                     <div 
                       key={reminder.id} 
-                      className={`flex flex-col gap-2 p-4 rounded-xl transition-all ${
+                      className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
                         index === 0 
-                          ? 'bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary/40 shadow-lg' 
-                          : 'bg-white/5 hover:bg-white/10 border border-white/10'
+                          ? 'bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/40' 
+                          : 'bg-white/5 border border-white/10'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <Bell className={`w-5 h-5 shrink-0 mt-0.5 ${
-                            index === 0 ? 'text-primary' : 'text-primary/60'
-                          }`} />
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-bold mb-1 ${
-                              index === 0 
-                                ? 'text-foreground' 
-                                : 'text-muted-foreground'
-                            }`}>
-                              {reminder.title}
-                            </p>
-                            {reminder.description && (
-                              <p className={`text-xs line-clamp-2 ${
-                                index === 0 
-                                  ? 'text-foreground/80' 
-                                  : 'text-muted-foreground/70'
-                              }`}>
-                                {reminder.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
-                            index === 0 
-                              ? 'bg-primary/30 text-primary' 
-                              : 'bg-white/10 text-muted-foreground'
+                      <Bell className={`w-4 h-4 shrink-0 ${
+                        index === 0 ? 'text-primary' : 'text-primary/60'
+                      }`} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium truncate ${
+                          index === 0 ? 'text-foreground' : 'text-muted-foreground'
+                        }`}>
+                          {reminder.title}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className={`text-xs font-semibold ${
+                          index === 0 ? 'text-primary' : 'text-muted-foreground'
+                        }`}>
+                          {format(parseISO(reminder.reminder_date), 'dd/MM', { locale })}
+                        </span>
+                        {reminder.reminder_time && (
+                          <span className={`text-xs ${
+                            index === 0 ? 'text-primary/80' : 'text-muted-foreground/70'
                           }`}>
-                            {format(parseISO(reminder.reminder_date), 'EEE dd', { locale })}
+                            {reminder.reminder_time}
                           </span>
-                          {reminder.reminder_time && (
-                            <span className={`text-xs font-semibold ${
-                              index === 0 
-                                ? 'text-primary' 
-                                : 'text-muted-foreground/70'
-                            }`}>
-                              {reminder.reminder_time}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -224,7 +205,7 @@ const AgendaWidget = () => {
               )}
             </div>
 
-            <AddReminderDialog onAdd={addReminder} />
+            <AddReminderDialog onAdd={addReminder} onSuccess={() => setIsOpen(false)} />
           </div>
         </CollapsibleContent>
       </Collapsible>
