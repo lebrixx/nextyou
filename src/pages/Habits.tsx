@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown } from "lucide-react";
+import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
-import HabitStats from "@/components/HabitStats";
 import AddHabitDialog from "@/components/AddHabitDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,6 @@ import { toast as sonnerToast } from "sonner";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { useTranslation } from "@/lib/i18n";
-import BadgeDisplay from "@/components/BadgeDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import useBadges from "@/hooks/useBadges";
 
@@ -53,9 +51,7 @@ const Habits = () => {
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
-  const [badgesDialogOpen, setBadgesDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [badges, setBadges] = useState<any[]>([]);
   const [completions, setCompletions] = useState<any[]>([]);
   
   // Goals state
@@ -84,17 +80,6 @@ const Habits = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUser(user);
-      
-      const { data: badgesData } = await supabase
-        .from('badges')
-        .select('*')
-        .eq('user_id', user.id);
-      setBadges(badgesData || []);
-
-      const { data: habitsData } = await supabase
-        .from('habits')
-        .select('*')
-        .eq('user_id', user.id);
 
       const { data: completionsData } = await supabase
         .from('habit_completions')
@@ -238,9 +223,16 @@ const Habits = () => {
             <Plus className="w-4 h-4 mr-1.5" />
             {t('newHabit')}
           </Button>
-          <HabitStats habits={habits} />
           <Button
-            onClick={() => setBadgesDialogOpen(true)}
+            onClick={() => navigate("/stats")}
+            variant="outline"
+            className="w-full border-primary/50 text-primary hover:bg-primary/10 h-9 text-sm font-semibold"
+          >
+            <BarChart3 className="w-4 h-4 mr-1" />
+            Statistiques
+          </Button>
+          <Button
+            onClick={() => navigate("/badges")}
             variant="outline"
             className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm font-semibold"
           >
@@ -293,24 +285,6 @@ const Habits = () => {
 
       <Navigation />
       <AddHabitDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addHabit} />
-      
-      {/* Badges Dialog */}
-      <Dialog open={badgesDialogOpen} onOpenChange={setBadgesDialogOpen}>
-        <DialogContent className="glass max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">
-              Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Badges</span>
-            </DialogTitle>
-          </DialogHeader>
-          {user ? (
-            <BadgeDisplay badges={badges} />
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Connecte-toi pour voir tes badges</p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
       
       {/* Plan Dialog */}
       <Dialog open={planOpen} onOpenChange={setPlanOpen}>
