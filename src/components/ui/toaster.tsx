@@ -5,7 +5,7 @@ export function Toaster() {
   const { toasts } = useToast();
 
   return (
-    <ToastProvider duration={3000}>
+    <ToastProvider duration={2000}>
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
@@ -18,7 +18,7 @@ export function Toaster() {
           </Toast>
         );
       })}
-      <ToastViewport className="pb-safe" style={{ bottom: 'max(5.5rem, calc(5.5rem + env(safe-area-inset-bottom)))' }} />
+      <ToastViewport className="pb-safe pointer-events-none [&>*]:pointer-events-auto" style={{ bottom: 'max(5.5rem, calc(5.5rem + env(safe-area-inset-bottom)))' }} />
     </ToastProvider>
   );
 }
