@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, Users } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import Navigation from "@/components/Navigation";
@@ -243,27 +243,6 @@ const Index = () => {
     <main className="px-6 space-y-6 max-w-2xl mx-auto">
       {/* Agenda Widget */}
       <AgendaWidget />
-
-      {/* Social Button */}
-      <button 
-        onClick={() => navigate('/social')}
-        className="w-full glass rounded-xl p-4 border border-primary/20 hover:border-primary/40 transition-all group"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
-            <Users className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="text-left flex-1">
-            <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">
-              Social & Entraide
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Groupes, amis & encouragements
-            </p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-primary" />
-        </div>
-      </button>
 
       {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
