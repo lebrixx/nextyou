@@ -104,10 +104,12 @@ All colors MUST be HSL.
     margin-bottom: calc(5rem + var(--safe-area-inset-bottom));
   }
 
-  @supports (padding: max(0px)) {
-    .fixed.bottom-0 {
-      bottom: 0 !important;
-      position: fixed !important;
-    }
+  /* Force navigation bar to stay fixed at bottom */
+  #main-navigation {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 99999 !important;
   }
 }

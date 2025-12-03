@@ -22,13 +22,17 @@ const Navigation = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] glass-strong border-t border-white/10 shadow-elevation backdrop-blur-xl"
+      id="main-navigation"
+      className="glass-strong border-t border-white/10 shadow-elevation backdrop-blur-xl"
       style={{ 
         position: 'fixed',
-        bottom: 0,
+        bottom: '0px',
+        left: '0px',
+        right: '0px',
+        zIndex: 99999,
         paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'transform',
       }}
     >
       <div className="flex justify-around items-center h-16 max-w-2xl mx-auto px-2">
