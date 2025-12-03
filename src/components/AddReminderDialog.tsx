@@ -20,9 +20,10 @@ interface AddReminderDialogProps {
     notification_enabled: boolean;
     notification_delay: number;
   }) => void;
+  onSuccess?: () => void;
 }
 
-const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
+const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -70,6 +71,9 @@ const AddReminderDialog = ({ onAdd }: AddReminderDialogProps) => {
     setNotificationEnabled(true);
     setNotificationDelay('0');
     setOpen(false);
+    
+    // Call success callback to close parent collapsible
+    onSuccess?.();
   };
 
   return (
