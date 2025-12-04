@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield, Clock } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield, Clock, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSocialNotifications } from "@/hooks/useSocialNotifications";
+import { useGroupFeatures } from "@/hooks/useGroupFeatures";
 
 interface Profile {
   id: string;
@@ -272,6 +273,19 @@ const mockNotifications: Notification[] = [
   }
 ];
 
+// Helper function to format time ago
+const getTimeAgo = (dateString: string): string => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return 'À l\'instant';
+  if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
+  if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`;
+  if (seconds < 604800) return `Il y a ${Math.floor(seconds / 86400)}j`;
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+};
+
 const Social = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -323,6 +337,9 @@ const Social = () => {
   
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
+  
+  // Group features hook
+  const { stats: groupStats, activities: groupActivities, memberStats: groupMemberStats, loading: groupLoading } = useGroupFeatures(selectedGroup?.id || null, user?.id);
   
   // Demo data - Only show mock data when demoMode is explicitly enabled
   const displayedGroups = demoMode ? mockGroups : groups.map(g => ({
@@ -2379,22 +2396,22 @@ const Social = () => {
               <p className="text-sm text-muted-foreground">{selectedGroup.description}</p>
             )}
 
-            {/* Stats du groupe */}
+            {/* Stats du groupe - Real data */}
             <div className="grid grid-cols-3 gap-2">
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
+              <div className="glass rounded-lg p-3 text-center border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
+                <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+                <p className="text-lg font-bold text-orange-400">{groupStats?.current_streak || 0}</p>
+                <p className="text-[10px] text-muted-foreground">Streak groupe</p>
+              </div>
+              <div className="glass rounded-lg p-3 text-center border border-primary/20">
                 <BarChart3 className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-lg font-bold text-foreground">{selectedGroup?.totalHabitsCompleted || 0}</p>
+                <p className="text-lg font-bold text-foreground">{groupStats?.total_habits_completed || 0}</p>
                 <p className="text-[10px] text-muted-foreground">Habitudes</p>
               </div>
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
-                <Users className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                <p className="text-lg font-bold text-foreground">{selectedGroup?.activeMembers || 0}</p>
-                <p className="text-[10px] text-muted-foreground">Actifs</p>
-              </div>
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
-                <Trophy className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
-                <p className="text-lg font-bold text-foreground">#{selectedGroup?.ranking || '-'}</p>
-                <p className="text-[10px] text-muted-foreground">Classement</p>
+              <div className="glass rounded-lg p-3 text-center border border-green-500/20 bg-gradient-to-br from-green-500/10 to-transparent">
+                <Target className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                <p className="text-lg font-bold text-green-400">{groupStats?.weekly_progress || 0}/{groupStats?.weekly_goal || 50}</p>
+                <p className="text-[10px] text-muted-foreground">Objectif semaine</p>
               </div>
             </div>
 
@@ -2412,83 +2429,102 @@ const Social = () => {
               </Button>
             </div>
 
-            {/* Challenge actuel */}
-            {selectedGroup?.weeklyChallenge && (
-              <div className="bg-primary/10 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Défi de la semaine</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{selectedGroup.weeklyChallenge}</p>
-                <Progress value={65} className="h-2 mt-2" />
-                <p className="text-[10px] text-muted-foreground mt-1">65% accompli par le groupe</p>
+            {/* Objectif collectif */}
+            <div className="bg-gradient-to-br from-green-500/10 to-primary/5 rounded-xl p-4 border border-green-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-green-500" />
+                <span className="text-sm font-medium text-foreground">Objectif collectif de la semaine</span>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground mb-2">
+                Complétez ensemble {groupStats?.weekly_goal || 50} habitudes cette semaine !
+              </p>
+              <Progress value={((groupStats?.weekly_progress || 0) / (groupStats?.weekly_goal || 50)) * 100} className="h-2" />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {groupStats?.weekly_progress || 0} / {groupStats?.weekly_goal || 50} ({Math.round(((groupStats?.weekly_progress || 0) / (groupStats?.weekly_goal || 50)) * 100)}%)
+              </p>
+            </div>
 
-            {/* Activité récente */}
+            {/* Fil d'activité LIVE */}
             <div>
               <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                Activité récente
+                <Activity className="w-4 h-4 text-green-500 animate-pulse" />
+                Activité en direct
+                <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">LIVE</span>
               </p>
-              <div className="space-y-2 max-h-28 overflow-y-auto">
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                  <Star className="w-3 h-3 text-yellow-500" />
-                  <span className="text-xs text-foreground">Marie a complété 5 habitudes 🎉</span>
-                  <span className="text-[10px] text-muted-foreground ml-auto">Il y a 2h</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                  <Flame className="w-3 h-3 text-orange-500" />
-                  <span className="text-xs text-foreground">Thomas atteint 7 jours de série !</span>
-                  <span className="text-[10px] text-muted-foreground ml-auto">Il y a 5h</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                  <Heart className="w-3 h-3 text-pink-500" />
-                  <span className="text-xs text-foreground">Sophie encourage le groupe</span>
-                  <span className="text-[10px] text-muted-foreground ml-auto">Hier</span>
-                </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {groupActivities.length > 0 ? groupActivities.slice(0, 5).map((activity) => {
+                  const timeAgo = getTimeAgo(activity.created_at);
+                  const icon = activity.activity_type === 'habit_completed' ? '✅' : 
+                              activity.activity_type === 'streak_milestone' ? '🔥' :
+                              activity.activity_type === 'joined' ? '👋' : '⭐';
+                  const text = activity.activity_type === 'habit_completed' 
+                    ? `${activity.user_name} a complété "${activity.habit_name || 'une habitude'}"`
+                    : activity.message || `${activity.user_name} - ${activity.activity_type}`;
+                  
+                  return (
+                    <div key={activity.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 animate-fade-in">
+                      <span className="text-sm">{icon}</span>
+                      <span className="text-xs text-foreground flex-1">{text}</span>
+                      <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
+                    </div>
+                  );
+                }) : (
+                  <div className="text-center py-4 text-muted-foreground text-xs">
+                    <Activity className="w-6 h-6 mx-auto mb-1 opacity-30" />
+                    <p>Aucune activité récente</p>
+                    <p className="text-[10px]">Complète des habitudes pour voir l'activité ici !</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Membres */}
+            {/* Classement des membres */}
             <div>
               <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                Membres ({selectedGroup?.member_count || 0})
+                <Trophy className="w-4 h-4 text-yellow-500" />
+                Classement du groupe
               </p>
               <div className="space-y-2 max-h-40 overflow-y-auto">
-                {demoMode ? mockGroupMembers.map((member, index) => (
-                  <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                {groupMemberStats.length > 0 ? groupMemberStats.map((member, index) => (
+                  <div key={member.user_id} className={`flex items-center justify-between p-2 rounded-lg ${
+                    index === 0 ? 'bg-gradient-to-r from-yellow-500/20 to-transparent border border-yellow-500/30' :
+                    index === 1 ? 'bg-gradient-to-r from-gray-400/20 to-transparent' :
+                    index === 2 ? 'bg-gradient-to-r from-amber-600/20 to-transparent' :
+                    'hover:bg-muted/50'
+                  }`}>
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
-                        {index + 1}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                        index === 0 ? 'bg-yellow-500 text-yellow-950' : 
+                        index === 1 ? 'bg-gray-400 text-gray-900' : 
+                        index === 2 ? 'bg-amber-600 text-amber-950' : 
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                       </div>
-                      <div className="relative">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                            {member.name[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        {member.isOnline && (
-                          <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-background rounded-full" />
-                        )}
-                      </div>
-                      <div>
-                        <span className="text-sm text-foreground">{member.name}</span>
-                        {index === 0 && <Shield className="w-3 h-3 text-yellow-500 inline ml-1" />}
-                      </div>
+                      <Avatar className="w-7 h-7">
+                        <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
+                          {member.user_name[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm text-foreground">{member.user_name}</span>
+                      {member.user_id === user?.id && (
+                        <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">Toi</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Flame className="w-3 h-3 text-orange-500" />
-                      <span>{member.streak}j</span>
-                      <span>•</span>
-                      <span>{member.completedToday}/{member.totalHabits}</span>
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-1 text-orange-500">
+                        <Flame className="w-3 h-3" />
+                        <span className="font-medium">{member.streak}j</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <span>{member.completions_week} cette semaine</span>
+                      </div>
                     </div>
                   </div>
                 )) : (
                   <div className="text-center py-4 text-muted-foreground text-sm">
                     <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p>Membres du groupe</p>
+                    <p>Aucun membre</p>
                   </div>
                 )}
               </div>
