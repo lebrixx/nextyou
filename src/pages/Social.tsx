@@ -324,9 +324,24 @@ const Social = () => {
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
   
-  // Demo data
-  const displayedGroups = demoMode ? mockGroups : groups;
-  const displayedFriends = demoMode ? mockFriends : friends;
+  // Demo data - Only show mock data when demoMode is explicitly enabled
+  const displayedGroups = demoMode ? mockGroups : groups.map(g => ({
+    ...g,
+    member_count: g.member_count || 1,
+    weeklyChallenge: undefined,
+    totalHabitsCompleted: 0,
+    activeMembers: 0,
+    ranking: 0
+  }));
+  const displayedFriends = demoMode ? mockFriends : friends.map(f => ({
+    ...f,
+    streak: 0,
+    completedToday: 0,
+    totalHabits: 0,
+    weeklyProgress: 0,
+    lastActive: 'Inconnu',
+    achievements: 0
+  }));
   const displayedChallenges = demoMode ? mockChallenges : challenges;
   const displayedNotifications = demoMode ? mockNotifications : notifications;
 
@@ -1278,9 +1293,9 @@ const Social = () => {
             <TabsTrigger value="notifications" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5 relative">
               <Bell className="w-3.5 h-3.5 mr-1.5" />
               Notifs
-              {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length > 0 && (
+              {displayedNotifications.filter(n => !n.isRead).length > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full text-[10px] text-white flex items-center justify-center animate-pulse shadow-lg shadow-red-500/50">
-                  {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length}
+                  {displayedNotifications.filter(n => !n.isRead).length}
                 </span>
               )}
             </TabsTrigger>
@@ -1358,6 +1373,28 @@ const Social = () => {
 
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground">Mes amis ({displayedFriends.length})</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    Comment ça marche ?
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary" />
+                      À propos des amis
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p><strong className="text-foreground">Ajouter un ami :</strong> Utilise le code ami de ton contact pour l'ajouter. Il recevra une demande qu'il devra accepter.</p>
+                    <p><strong className="text-foreground">Encourager :</strong> Envoie des messages de motivation à tes amis pour les aider à rester motivés !</p>
+                    <p><strong className="text-foreground">Défier :</strong> Lance un duel à un ami pour voir qui complète le plus d'habitudes.</p>
+                    <p><strong className="text-foreground">Ton code ami :</strong> Partage ton code pour que d'autres puissent t'ajouter.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
             
             {(displayedFriends as typeof mockFriends).map((friend, index) => (
@@ -1384,12 +1421,18 @@ const Social = () => {
                     <div>
                       <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{friend.profile.full_name || 'Ami'}</h3>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 rounded-full">
-                          <Flame className="w-3 h-3 text-orange-500" />
-                          <span className="text-orange-400 font-medium">{friend.streak}j</span>
-                        </div>
-                        <span className="text-muted-foreground/50">•</span>
-                        <span>{friend.completedToday}/{friend.totalHabits} aujourd'hui</span>
+                        {demoMode ? (
+                          <>
+                            <div className="flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 rounded-full">
+                              <Flame className="w-3 h-3 text-orange-500" />
+                              <span className="text-orange-400 font-medium">{friend.streak}j</span>
+                            </div>
+                            <span className="text-muted-foreground/50">•</span>
+                            <span>{friend.completedToday}/{friend.totalHabits} aujourd'hui</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">#{friend.profile.friend_code}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1409,16 +1452,18 @@ const Social = () => {
                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
-                <div className="relative z-10 mt-3">
-                  <Progress value={friend.weeklyProgress} className="h-1.5 bg-muted/50" />
-                  <div className="flex justify-between items-center mt-1.5">
-                    <p className="text-[10px] text-muted-foreground">{friend.weeklyProgress}% cette semaine</p>
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <TrendingUp className="w-3 h-3 text-green-500" />
-                      {friend.lastActive}
-                    </p>
+                {demoMode && (
+                  <div className="relative z-10 mt-3">
+                    <Progress value={friend.weeklyProgress} className="h-1.5 bg-muted/50" />
+                    <div className="flex justify-between items-center mt-1.5">
+                      <p className="text-[10px] text-muted-foreground">{friend.weeklyProgress}% cette semaine</p>
+                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3 text-green-500" />
+                        {friend.lastActive}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             ))}
           </TabsContent>
@@ -1427,6 +1472,28 @@ const Social = () => {
           <TabsContent value="groups" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground">Mes groupes ({displayedGroups.length})</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    Comment ça marche ?
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-primary" />
+                      À propos des groupes
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p><strong className="text-foreground">Créer un groupe :</strong> Crée ton propre groupe pour rassembler des personnes autour d'un objectif commun (sport, lecture, méditation...).</p>
+                    <p><strong className="text-foreground">Rejoindre :</strong> Utilise le code d'invitation d'un groupe existant pour le rejoindre.</p>
+                    <p><strong className="text-foreground">Défis de groupe :</strong> Participez ensemble à des défis collectifs et voyez qui progresse le plus !</p>
+                    <p><strong className="text-foreground">Motivation :</strong> Envoyez des notifications d'encouragement à tous les membres du groupe.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {(displayedGroups as typeof mockGroups).map((group, index) => (
@@ -1447,10 +1514,14 @@ const Social = () => {
                       <p className="text-xs text-muted-foreground flex items-center gap-2">
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          {group.member_count}
+                          {group.member_count || 1}
                         </span>
-                        <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-green-400">{group.activeMembers} actifs</span>
+                        {demoMode && group.activeMembers > 0 && (
+                          <>
+                            <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+                            <span className="text-green-400">{group.activeMembers} actifs</span>
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -1470,7 +1541,7 @@ const Social = () => {
                   </div>
                 </div>
                 
-                {group.weeklyChallenge && (
+                {demoMode && group.weeklyChallenge && (
                   <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-3 mt-3 border border-primary/20 relative z-10">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -1484,16 +1555,24 @@ const Social = () => {
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
-                  <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
-                    <Check className="w-3 h-3 text-green-500" /> 
-                    <span className="text-foreground font-medium">{group.totalHabitsCompleted}</span> habitudes
-                  </span>
-                  <span className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded-full">
-                    <Trophy className="w-3 h-3 text-yellow-500" /> 
-                    <span className="text-yellow-400 font-bold">#{group.ranking}</span>
-                  </span>
-                </div>
+                {demoMode && (
+                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
+                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
+                      <Check className="w-3 h-3 text-green-500" /> 
+                      <span className="text-foreground font-medium">{group.totalHabitsCompleted}</span> habitudes
+                    </span>
+                    <span className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded-full">
+                      <Trophy className="w-3 h-3 text-yellow-500" /> 
+                      <span className="text-yellow-400 font-bold">#{group.ranking}</span>
+                    </span>
+                  </div>
+                )}
+
+                {!demoMode && (
+                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
+                    <span className="text-muted-foreground">Code: {group.invite_code}</span>
+                  </div>
+                )}
               </div>
             ))}
           </TabsContent>
@@ -1542,56 +1621,75 @@ const Social = () => {
                     </Avatar>
                     <div>
                       <h3 className="font-semibold text-foreground">{friend.profile.full_name}</h3>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Award className="w-3 h-3 text-yellow-500" />
-                        {friend.achievements} badges
+                      {demoMode ? (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Award className="w-3 h-3 text-yellow-500" />
+                          {friend.achievements} badges
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">#{friend.profile.friend_code}</p>
+                      )}
+                    </div>
+                  </div>
+                  {demoMode ? (
+                    <div className="text-right">
+                      <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
+                        <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                        <span className="font-bold text-orange-400 text-lg">{friend.streak}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
+                    </div>
+                  ) : (
+                    <div className="text-right">
+                      <span className="text-xs text-muted-foreground">Ami</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {/* Ton classement - only in demo mode */}
+            {demoMode && (
+              <div className="glass rounded-2xl p-5 border-2 border-primary/50 bg-gradient-to-br from-primary/10 to-accent/5 mt-4 relative overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.2),transparent_70%)]" />
+                <div className="absolute top-2 right-2">
+                  <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">C'est toi !</span>
+                </div>
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shadow-primary/50">
+                      5
+                    </div>
+                    <Avatar className="w-12 h-12 ring-2 ring-primary/50">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
+                        T
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-bold text-foreground text-lg">Toi</h3>
+                      <p className="text-sm text-primary flex items-center gap-1">
+                        <TrendingUp className="w-4 h-4" />
+                        Continue comme ça !
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
-                      <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
-                      <span className="font-bold text-orange-400 text-lg">{friend.streak}</span>
+                    <div className="flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-xl">
+                      <Flame className="w-6 h-6 text-orange-500 animate-pulse" />
+                      <span className="font-bold text-orange-400 text-2xl">5</span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
                   </div>
                 </div>
               </div>
-            ))}
-
-            {/* Ton classement */}
-            <div className="glass rounded-2xl p-5 border-2 border-primary/50 bg-gradient-to-br from-primary/10 to-accent/5 mt-4 relative overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.2),transparent_70%)]" />
-              <div className="absolute top-2 right-2">
-                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">C'est toi !</span>
+            )}
+            
+            {!demoMode && displayedFriends.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Trophy className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Ajoute des amis pour voir le classement</p>
               </div>
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shadow-primary/50">
-                    5
-                  </div>
-                  <Avatar className="w-12 h-12 ring-2 ring-primary/50">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
-                      T
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-bold text-foreground text-lg">Toi</h3>
-                    <p className="text-sm text-primary flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      Continue comme ça !
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-xl">
-                    <Flame className="w-6 h-6 text-orange-500 animate-pulse" />
-                    <span className="font-bold text-orange-400 text-2xl">5</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
-                </div>
-              </div>
-            </div>
+            )}
           </TabsContent>
 
           {/* Tab: Notifications */}
@@ -1733,9 +1831,32 @@ const Social = () => {
               </div>
               Défis en cours
             </h2>
-            <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-              {displayedChallenges.filter(c => c.status === 'active').length} actifs
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                {displayedChallenges.filter(c => c.status === 'active').length} actifs
+              </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2">
+                    <MessageCircle className="w-3 h-3" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-orange-500" />
+                      À propos des défis
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p><strong className="text-foreground">Duel :</strong> Affronte un ami ! Celui qui complète le plus d'habitudes pendant la durée du défi gagne.</p>
+                    <p><strong className="text-foreground">Défi de groupe :</strong> Participez ensemble à un objectif commun avec tous les membres du groupe.</p>
+                    <p><strong className="text-foreground">Accepter un défi :</strong> Quand quelqu'un te défie, tu peux accepter ou refuser. Une fois accepté, le défi commence !</p>
+                    <p><strong className="text-foreground">Progression :</strong> Ta progression est comptée automatiquement quand tu complètes tes habitudes.</p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* Défis en attente d'acceptation */}
@@ -1913,119 +2034,139 @@ const Social = () => {
           </DialogHeader>
           
           <div className="space-y-4 pt-2">
-            {/* Stats principales avec design amélioré */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="glass rounded-xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
+            {/* Stats principales - only show in demo mode */}
+            {demoMode && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="glass rounded-xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <Flame className="w-4 h-4 text-orange-500" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">Série actuelle</span>
+                    </div>
+                    <p className="text-2xl font-bold text-orange-400">{selectedFriend?.streak || 0}</p>
+                    <p className="text-xs text-muted-foreground">jours consécutifs</p>
+                  </div>
+                  <div className="glass rounded-xl p-4 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-transparent">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                        <Award className="w-4 h-4 text-yellow-500" />
+                      </div>
+                      <span className="text-xs text-muted-foreground">Badges</span>
+                    </div>
+                    <p className="text-2xl font-bold text-yellow-400">{selectedFriend?.achievements || 0}</p>
+                    <p className="text-xs text-muted-foreground">débloqués</p>
+                  </div>
+                </div>
+
+                {/* Progression hebdomadaire */}
+                <div className="glass rounded-xl p-4 border border-primary/20">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">Progression cette semaine</span>
+                    </div>
+                    <span className="text-lg font-bold text-primary">{selectedFriend?.weeklyProgress || 0}%</span>
+                  </div>
+                  <Progress value={selectedFriend?.weeklyProgress || 0} className="h-3" />
+                  <div className="flex justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">Lun</span>
+                    <span className="text-xs text-muted-foreground">Mar</span>
+                    <span className="text-xs text-muted-foreground">Mer</span>
+                    <span className="text-xs text-muted-foreground">Jeu</span>
+                    <span className="text-xs text-muted-foreground">Ven</span>
+                    <span className="text-xs text-muted-foreground">Sam</span>
+                    <span className="text-xs text-muted-foreground">Dim</span>
+                  </div>
+                  {/* Visualisation des jours */}
+                  <div className="flex justify-between mt-1">
+                    {[true, true, true, false, true, false, false].map((completed, i) => (
+                      <div 
+                        key={i} 
+                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          completed 
+                            ? 'bg-gradient-to-br from-primary to-accent' 
+                            : 'bg-muted/50'
+                        }`}
+                      >
+                        {completed && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Aujourd'hui */}
+                <div className="glass rounded-xl p-4 border border-white/5">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      Aujourd'hui
+                    </p>
+                    <span className="text-sm font-bold text-primary">
+                      {selectedFriend?.completedToday || 0}/{selectedFriend?.totalHabits || 0}
+                    </span>
+                  </div>
+                  <Progress value={(selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {((selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100).toFixed(0)}% des habitudes complétées
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Friend info for non-demo mode */}
+            {!demoMode && (
+              <div className="glass rounded-xl p-4 border border-primary/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                    <Flame className="w-4 h-4 text-orange-500" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">Série actuelle</span>
+                  <Users className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Informations</span>
                 </div>
-                <p className="text-2xl font-bold text-orange-400">{selectedFriend?.streak || 0}</p>
-                <p className="text-xs text-muted-foreground">jours consécutifs</p>
+                <p className="text-sm text-muted-foreground">Code ami: #{selectedFriend?.profile.friend_code}</p>
+                <p className="text-xs text-muted-foreground mt-2">Les statistiques détaillées seront disponibles bientôt.</p>
               </div>
-              <div className="glass rounded-xl p-4 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-transparent">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                    <Award className="w-4 h-4 text-yellow-500" />
+            )}
+
+            {/* Stats détaillées - only in demo mode */}
+            {demoMode && (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="glass rounded-lg p-3 text-center border border-white/5">
+                    <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 50}</p>
+                    <p className="text-[10px] text-muted-foreground">Meilleure série</p>
                   </div>
-                  <span className="text-xs text-muted-foreground">Badges</span>
+                  <div className="glass rounded-lg p-3 text-center border border-white/5">
+                    <BarChart3 className="w-4 h-4 text-blue-500 mx-auto mb-1" />
+                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 200) + 100}</p>
+                    <p className="text-[10px] text-muted-foreground">Total complétés</p>
+                  </div>
+                  <div className="glass rounded-lg p-3 text-center border border-white/5">
+                    <Clock className="w-4 h-4 text-purple-500 mx-auto mb-1" />
+                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 10}h</p>
+                    <p className="text-[10px] text-muted-foreground">Temps focus</p>
+                  </div>
                 </div>
-                <p className="text-2xl font-bold text-yellow-400">{selectedFriend?.achievements || 0}</p>
-                <p className="text-xs text-muted-foreground">débloqués</p>
-              </div>
-            </div>
 
-            {/* Progression hebdomadaire */}
-            <div className="glass rounded-xl p-4 border border-primary/20">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Progression cette semaine</span>
+                {/* Badges récents */}
+                <div className="glass rounded-xl p-4 border border-white/5">
+                  <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    Badges récents
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {['🔥', '⭐', '💪', '🏆', '🎯'].map((badge, i) => (
+                      <div 
+                        key={i}
+                        className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center text-lg shrink-0"
+                      >
+                        {badge}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <span className="text-lg font-bold text-primary">{selectedFriend?.weeklyProgress || 0}%</span>
-              </div>
-              <Progress value={selectedFriend?.weeklyProgress || 0} className="h-3" />
-              <div className="flex justify-between mt-2">
-                <span className="text-xs text-muted-foreground">Lun</span>
-                <span className="text-xs text-muted-foreground">Mar</span>
-                <span className="text-xs text-muted-foreground">Mer</span>
-                <span className="text-xs text-muted-foreground">Jeu</span>
-                <span className="text-xs text-muted-foreground">Ven</span>
-                <span className="text-xs text-muted-foreground">Sam</span>
-                <span className="text-xs text-muted-foreground">Dim</span>
-              </div>
-              {/* Visualisation des jours */}
-              <div className="flex justify-between mt-1">
-                {[true, true, true, false, true, false, false].map((completed, i) => (
-                  <div 
-                    key={i} 
-                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      completed 
-                        ? 'bg-gradient-to-br from-primary to-accent' 
-                        : 'bg-muted/50'
-                    }`}
-                  >
-                    {completed && <Check className="w-3 h-3 text-white" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Aujourd'hui */}
-            <div className="glass rounded-xl p-4 border border-white/5">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Target className="w-4 h-4 text-primary" />
-                  Aujourd'hui
-                </p>
-                <span className="text-sm font-bold text-primary">
-                  {selectedFriend?.completedToday || 0}/{selectedFriend?.totalHabits || 0}
-                </span>
-              </div>
-              <Progress value={(selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">
-                {((selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100).toFixed(0)}% des habitudes complétées
-              </p>
-            </div>
-
-            {/* Stats détaillées */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
-                <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 50}</p>
-                <p className="text-[10px] text-muted-foreground">Meilleure série</p>
-              </div>
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
-                <BarChart3 className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 200) + 100}</p>
-                <p className="text-[10px] text-muted-foreground">Total complétés</p>
-              </div>
-              <div className="glass rounded-lg p-3 text-center border border-white/5">
-                <Clock className="w-4 h-4 text-purple-500 mx-auto mb-1" />
-                <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 10}h</p>
-                <p className="text-[10px] text-muted-foreground">Temps focus</p>
-              </div>
-            </div>
-
-            {/* Badges récents */}
-            <div className="glass rounded-xl p-4 border border-white/5">
-              <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                Badges récents
-              </p>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {['🔥', '⭐', '💪', '🏆', '🎯'].map((badge, i) => (
-                  <div 
-                    key={i}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center text-lg shrink-0"
-                  >
-                    {badge}
-                  </div>
-                ))}
-              </div>
-            </div>
+              </>
+            )}
 
             {/* Notifications */}
             <div className="glass rounded-lg p-3 border border-white/5 flex items-center justify-between">
@@ -2100,13 +2241,15 @@ const Social = () => {
               rows={3}
             />
             <Button 
-              onClick={() => sendMotivation(
-                selectedFriend?.profile.id || '', 
-                selectedFriend?.profile.full_name || 'Ami',
-                customMessage
-              )} 
+              onClick={() => {
+                const message = customMessage || '💪 Continue comme ça !';
+                sendMotivation(
+                  selectedFriend?.profile.id || '', 
+                  selectedFriend?.profile.full_name || 'Ami',
+                  message
+                );
+              }} 
               className="w-full bg-gradient-primary"
-              disabled={!customMessage}
             >
               Envoyer
             </Button>
