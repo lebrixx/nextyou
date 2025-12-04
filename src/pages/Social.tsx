@@ -915,56 +915,83 @@ const Social = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <header className="px-6 pt-12 pb-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
+    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-20 -left-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-40 left-1/2 w-40 h-40 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 relative z-10">
+        <div className="flex items-center justify-between animate-fade-in">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground bg-clip-text">Social & Entraide</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Connecte-toi avec tes amis</p>
+          </div>
           <div className="flex items-center gap-2">
             <button 
               onClick={() => setDemoMode(!demoMode)}
-              className={`text-xs px-3 py-1.5 rounded-full transition-all ${
+              className={`text-xs px-3 py-1.5 rounded-full transition-all duration-300 ${
                 demoMode 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                  ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25' 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:scale-105'
               }`}
             >
               {demoMode ? '✓ Démo' : 'Démo'}
             </button>
-            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-all duration-300 hover:scale-110 hover:rotate-12">
               <Crown className="w-5 h-5 text-primary" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="px-6 space-y-6 max-w-2xl mx-auto">
+      <main className="px-6 space-y-6 max-w-2xl mx-auto relative z-10">
         {/* Mon code ami */}
-        <section className="glass rounded-xl p-4 border border-primary/20">
-          <div className="flex items-center justify-between">
+        <section className="glass rounded-2xl p-5 border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent animate-fade-in relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="flex items-center justify-between relative z-10">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Mon code ami</p>
-              <p className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent tracking-widest">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
+                <Star className="w-3 h-3 text-primary animate-pulse" />
+                Mon code ami
+              </p>
+              <p className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-[0.3em] animate-pulse">
                 {profile?.friend_code || '--------'}
               </p>
             </div>
-            <Button variant="outline" size="icon" onClick={copyFriendCode} className="border-primary/30">
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={copyFriendCode} 
+              className="border-primary/30 hover:bg-primary/20 hover:scale-110 transition-all duration-300 hover:border-primary"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-500 animate-scale-in" /> : <Copy className="w-4 h-4" />}
             </Button>
           </div>
         </section>
 
         {/* Actions rapides */}
-        <section className="grid grid-cols-3 gap-3">
+        <section className="grid grid-cols-3 gap-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <Dialog open={addFriendOpen} onOpenChange={setAddFriendOpen}>
             <DialogTrigger asChild>
-              <button className="glass rounded-xl p-3 text-center border border-white/5 hover:border-primary/30 transition-colors">
-                <UserPlus className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-xs font-medium text-foreground">Ajouter</p>
+              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                    <UserPlus className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="text-xs font-medium text-foreground">Ajouter</p>
+                </div>
               </button>
             </DialogTrigger>
             <DialogContent className="max-h-[70vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Ajouter un ami</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-primary" />
+                  Ajouter un ami
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
@@ -974,7 +1001,7 @@ const Social = () => {
                   className="text-center text-lg tracking-widest"
                   maxLength={8}
                 />
-                <Button onClick={addFriend} className="w-full bg-gradient-primary">
+                <Button onClick={addFriend} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
                   Ajouter
                 </Button>
               </div>
@@ -983,14 +1010,22 @@ const Social = () => {
 
           <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
             <DialogTrigger asChild>
-              <button className="glass rounded-xl p-3 text-center border border-white/5 hover:border-primary/30 transition-colors">
-                <Plus className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-xs font-medium text-foreground">Créer</p>
+              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                    <Plus className="w-5 h-5 text-accent" />
+                  </div>
+                  <p className="text-xs font-medium text-foreground">Créer</p>
+                </div>
               </button>
             </DialogTrigger>
             <DialogContent className="max-h-[70vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Créer un groupe</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-accent" />
+                  Créer un groupe
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
@@ -1004,7 +1039,7 @@ const Social = () => {
                   onChange={(e) => setNewGroupDescription(e.target.value)}
                   rows={3}
                 />
-                <Button onClick={createGroup} className="w-full bg-gradient-primary">
+                <Button onClick={createGroup} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
                   Créer
                 </Button>
               </div>
@@ -1013,14 +1048,22 @@ const Social = () => {
 
           <Dialog open={joinGroupOpen} onOpenChange={setJoinGroupOpen}>
             <DialogTrigger asChild>
-              <button className="glass rounded-xl p-3 text-center border border-white/5 hover:border-primary/30 transition-colors">
-                <Users className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-xs font-medium text-foreground">Rejoindre</p>
+              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="w-5 h-5 text-green-500" />
+                  </div>
+                  <p className="text-xs font-medium text-foreground">Rejoindre</p>
+                </div>
               </button>
             </DialogTrigger>
             <DialogContent className="max-h-[70vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Rejoindre un groupe</DialogTitle>
+                <DialogTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-green-500" />
+                  Rejoindre un groupe
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
@@ -1030,7 +1073,7 @@ const Social = () => {
                   className="text-center text-lg tracking-widest"
                   maxLength={8}
                 />
-                <Button onClick={joinGroup} className="w-full bg-gradient-primary">
+                <Button onClick={joinGroup} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
                   Rejoindre
                 </Button>
               </div>
@@ -1039,15 +1082,25 @@ const Social = () => {
         </section>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-muted/50">
-            <TabsTrigger value="friends" className="text-xs">Amis</TabsTrigger>
-            <TabsTrigger value="groups" className="text-xs">Groupes</TabsTrigger>
-            <TabsTrigger value="ranking" className="text-xs">Classement</TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs relative">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <TabsList className="grid w-full grid-cols-4 bg-muted/30 backdrop-blur-xl border border-white/5 rounded-2xl p-1 h-auto">
+            <TabsTrigger value="friends" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
+              <Users className="w-3.5 h-3.5 mr-1.5" />
+              Amis
+            </TabsTrigger>
+            <TabsTrigger value="groups" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
+              <Shield className="w-3.5 h-3.5 mr-1.5" />
+              Groupes
+            </TabsTrigger>
+            <TabsTrigger value="ranking" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
+              <Trophy className="w-3.5 h-3.5 mr-1.5" />
+              Rang
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5 relative">
+              <Bell className="w-3.5 h-3.5 mr-1.5" />
               Notifs
               {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full text-[10px] text-white flex items-center justify-center animate-pulse shadow-lg shadow-red-500/50">
                   {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length}
                 </span>
               )}
@@ -1128,31 +1181,35 @@ const Social = () => {
               <h2 className="text-lg font-bold text-foreground">Mes amis ({displayedFriends.length})</h2>
             </div>
             
-            {(displayedFriends as typeof mockFriends).map((friend) => (
+            {(displayedFriends as typeof mockFriends).map((friend, index) => (
               <div 
                 key={friend.id} 
-                className="glass rounded-xl p-4 border border-white/5 hover:border-primary/20 transition-colors cursor-pointer"
+                className="glass rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 group animate-fade-in relative overflow-hidden"
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => setSelectedFriend(friend)}
               >
-                <div className="flex items-center justify-between">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <Avatar>
+                      <Avatar className="ring-2 ring-white/10 group-hover:ring-primary/30 transition-all duration-300">
                         <AvatarImage src={friend.profile.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                           {(friend.profile.full_name || 'A')[0].toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       {friend.lastActive === 'En ligne' && (
-                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
+                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full animate-pulse shadow-lg shadow-green-500/50" />
                       )}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">{friend.profile.full_name || 'Ami'}</h3>
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{friend.profile.full_name || 'Ami'}</h3>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Flame className="w-3 h-3 text-orange-500" />
-                        <span>{friend.streak} jours</span>
-                        <span>•</span>
+                        <div className="flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 rounded-full">
+                          <Flame className="w-3 h-3 text-orange-500" />
+                          <span className="text-orange-400 font-medium">{friend.streak}j</span>
+                        </div>
+                        <span className="text-muted-foreground/50">•</span>
                         <span>{friend.completedToday}/{friend.totalHabits} aujourd'hui</span>
                       </div>
                     </div>
@@ -1166,15 +1223,23 @@ const Social = () => {
                         setSelectedFriend(friend);
                         setMessageDialogOpen(true);
                       }}
-                      className="text-primary hover:bg-primary/10"
+                      className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
-                <Progress value={friend.weeklyProgress} className="h-1 mt-3" />
-                <p className="text-[10px] text-muted-foreground mt-1">{friend.weeklyProgress}% cette semaine</p>
+                <div className="relative z-10 mt-3">
+                  <Progress value={friend.weeklyProgress} className="h-1.5 bg-muted/50" />
+                  <div className="flex justify-between items-center mt-1.5">
+                    <p className="text-[10px] text-muted-foreground">{friend.weeklyProgress}% cette semaine</p>
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-green-500" />
+                      {friend.lastActive}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </TabsContent>
@@ -1185,21 +1250,28 @@ const Social = () => {
               <h2 className="text-lg font-bold text-foreground">Mes groupes ({displayedGroups.length})</h2>
             </div>
 
-            {(displayedGroups as typeof mockGroups).map((group) => (
+            {(displayedGroups as typeof mockGroups).map((group, index) => (
               <div 
                 key={group.id} 
-                className="glass rounded-xl p-4 border border-white/5 hover:border-primary/20 transition-colors cursor-pointer"
+                className="glass rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 group animate-fade-in relative overflow-hidden"
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => setSelectedGroup(group)}
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="flex items-center justify-between mb-2 relative z-10">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                      <Users className="w-5 h-5 text-primary-foreground" />
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-xl">{group.name.split(' ')[0]}</span>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground">{group.name}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {group.member_count} membres • {group.activeMembers} actifs
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{group.name.replace(/^[^\s]+\s/, '')}</h3>
+                      <p className="text-xs text-muted-foreground flex items-center gap-2">
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {group.member_count}
+                        </span>
+                        <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-green-400">{group.activeMembers} actifs</span>
                       </p>
                     </div>
                   </div>
@@ -1211,29 +1283,36 @@ const Social = () => {
                         e.stopPropagation();
                         sendGroupMotivation(group.id, group.name);
                       }}
-                      className="text-primary hover:bg-primary/10"
+                      className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
                     >
                       <Bell className="w-4 h-4" />
                     </Button>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                   </div>
                 </div>
                 
                 {group.weeklyChallenge && (
-                  <div className="bg-primary/10 rounded-lg p-2 mt-2">
+                  <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-3 mt-3 border border-primary/20 relative z-10">
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      <span className="text-xs font-medium text-foreground">{group.weeklyChallenge}</span>
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Target className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Défi de la semaine</p>
+                        <span className="text-xs font-medium text-foreground">{group.weeklyChallenge}</span>
+                      </div>
                     </div>
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Check className="w-3 h-3" /> {group.totalHabitsCompleted} habitudes
+                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
+                  <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
+                    <Check className="w-3 h-3 text-green-500" /> 
+                    <span className="text-foreground font-medium">{group.totalHabitsCompleted}</span> habitudes
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Trophy className="w-3 h-3 text-yellow-500" /> #{group.ranking}
+                  <span className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded-full">
+                    <Trophy className="w-3 h-3 text-yellow-500" /> 
+                    <span className="text-yellow-400 font-bold">#{group.ranking}</span>
                   </span>
                 </div>
               </div>
@@ -1252,62 +1331,85 @@ const Social = () => {
             {rankedFriends.map((friend, index) => (
               <div 
                 key={friend.id} 
-                className={`glass rounded-xl p-4 border ${index === 0 ? 'border-yellow-500/50 bg-yellow-500/5' : index === 1 ? 'border-gray-400/50' : index === 2 ? 'border-amber-600/50' : 'border-white/5'}`}
+                className={`glass rounded-2xl p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-fade-in relative overflow-hidden group ${
+                  index === 0 ? 'border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/20' : 
+                  index === 1 ? 'border-gray-400/50 bg-gradient-to-br from-gray-400/10 to-transparent' : 
+                  index === 2 ? 'border-amber-600/50 bg-gradient-to-br from-amber-600/10 to-transparent' : 
+                  'border-white/5 hover:border-primary/30'
+                }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="flex items-center justify-between">
+                {index < 3 && (
+                  <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                    <Trophy className={`w-full h-full ${
+                      index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'
+                    }`} />
+                  </div>
+                )}
+                <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                      index === 0 ? 'bg-yellow-500 text-yellow-950' : 
-                      index === 1 ? 'bg-gray-400 text-gray-900' : 
-                      index === 2 ? 'bg-amber-600 text-amber-950' : 
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg ${
+                      index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-950 shadow-yellow-500/50' : 
+                      index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900 shadow-gray-500/50' : 
+                      index === 2 ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-amber-950 shadow-amber-500/50' : 
                       'bg-muted text-muted-foreground'
                     }`}>
-                      {index + 1}
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                     </div>
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm">
+                    <Avatar className="w-10 h-10 ring-2 ring-white/10">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                         {(friend.profile.full_name || 'A')[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold text-foreground text-sm">{friend.profile.full_name}</h3>
-                      <p className="text-xs text-muted-foreground">{friend.achievements} badges</p>
+                      <h3 className="font-semibold text-foreground">{friend.profile.full_name}</h3>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Award className="w-3 h-3 text-yellow-500" />
+                        {friend.achievements} badges
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-orange-500">
-                      <Flame className="w-4 h-4" />
-                      <span className="font-bold">{friend.streak}</span>
+                    <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
+                      <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                      <span className="font-bold text-orange-400 text-lg">{friend.streak}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground">jours</p>
+                    <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
                   </div>
                 </div>
               </div>
             ))}
 
             {/* Ton classement */}
-            <div className="glass rounded-xl p-4 border border-primary/30 bg-primary/5 mt-4">
-              <div className="flex items-center justify-between">
+            <div className="glass rounded-2xl p-5 border-2 border-primary/50 bg-gradient-to-br from-primary/10 to-accent/5 mt-4 relative overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.2),transparent_70%)]" />
+              <div className="absolute top-2 right-2">
+                <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">C'est toi !</span>
+              </div>
+              <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shadow-primary/50">
                     5
                   </div>
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm">
+                  <Avatar className="w-12 h-12 ring-2 ring-primary/50">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
                       T
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-foreground text-sm">Toi</h3>
-                    <p className="text-xs text-primary">Continue comme ça !</p>
+                    <h3 className="font-bold text-foreground text-lg">Toi</h3>
+                    <p className="text-sm text-primary flex items-center gap-1">
+                      <TrendingUp className="w-4 h-4" />
+                      Continue comme ça !
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="flex items-center gap-1 text-orange-500">
-                    <Flame className="w-4 h-4" />
-                    <span className="font-bold">5</span>
+                  <div className="flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-xl">
+                    <Flame className="w-6 h-6 text-orange-500 animate-pulse" />
+                    <span className="font-bold text-orange-400 text-2xl">5</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">jours</p>
+                  <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
                 </div>
               </div>
             </div>
@@ -1382,41 +1484,53 @@ const Social = () => {
         </Tabs>
 
         {/* Challenges actifs */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Zap className="w-5 h-5 text-orange-500" />
-            Défis en cours
-          </h2>
+        <section className="space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              Défis en cours
+            </h2>
+            <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+              {displayedChallenges.filter(c => c.status === 'active').length} actifs
+            </span>
+          </div>
 
           {/* Défis en attente d'acceptation */}
-          {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge) => (
-            <div key={challenge.id} className="glass rounded-xl p-4 border border-purple-500/30 bg-purple-500/5">
-              <div className="flex items-center justify-between mb-2">
+          {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge, index) => (
+            <div key={challenge.id} className="glass rounded-2xl p-5 border-2 border-purple-500/40 bg-gradient-to-br from-purple-500/10 to-transparent animate-pulse-slow relative overflow-hidden" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
+              <div className="flex items-center justify-between mb-3 relative z-10">
                 <div>
-                  <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full mb-1 inline-block">
+                  <span className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full mb-2 inline-flex items-center gap-1 shadow-lg shadow-purple-500/30">
+                    <Zap className="w-3 h-3" />
                     Nouveau défi
                   </span>
-                  <h3 className="font-semibold text-foreground">{challenge.title}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    De {challenge.creator_name} • {challenge.target_value} jours
+                  <h3 className="font-bold text-foreground text-lg mt-1">{challenge.title}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                    <span>De {challenge.creator_name}</span>
+                    <span className="w-1 h-1 bg-muted-foreground rounded-full" />
+                    <span>{challenge.target_value} jours</span>
                   </p>
                 </div>
               </div>
               {challenge.description && (
-                <p className="text-xs text-muted-foreground mb-3">{challenge.description}</p>
+                <p className="text-sm text-muted-foreground mb-4 relative z-10">{challenge.description}</p>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-3 relative z-10">
                 <Button 
                   size="sm" 
-                  className="flex-1 bg-gradient-primary"
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 transition-all duration-300 shadow-lg shadow-purple-500/30 h-10"
                   onClick={() => !demoMode && acceptChallenge(challenge.id)}
                 >
+                  <Check className="w-4 h-4 mr-2" />
                   Accepter
                 </Button>
                 <Button 
                   size="sm" 
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-purple-500/30 hover:bg-purple-500/10 h-10"
                   onClick={async () => {
                     if (!demoMode) {
                       await supabase.from('challenges').delete().eq('id', challenge.id);
@@ -1425,44 +1539,100 @@ const Social = () => {
                     toast({ title: "Défi refusé" });
                   }}
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Refuser
                 </Button>
               </div>
             </div>
           ))}
           
-          {displayedChallenges.filter(c => c.status === 'active').map((challenge) => {
+          {displayedChallenges.filter(c => c.status === 'active').map((challenge, index) => {
             const progress = challenge.target_value > 0 ? Math.round(((challenge.my_progress || 0) / challenge.target_value) * 100) : 0;
+            const isWinning = challenge.type === 'duel' && (challenge.my_progress || 0) > (challenge.opponent_progress || 0);
             return (
-              <div key={challenge.id} className="glass rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
-                <div className="flex items-center justify-between mb-2">
+              <div key={challenge.id} className="glass rounded-2xl p-5 border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-transparent hover:border-orange-500/50 transition-all duration-300 hover:scale-[1.01] cursor-pointer relative overflow-hidden group animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-orange-500/20 transition-colors duration-500" />
+                <div className="flex items-center justify-between mb-3 relative z-10">
                   <div>
-                    <h3 className="font-semibold text-foreground">{challenge.title}</h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${challenge.type === 'duel' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                        {challenge.type === 'duel' ? '⚔️ Duel' : '👥 Groupe'}
+                      </span>
+                      {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">En tête !</span>}
+                    </div>
+                    <h3 className="font-bold text-foreground">{challenge.title}</h3>
                     <p className="text-xs text-muted-foreground">
                       {challenge.type === 'group' ? `Groupe` : `Contre ${challenge.opponent_name || 'Adversaire'}`}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-orange-500">{progress}%</span>
-                    <p className="text-xs text-muted-foreground">
-                      {challenge.my_progress || 0}/{challenge.target_value} jours
-                    </p>
+                    <div className="w-16 h-16 relative">
+                      <svg className="w-16 h-16 transform -rotate-90">
+                        <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--muted))" strokeWidth="4" />
+                        <circle 
+                          cx="32" cy="32" r="28" 
+                          fill="none" 
+                          stroke="url(#progressGradient)" 
+                          strokeWidth="4" 
+                          strokeLinecap="round"
+                          strokeDasharray={`${progress * 1.76} 176`}
+                          className="transition-all duration-500"
+                        />
+                        <defs>
+                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="hsl(var(--primary))" />
+                            <stop offset="100%" stopColor="hsl(25 95% 53%)" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-sm font-bold text-orange-400">{progress}%</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 {challenge.type === 'duel' && (
-                  <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="text-primary">Toi: {challenge.my_progress || 0}</span>
-                    <span className="text-orange-500">{challenge.opponent_name}: {challenge.opponent_progress || 0}</span>
+                  <div className="flex items-center justify-between text-xs mb-3 bg-muted/30 rounded-xl p-3 relative z-10">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[10px]">T</div>
+                      <span className="text-primary font-medium">{challenge.my_progress || 0}</span>
+                    </div>
+                    <div className="flex-1 mx-3 relative h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-primary/50 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(((challenge.my_progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
+                      />
+                      <div 
+                        className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-orange-500/50 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.min(((challenge.opponent_progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-500 font-medium">{challenge.opponent_progress || 0}</span>
+                      <div className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-[10px]">
+                        {(challenge.opponent_name || 'A')[0].toUpperCase()}
+                      </div>
+                    </div>
                   </div>
                 )}
-                <Progress value={progress} className="h-2" />
-                <p className="text-xs text-muted-foreground mt-2">{challenge.description}</p>
+                <p className="text-xs text-muted-foreground relative z-10">{challenge.description}</p>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5 relative z-10">
+                  <span className="text-[10px] text-muted-foreground">{challenge.my_progress || 0}/{challenge.target_value} jours complétés</span>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Fin: {new Date(challenge.end_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
               </div>
             );
           })}
 
-          <Button variant="outline" className="w-full border-dashed border-primary/30 text-primary" onClick={() => setChallengeDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button 
+            variant="outline" 
+            className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-all duration-300 h-12 rounded-2xl group" 
+            onClick={() => setChallengeDialogOpen(true)}
+          >
+            <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
             Créer un défi
           </Button>
         </section>
