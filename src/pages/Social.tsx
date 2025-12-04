@@ -927,25 +927,47 @@ const Social = () => {
   };
 
   const sendMotivation = async (friendId: string, friendName: string, message?: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({ title: "Erreur", description: "Tu dois être connecté", variant: "destructive" });
+      return;
+    }
     
-    if (!demoMode) {
+    if (!friendId || friendId === '') {
+      toast({ title: "Erreur", description: "Ami non trouvé", variant: "destructive" });
+      return;
+    }
+    
+    if (demoMode) {
+      toast({ title: `💪 Encouragement envoyé à ${friendName} !`, description: "Mode démo" });
+      setMessageDialogOpen(false);
+      setCustomMessage("");
+      return;
+    }
+    
+    const finalMessage = message || '💪 Continue comme ça !';
+    
+    try {
       const { error } = await supabase
         .from('social_notifications')
         .insert({
           sender_id: user.id,
           recipient_id: friendId,
           type: 'motivation',
-          message: message || `${profile?.full_name || 'Un ami'} t'encourage à faire tes habitudes aujourd'hui ! 💪`
+          message: finalMessage
         });
       
       if (error) {
-        toast({ title: "Erreur", description: "Impossible d'envoyer", variant: "destructive" });
+        console.error('Motivation send error:', error);
+        toast({ title: "Erreur", description: `Impossible d'envoyer: ${error.message}`, variant: "destructive" });
         return;
       }
+      
+      toast({ title: `💪 Encouragement envoyé à ${friendName} !` });
+    } catch (err) {
+      console.error('Unexpected error sending motivation:', err);
+      toast({ title: "Erreur", description: "Une erreur inattendue est survenue", variant: "destructive" });
     }
     
-    toast({ title: `Message envoyé à ${friendName} !` });
     setMessageDialogOpen(false);
     setCustomMessage("");
   };
@@ -1845,14 +1867,38 @@ const Social = () => {
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <Zap className="w-5 h-5 text-orange-500" />
-                      À propos des défis
+                      Comprendre les défis
                     </DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p><strong className="text-foreground">Duel :</strong> Affronte un ami ! Celui qui complète le plus d'habitudes pendant la durée du défi gagne.</p>
-                    <p><strong className="text-foreground">Défi de groupe :</strong> Participez ensemble à un objectif commun avec tous les membres du groupe.</p>
-                    <p><strong className="text-foreground">Accepter un défi :</strong> Quand quelqu'un te défie, tu peux accepter ou refuser. Une fois accepté, le défi commence !</p>
-                    <p><strong className="text-foreground">Progression :</strong> Ta progression est comptée automatiquement quand tu complètes tes habitudes.</p>
+                  <div className="space-y-4 text-sm">
+                    <div className="glass rounded-xl p-4 border border-red-500/20 bg-gradient-to-br from-red-500/10 to-transparent">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">⚔️</span>
+                        <strong className="text-foreground">Duel symbolique</strong>
+                      </div>
+                      <p className="text-muted-foreground text-xs leading-relaxed">
+                        Défie un ami sur une durée définie. Le but : <strong className="text-foreground">se motiver mutuellement</strong> ! 
+                        Celui qui complète le plus d'habitudes "gagne" symboliquement. 
+                        C'est un jeu amical pour rester motivé, pas une vraie compétition.
+                      </p>
+                    </div>
+                    
+                    <div className="glass rounded-xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">👥</span>
+                        <strong className="text-foreground">Défi de groupe</strong>
+                      </div>
+                      <p className="text-muted-foreground text-xs leading-relaxed">
+                        Tout le groupe participe à un objectif commun. 
+                        L'entraide et la motivation collective pour atteindre vos buts ensemble.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">
+                        <strong className="text-foreground">💡 Astuce :</strong> La progression est comptée automatiquement quand tu complètes tes habitudes quotidiennes !
+                      </p>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -1911,78 +1957,133 @@ const Social = () => {
           {displayedChallenges.filter(c => c.status === 'active').map((challenge, index) => {
             const progress = challenge.target_value > 0 ? Math.round(((challenge.my_progress || 0) / challenge.target_value) * 100) : 0;
             const isWinning = challenge.type === 'duel' && (challenge.my_progress || 0) > (challenge.opponent_progress || 0);
+            const isTie = challenge.type === 'duel' && (challenge.my_progress || 0) === (challenge.opponent_progress || 0);
+            const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+            
             return (
-              <div key={challenge.id} className="glass rounded-2xl p-5 border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-transparent hover:border-orange-500/50 transition-all duration-300 hover:scale-[1.01] cursor-pointer relative overflow-hidden group animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-orange-500/20 transition-colors duration-500" />
-                <div className="flex items-center justify-between mb-3 relative z-10">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${challenge.type === 'duel' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                        {challenge.type === 'duel' ? '⚔️ Duel' : '👥 Groupe'}
-                      </span>
-                      {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">En tête !</span>}
-                    </div>
-                    <h3 className="font-bold text-foreground">{challenge.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {challenge.type === 'group' ? `Groupe` : `Contre ${challenge.opponent_name || 'Adversaire'}`}
-                    </p>
+              <div key={challenge.id} className={`glass rounded-2xl p-5 border ${
+                challenge.type === 'duel' 
+                  ? 'border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent' 
+                  : 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-transparent'
+              } hover:border-opacity-50 transition-all duration-300 hover:scale-[1.01] cursor-pointer relative overflow-hidden group animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
+                
+                {/* Background decorations */}
+                <div className={`absolute top-0 right-0 w-24 h-24 ${challenge.type === 'duel' ? 'bg-red-500/10' : 'bg-blue-500/10'} rounded-full blur-2xl -mr-8 -mt-8 group-hover:opacity-150 transition-opacity duration-500`} />
+                
+                {/* Duel specific: VS badge */}
+                {challenge.type === 'duel' && (
+                  <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/30 z-10">
+                    <span className="text-white font-black text-xs">VS</span>
                   </div>
-                  <div className="text-right">
-                    <div className="w-16 h-16 relative">
-                      <svg className="w-16 h-16 transform -rotate-90">
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="hsl(var(--muted))" strokeWidth="4" />
-                        <circle 
-                          cx="32" cy="32" r="28" 
-                          fill="none" 
-                          stroke="url(#progressGradient)" 
-                          strokeWidth="4" 
-                          strokeLinecap="round"
-                          strokeDasharray={`${progress * 1.76} 176`}
-                          className="transition-all duration-500"
-                        />
-                        <defs>
-                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="hsl(var(--primary))" />
-                            <stop offset="100%" stopColor="hsl(25 95% 53%)" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-sm font-bold text-orange-400">{progress}%</span>
-                      </div>
+                )}
+                
+                <div className="flex items-start gap-4 mb-4 relative z-10">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-[10px] px-2.5 py-1 rounded-full font-medium ${
+                        challenge.type === 'duel' 
+                          ? 'bg-gradient-to-r from-red-500/20 to-orange-500/20 text-red-400 border border-red-500/20' 
+                          : 'bg-blue-500/20 text-blue-400 border border-blue-500/20'
+                      }`}>
+                        {challenge.type === 'duel' ? '⚔️ Duel symbolique' : '👥 Défi groupe'}
+                      </span>
+                      {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full animate-pulse">🏆 En tête</span>}
+                      {isTie && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">⚖️ Égalité</span>}
                     </div>
+                    <h3 className="font-bold text-foreground text-lg">{challenge.title}</h3>
+                    {challenge.type === 'duel' && (
+                      <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                        <span className="font-medium text-foreground">Toi</span>
+                        <span className="text-red-400">⚔️</span>
+                        <span className="font-medium text-foreground">{challenge.opponent_name || 'Adversaire'}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
+                
+                {/* Duel: Visual battle representation */}
                 {challenge.type === 'duel' && (
-                  <div className="flex items-center justify-between text-xs mb-3 bg-muted/30 rounded-xl p-3 relative z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[10px]">T</div>
-                      <span className="text-primary font-medium">{challenge.my_progress || 0}</span>
-                    </div>
-                    <div className="flex-1 mx-3 relative h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-primary/50 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(((challenge.my_progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
-                      />
-                      <div 
-                        className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-orange-500/50 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(((challenge.opponent_progress || 0) / (challenge.target_value || 1)) * 100, 100)}%` }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-orange-500 font-medium">{challenge.opponent_progress || 0}</span>
-                      <div className="w-6 h-6 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 font-bold text-[10px]">
-                        {(challenge.opponent_name || 'A')[0].toUpperCase()}
+                  <div className="relative z-10 mb-4">
+                    <div className="bg-gradient-to-r from-primary/10 via-muted/30 to-orange-500/10 rounded-xl p-4 border border-white/5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-center flex-1">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-primary/30">
+                            <span className="text-primary-foreground font-bold">T</span>
+                          </div>
+                          <span className="text-xs text-foreground font-medium">Toi</span>
+                        </div>
+                        
+                        <div className="flex-shrink-0 px-4">
+                          <div className="text-center">
+                            <div className="flex items-center gap-2 text-2xl font-black">
+                              <span className="text-primary">{challenge.my_progress || 0}</span>
+                              <span className="text-muted-foreground text-lg">-</span>
+                              <span className="text-orange-500">{challenge.opponent_progress || 0}</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-1">habitudes complétées</p>
+                          </div>
+                        </div>
+                        
+                        <div className="text-center flex-1">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-orange-500/30">
+                            <span className="text-white font-bold">{(challenge.opponent_name || 'A')[0].toUpperCase()}</span>
+                          </div>
+                          <span className="text-xs text-foreground font-medium">{challenge.opponent_name || 'Adversaire'}</span>
+                        </div>
                       </div>
+                      
+                      {/* Progress bar battle */}
+                      <div className="relative h-3 bg-muted/50 rounded-full overflow-hidden">
+                        <div 
+                          className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-primary/70 rounded-l-full transition-all duration-500"
+                          style={{ width: `${Math.min(((challenge.my_progress || 0) / ((challenge.my_progress || 0) + (challenge.opponent_progress || 0) + 1)) * 100, 100)}%` }}
+                        />
+                        <div 
+                          className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-red-500/70 rounded-r-full transition-all duration-500"
+                          style={{ width: `${Math.min(((challenge.opponent_progress || 0) / ((challenge.my_progress || 0) + (challenge.opponent_progress || 0) + 1)) * 100, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Motivation message */}
+                    <div className="mt-2 text-center">
+                      <p className="text-xs text-muted-foreground italic">
+                        {isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !"}
+                      </p>
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground relative z-10">{challenge.description}</p>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5 relative z-10">
-                  <span className="text-[10px] text-muted-foreground">{challenge.my_progress || 0}/{challenge.target_value} jours complétés</span>
+                
+                {/* Group challenge progress */}
+                {challenge.type === 'group' && (
+                  <div className="relative z-10 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-foreground">Ta progression</span>
+                      <span className="text-sm font-bold text-primary">{progress}%</span>
+                    </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-primary rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {challenge.description && (
+                  <p className="text-xs text-muted-foreground relative z-10 mb-3">{challenge.description}</p>
+                )}
+                
+                <div className="flex items-center justify-between pt-3 border-t border-white/5 relative z-10">
                   <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Fin: {new Date(challenge.end_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    <Target className="w-3 h-3" />
+                    Objectif: {challenge.target_value} jours
+                  </span>
+                  <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${
+                    daysLeft <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-muted/50 text-muted-foreground'
+                  }`}>
+                    <Clock className="w-3 h-3" />
+                    {daysLeft === 0 ? 'Dernier jour !' : `${daysLeft}j restants`}
                   </span>
                 </div>
               </div>
