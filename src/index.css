@@ -104,12 +104,33 @@ All colors MUST be HSL.
     margin-bottom: calc(5rem + var(--safe-area-inset-bottom));
   }
 
-  /* Force navigation bar to stay fixed at bottom */
+  /* Force navigation bar to stay fixed at bottom - iOS keyboard fix */
   #main-navigation {
     position: fixed !important;
     bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 99999 !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+  }
+}
+
+/* iOS keyboard viewport fix */
+@supports (-webkit-touch-callout: none) {
+  html {
+    height: -webkit-fill-available;
+  }
+  
+  body {
+    min-height: -webkit-fill-available;
+  }
+  
+  #main-navigation {
+    position: fixed !important;
+    bottom: 0 !important;
+    transform: translate3d(0, 0, 0) !important;
   }
 }
