@@ -82,6 +82,11 @@ interface Notification {
   senderId?: string;
 }
 
+interface MutedFriend {
+  friendId: string;
+  muted: boolean;
+}
+
 // Données de démonstration enrichies
 const mockFriends: (Friend & { 
   streak: number; 
@@ -305,6 +310,15 @@ const Social = () => {
   // Demo mode toggle
   const [demoMode, setDemoMode] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
+  const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
+  const [mutedFriends, setMutedFriends] = useState<string[]>(() => {
+    const saved = localStorage.getItem('muted_friends');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [mutedGroups, setMutedGroups] = useState<string[]>(() => {
+    const saved = localStorage.getItem('muted_groups');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
@@ -765,6 +779,16 @@ const Social = () => {
       return;
     }
     
+    // Demo mode - just show toast
+    if (demoMode) {
+      toast({ title: "Défi créé !", description: "Mode démo - le défi n'est pas réellement créé" });
+      setChallengeDialogOpen(false);
+      setChallengeType(null);
+      setChallengeTitle("");
+      setChallengeDescription("");
+      return;
+    }
+    
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + challengeDuration);
     
@@ -911,6 +935,60 @@ const Social = () => {
     }
     
     toast({ title: `Notification envoyée au groupe ${groupName} !` });
+  };
+
+  const toggleMuteFriend = (friendId: string) => {
+    const newMuted = mutedFriends.includes(friendId)
+      ? mutedFriends.filter(id => id !== friendId)
+      : [...mutedFriends, friendId];
+    setMutedFriends(newMuted);
+    localStorage.setItem('muted_friends', JSON.stringify(newMuted));
+    toast({ 
+      title: mutedFriends.includes(friendId) ? "Notifications activées" : "Notifications désactivées",
+      description: mutedFriends.includes(friendId) ? "Tu recevras à nouveau les notifications de cet ami" : "Tu ne recevras plus de notifications de cet ami"
+    });
+  };
+
+  const toggleMuteGroup = (groupId: string) => {
+    const newMuted = mutedGroups.includes(groupId)
+      ? mutedGroups.filter(id => id !== groupId)
+      : [...mutedGroups, groupId];
+    setMutedGroups(newMuted);
+    localStorage.setItem('muted_groups', JSON.stringify(newMuted));
+    toast({ 
+      title: mutedGroups.includes(groupId) ? "Notifications activées" : "Notifications désactivées",
+      description: mutedGroups.includes(groupId) ? "Tu recevras à nouveau les notifications de ce groupe" : "Tu ne recevras plus de notifications de ce groupe"
+    });
+  };
+
+  const leaveGroup = async (groupId: string) => {
+    if (!user || demoMode) {
+      toast({ title: "Groupe quitté" });
+      setSelectedGroup(null);
+      return;
+    }
+    
+    // Check if owner
+    const group = groups.find(g => g.id === groupId);
+    if (group?.owner_id === user.id) {
+      toast({ title: "Erreur", description: "Tu ne peux pas quitter un groupe que tu as créé. Supprime-le plutôt.", variant: "destructive" });
+      return;
+    }
+    
+    const { error } = await supabase
+      .from('group_members')
+      .delete()
+      .eq('group_id', groupId)
+      .eq('user_id', user.id);
+    
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de quitter le groupe", variant: "destructive" });
+      return;
+    }
+    
+    setGroups(groups.filter(g => g.id !== groupId));
+    setSelectedGroup(null);
+    toast({ title: "Groupe quitté" });
   };
 
   // Ranking des amis par streak
@@ -1778,6 +1856,20 @@ const Social = () => {
               </p>
             </div>
 
+            {/* Notifications */}
+            <div className="glass rounded-lg p-3 border border-white/5 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Notifications</p>
+                <p className="text-xs text-muted-foreground">
+                  {mutedFriends.includes(selectedFriend?.profile.id || '') ? 'Désactivées' : 'Activées'}
+                </p>
+              </div>
+              <Switch 
+                checked={!mutedFriends.includes(selectedFriend?.profile.id || '')}
+                onCheckedChange={() => toggleMuteFriend(selectedFriend?.profile.id || '')}
+              />
+            </div>
+
             {/* Actions */}
             <div className="grid grid-cols-2 gap-3">
               <Button 
@@ -1935,7 +2027,7 @@ const Social = () => {
                 Membres ({selectedGroup?.member_count || 0})
               </p>
               <div className="space-y-2 max-h-40 overflow-y-auto">
-                {mockGroupMembers.map((member, index) => (
+                {demoMode ? mockGroupMembers.map((member, index) => (
                   <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
@@ -1963,7 +2055,12 @@ const Social = () => {
                       <span>{member.completedToday}/{member.totalHabits}</span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p>Membres du groupe</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -2009,6 +2106,7 @@ const Social = () => {
                   variant="ghost" 
                   size="sm"
                   className="text-xs"
+                  onClick={() => setGroupSettingsOpen(true)}
                 >
                   <Settings className="w-3 h-3 mr-1" />
                   Paramètres
@@ -2017,11 +2115,34 @@ const Social = () => {
                   variant="ghost" 
                   size="sm"
                   className="text-xs text-destructive hover:text-destructive"
+                  onClick={() => leaveGroup(selectedGroup?.id || '')}
                 >
                   <UserMinus className="w-3 h-3 mr-1" />
                   Quitter
                 </Button>
               </div>
+
+              {/* Group settings */}
+              {groupSettingsOpen && (
+                <div className="glass rounded-xl p-4 border border-white/10 space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">Paramètres du groupe</p>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setGroupSettingsOpen(false)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-foreground">Notifications</p>
+                      <p className="text-xs text-muted-foreground">Recevoir les notifications de ce groupe</p>
+                    </div>
+                    <Switch 
+                      checked={!mutedGroups.includes(selectedGroup?.id || '')}
+                      onCheckedChange={() => toggleMuteGroup(selectedGroup?.id || '')}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

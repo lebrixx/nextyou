@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Settings as SettingsIcon, Crown, ChevronDown } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Crown, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -18,11 +17,6 @@ const Settings = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useTranslation();
   const { refreshNotifications } = useNotificationScheduler();
-  const [notifications, setNotifications] = useState({
-    daily: true,
-    motivational: true,
-    sounds: true,
-  });
   const [currentTheme, setCurrentTheme] = useState<Theme>(getTheme());
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -83,13 +77,6 @@ const Settings = () => {
     });
   };
 
-  const handleNotificationChange = (key: keyof typeof notifications) => {
-    setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
-    toast({
-      title: "Paramètre modifié",
-      description: "Tes préférences ont été enregistrées.",
-    });
-  };
 
   const handleUpdateProfile = async () => {
     if (!user) return;
@@ -166,14 +153,6 @@ const Settings = () => {
     toast({
       title: "Export réussi",
       description: "Toutes tes données ont été exportées",
-    });
-  };
-
-  const handleOpenNotificationSettings = () => {
-    toast({
-      title: "Active les notifications",
-      description: "Ouvre : Paramètres > Next Me > Notifications et active les alertes",
-      duration: 6000,
     });
   };
 
@@ -309,67 +288,71 @@ const Settings = () => {
             </div>
             {t('notifications')}
           </h2>
-          <div className="glass rounded-xl divide-y divide-white/5">
-            <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+          <div className="glass rounded-xl p-5 space-y-4 border border-primary/20">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <Bell className="w-5 h-5 text-primary" />
+              </div>
               <div>
-                <p className="font-semibold text-foreground text-sm mb-0.5">Rappels quotidiens</p>
-                <p className="text-xs text-muted-foreground">
-                  Reçois des rappels pour tes habitudes
+                <p className="font-semibold text-foreground text-sm mb-1">Active les notifications</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Les notifications sont <span className="text-primary font-medium">indispensables</span> pour Next Me. 
+                  Elles te rappellent tes habitudes et t'envoient des citations motivantes.
                 </p>
               </div>
-              <Switch 
-                checked={notifications.daily} 
-                onCheckedChange={() => handleNotificationChange("daily")}
-              />
             </div>
-            <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-0.5">Messages motivants</p>
-                <p className="text-xs text-muted-foreground">
-                  Citations inspirantes quotidiennes
-                </p>
-              </div>
-              <Switch 
-                checked={notifications.motivational}
-                onCheckedChange={() => handleNotificationChange("motivational")}
-              />
-            </div>
-            <div className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-0.5">Sons</p>
-                <p className="text-xs text-muted-foreground">
-                  Sons de validation et alertes
-                </p>
-              </div>
-              <Switch 
-                checked={notifications.sounds}
-                onCheckedChange={() => handleNotificationChange("sounds")}
-              />
-            </div>
-            <div className="p-4 space-y-2">
+            
+            <div className="grid grid-cols-2 gap-2">
               <Button
-                onClick={handleOpenNotificationSettings}
                 variant="outline"
-                className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
-              >
-                <SettingsIcon className="w-4 h-4 mr-2" />
-                Aller dans les paramètres
-              </Button>
-              <Button
-                onClick={async () => {
-                  await refreshNotifications();
+                size="sm"
+                className="glass border-primary/30 text-foreground hover:bg-primary/10 h-auto py-3"
+                onClick={() => {
                   toast({
-                    title: "Notifications actualisées",
-                    description: "Toutes les notifications ont été reprogrammées",
+                    title: "📱 iOS",
+                    description: "Réglages → Next Me → Notifications → Autoriser",
+                    duration: 8000,
                   });
                 }}
-                variant="outline"
-                className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
               >
-                <Bell className="w-4 h-4 mr-2" />
-                Actualiser les notifications
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">🍎</span>
+                  <span className="text-xs">iOS</span>
+                </div>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="glass border-primary/30 text-foreground hover:bg-primary/10 h-auto py-3"
+                onClick={() => {
+                  toast({
+                    title: "📱 Android",
+                    description: "Paramètres → Applications → Next Me → Notifications → Activer",
+                    duration: 8000,
+                  });
+                }}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">🤖</span>
+                  <span className="text-xs">Android</span>
+                </div>
               </Button>
             </div>
+
+            <Button
+              onClick={async () => {
+                await refreshNotifications();
+                toast({
+                  title: "Notifications actualisées",
+                  description: "Toutes les notifications ont été reprogrammées",
+                });
+              }}
+              variant="outline"
+              className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              Actualiser les notifications
+            </Button>
           </div>
         </section>
 
