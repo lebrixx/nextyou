@@ -10,6 +10,7 @@ import { Mail, LogIn, UserPlus } from "lucide-react";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -35,11 +36,21 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      if (!email || !password) {
+  try {
+      if (!email || !password || !username.trim()) {
         toast({
           title: "Erreur",
           description: "Remplis tous les champs",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (username.trim().length < 2) {
+        toast({
+          title: "Erreur",
+          description: "Le pseudo doit contenir au moins 2 caractères",
           variant: "destructive",
         });
         setLoading(false);
@@ -63,6 +74,9 @@ const Auth = () => {
         password,
         options: {
           emailRedirectTo: redirectUrl,
+          data: {
+            full_name: username.trim(),
+          },
         },
       });
 
@@ -241,6 +255,25 @@ const Auth = () => {
               className="glass border-white/10 focus:border-primary/50"
             />
           </div>
+
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-foreground">
+                Pseudo
+              </Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Ton pseudo"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                minLength={2}
+                className="glass border-white/10 focus:border-primary/50"
+              />
+              <p className="text-xs text-muted-foreground">Ce nom sera visible par tes amis</p>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-foreground">
