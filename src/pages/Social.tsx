@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -300,10 +300,14 @@ const Social = () => {
   const [friendCode, setFriendCode] = useState("");
   const [groupInviteCode, setGroupInviteCode] = useState("");
 
+  // Demo mode toggle
+  const [demoMode, setDemoMode] = useState(false);
+  
   // Demo data
-  const displayedGroups = groups.length > 0 ? groups : mockGroups;
-  const displayedFriends = friends.length > 0 ? friends : mockFriends;
-  const isDemo = groups.length === 0 && friends.length === 0;
+  const displayedGroups = demoMode ? mockGroups : groups;
+  const displayedFriends = demoMode ? mockFriends : friends;
+  const displayedChallenges = demoMode ? mockChallenges : challenges;
+  const displayedNotifications = demoMode ? mockNotifications : notifications;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -791,7 +795,7 @@ const Social = () => {
   const sendMotivation = async (friendId: string, friendName: string, message?: string) => {
     if (!user) return;
     
-    if (!isDemo) {
+    if (!demoMode) {
       const { error } = await supabase
         .from('social_notifications')
         .insert({
@@ -813,7 +817,7 @@ const Social = () => {
   };
 
   const sendGroupMotivation = async (groupId: string, groupName: string) => {
-    if (!user || isDemo) {
+    if (!user || demoMode) {
       toast({ title: `Notification envoyée au groupe ${groupName} !` });
       return;
     }
@@ -888,9 +892,16 @@ const Social = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
           <div className="flex items-center gap-2">
-            {isDemo && (
-              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">Démo</span>
-            )}
+            <button 
+              onClick={() => setDemoMode(!demoMode)}
+              className={`text-xs px-3 py-1.5 rounded-full transition-all ${
+                demoMode 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {demoMode ? '✓ Démo' : 'Démo'}
+            </button>
             <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
               <Crown className="w-5 h-5 text-primary" />
             </button>
@@ -1283,13 +1294,15 @@ const Social = () => {
                 size="sm" 
                 className="text-xs text-primary"
                 onClick={async () => {
-                  if (user && notifications.length > 0) {
+                  if (user && notifications.length > 0 && !demoMode) {
                     await supabase
                       .from('social_notifications')
                       .update({ is_read: true })
                       .eq('recipient_id', user.id);
                     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
                     toast({ title: "Notifications marquées comme lues" });
+                  } else if (demoMode) {
+                    toast({ title: "Mode démo - Notifications marquées" });
                   }
                 }}
               >
@@ -1297,7 +1310,7 @@ const Social = () => {
               </Button>
             </div>
 
-            {(notifications.length > 0 ? notifications : mockNotifications).map((notif) => (
+            {displayedNotifications.map((notif) => (
               <div 
                 key={notif.id} 
                 className={`glass rounded-xl p-4 border ${notif.isRead ? 'border-white/5' : 'border-primary/30 bg-primary/5'}`}
@@ -1331,7 +1344,7 @@ const Social = () => {
               </div>
             ))}
 
-            {notifications.length === 0 && !isDemo && (
+            {displayedNotifications.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Aucune notification</p>
@@ -1348,7 +1361,7 @@ const Social = () => {
           </h2>
 
           {/* Défis en attente d'acceptation */}
-          {challenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge) => (
+          {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge) => (
             <div key={challenge.id} className="glass rounded-xl p-4 border border-purple-500/30 bg-purple-500/5">
               <div className="flex items-center justify-between mb-2">
                 <div>
@@ -1368,7 +1381,7 @@ const Social = () => {
                 <Button 
                   size="sm" 
                   className="flex-1 bg-gradient-primary"
-                  onClick={() => acceptChallenge(challenge.id)}
+                  onClick={() => !demoMode && acceptChallenge(challenge.id)}
                 >
                   Accepter
                 </Button>
@@ -1377,8 +1390,10 @@ const Social = () => {
                   variant="outline"
                   className="flex-1"
                   onClick={async () => {
-                    await supabase.from('challenges').delete().eq('id', challenge.id);
-                    setChallenges(challenges.filter(c => c.id !== challenge.id));
+                    if (!demoMode) {
+                      await supabase.from('challenges').delete().eq('id', challenge.id);
+                      setChallenges(challenges.filter(c => c.id !== challenge.id));
+                    }
                     toast({ title: "Défi refusé" });
                   }}
                 >
@@ -1388,7 +1403,7 @@ const Social = () => {
             </div>
           ))}
           
-          {(challenges.length > 0 ? challenges : mockChallenges).filter(c => c.status === 'active').map((challenge) => {
+          {displayedChallenges.filter(c => c.status === 'active').map((challenge) => {
             const progress = challenge.target_value > 0 ? Math.round(((challenge.my_progress || 0) / challenge.target_value) * 100) : 0;
             return (
               <div key={challenge.id} className="glass rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
@@ -1539,7 +1554,7 @@ const Social = () => {
               </div>
               <div>
                 <span>{selectedGroup?.name}</span>
-                <p className="text-xs text-muted-foreground font-normal">{selectedGroup?.member_count} membres</p>
+                <p className="text-xs text-muted-foreground font-normal">{selectedGroup?.member_count} membres • #{selectedGroup?.ranking}</p>
               </div>
             </DialogTitle>
           </DialogHeader>
@@ -1549,6 +1564,25 @@ const Social = () => {
             {selectedGroup?.description && (
               <p className="text-sm text-muted-foreground">{selectedGroup.description}</p>
             )}
+
+            {/* Stats du groupe */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="glass rounded-lg p-3 text-center border border-white/5">
+                <BarChart3 className="w-4 h-4 text-primary mx-auto mb-1" />
+                <p className="text-lg font-bold text-foreground">{selectedGroup?.totalHabitsCompleted || 0}</p>
+                <p className="text-[10px] text-muted-foreground">Habitudes</p>
+              </div>
+              <div className="glass rounded-lg p-3 text-center border border-white/5">
+                <Users className="w-4 h-4 text-green-500 mx-auto mb-1" />
+                <p className="text-lg font-bold text-foreground">{selectedGroup?.activeMembers || 0}</p>
+                <p className="text-[10px] text-muted-foreground">Actifs</p>
+              </div>
+              <div className="glass rounded-lg p-3 text-center border border-white/5">
+                <Trophy className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
+                <p className="text-lg font-bold text-foreground">#{selectedGroup?.ranking || '-'}</p>
+                <p className="text-[10px] text-muted-foreground">Classement</p>
+              </div>
+            </div>
 
             {/* Code */}
             <div className="glass rounded-lg p-3 border border-primary/20 flex items-center justify-between">
@@ -1572,16 +1606,49 @@ const Social = () => {
                   <span className="text-sm font-medium text-foreground">Défi de la semaine</span>
                 </div>
                 <p className="text-sm text-muted-foreground">{selectedGroup.weeklyChallenge}</p>
+                <Progress value={65} className="h-2 mt-2" />
+                <p className="text-[10px] text-muted-foreground mt-1">65% accompli par le groupe</p>
               </div>
             )}
 
+            {/* Activité récente */}
+            <div>
+              <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-primary" />
+                Activité récente
+              </p>
+              <div className="space-y-2 max-h-28 overflow-y-auto">
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                  <Star className="w-3 h-3 text-yellow-500" />
+                  <span className="text-xs text-foreground">Marie a complété 5 habitudes 🎉</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">Il y a 2h</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                  <Flame className="w-3 h-3 text-orange-500" />
+                  <span className="text-xs text-foreground">Thomas atteint 7 jours de série !</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">Il y a 5h</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                  <Heart className="w-3 h-3 text-pink-500" />
+                  <span className="text-xs text-foreground">Sophie encourage le groupe</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">Hier</span>
+                </div>
+              </div>
+            </div>
+
             {/* Membres */}
             <div>
-              <p className="text-sm font-medium text-foreground mb-3">Membres</p>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {mockGroupMembers.map((member) => (
+              <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                Membres ({selectedGroup?.member_count || 0})
+              </p>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {mockGroupMembers.map((member, index) => (
                   <div key={member.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
                     <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                        {index + 1}
+                      </div>
                       <div className="relative">
                         <Avatar className="w-8 h-8">
                           <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
@@ -1592,7 +1659,10 @@ const Social = () => {
                           <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 border border-background rounded-full" />
                         )}
                       </div>
-                      <span className="text-sm text-foreground">{member.name}</span>
+                      <div>
+                        <span className="text-sm text-foreground">{member.name}</span>
+                        {index === 0 && <Shield className="w-3 h-3 text-yellow-500 inline ml-1" />}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Flame className="w-3 h-3 text-orange-500" />
@@ -1605,19 +1675,61 @@ const Social = () => {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                onClick={() => sendGroupMotivation(selectedGroup?.id || '', selectedGroup?.name || '')} 
-                className="bg-gradient-primary"
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Motiver tous
-              </Button>
-              <Button variant="outline">
-                <Plus className="w-4 h-4 mr-2" />
-                Nouveau défi
-              </Button>
+            {/* Actions du groupe */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  onClick={() => sendGroupMotivation(selectedGroup?.id || '', selectedGroup?.name || '')} 
+                  className="bg-gradient-primary"
+                  size="sm"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Motiver tous
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedGroup(null);
+                    setChallengeType('group');
+                    setSelectedChallengeGroup(selectedGroup?.id || null);
+                    setChallengeDialogOpen(true);
+                  }}
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Nouveau défi
+                </Button>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedGroup?.invite_code || '');
+                    toast({ title: "Lien copié !", description: "Partage-le avec tes amis" });
+                  }}
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Inviter
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-xs"
+                >
+                  <Settings className="w-3 h-3 mr-1" />
+                  Paramètres
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-xs text-destructive hover:text-destructive"
+                >
+                  <UserMinus className="w-3 h-3 mr-1" />
+                  Quitter
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
