@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, ArrowLeft, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -555,19 +555,14 @@ const Social = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <header className="px-6 pt-safe-offset-6 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={() => navigate(-1)} className="p-2 hover:bg-muted rounded-lg transition-colors">
-                <ArrowLeft className="w-5 h-5 text-foreground" />
-              </button>
-              <h1 className="text-2xl font-bold text-foreground">Social</h1>
-            </div>
-            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
-              <Crown className="w-5 h-5 text-primary" />
-            </button>
-          </div>
-        </header>
+      <header className="px-6 pt-12 pb-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
+          <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+            <Crown className="w-5 h-5 text-primary" />
+          </button>
+        </div>
+      </header>
         
         <main className="px-6 max-w-2xl mx-auto">
           <div className="glass rounded-xl p-8 text-center border border-white/5">
@@ -589,14 +584,9 @@ const Social = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="px-6 pt-safe-offset-6 pb-4">
+      <header className="px-6 pt-12 pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-2 hover:bg-muted rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-2xl font-bold text-foreground">Social</h1>
-          </div>
+          <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
           <div className="flex items-center gap-2">
             {isDemo && (
               <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">Démo</span>
