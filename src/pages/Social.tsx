@@ -282,6 +282,7 @@ const Social = () => {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
   
@@ -401,6 +402,7 @@ const Social = () => {
       console.error('Error loading social data:', error);
     } finally {
       setLoading(false);
+      setInitialLoadDone(true);
     }
   };
 
@@ -767,7 +769,10 @@ const Social = () => {
   };
 
   const createChallenge = async () => {
-    if (!user || !challengeTitle.trim()) return;
+    if (!user || !challengeTitle.trim()) {
+      toast({ title: "Erreur", description: "Donne un nom au défi", variant: "destructive" });
+      return;
+    }
     
     if (challengeType === 'duel' && !selectedOpponent) {
       toast({ title: "Erreur", description: "Sélectionne un adversaire", variant: "destructive" });
@@ -789,73 +794,103 @@ const Social = () => {
       return;
     }
     
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + challengeDuration);
-    
-    const { data: challenge, error } = await supabase
-      .from('challenges')
-      .insert({
-        creator_id: user.id,
-        title: challengeTitle.trim(),
-        description: challengeDescription.trim() || null,
-        type: challengeType,
-        target_type: 'completions',
-        target_value: challengeDuration,
-        opponent_id: challengeType === 'duel' ? selectedOpponent : null,
-        group_id: challengeType === 'group' ? selectedChallengeGroup : null,
-        end_date: endDate.toISOString().split('T')[0],
-        status: 'pending'
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de créer le défi", variant: "destructive" });
-      return;
-    }
-    
-    // Add creator as participant
-    await supabase
-      .from('challenge_participants')
-      .insert({
-        challenge_id: challenge.id,
-        user_id: user.id,
-        accepted: true
-      });
-    
-    // Send notification to opponent or group members
-    if (challengeType === 'duel' && selectedOpponent) {
-      await supabase
-        .from('social_notifications')
-        .insert({
-          sender_id: user.id,
-          recipient_id: selectedOpponent,
-          type: 'challenge',
-          message: `${profile?.full_name || 'Quelqu\'un'} te défie : "${challengeTitle}" !`
-        });
+    try {
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + challengeDuration);
       
-      // Add opponent as participant (not accepted yet)
-      await supabase
+      const { data: challenge, error } = await supabase
+        .from('challenges')
+        .insert({
+          creator_id: user.id,
+          title: challengeTitle.trim(),
+          description: challengeDescription.trim() || null,
+          type: challengeType,
+          target_type: 'completions',
+          target_value: challengeDuration,
+          opponent_id: challengeType === 'duel' ? selectedOpponent : null,
+          group_id: challengeType === 'group' ? selectedChallengeGroup : null,
+          end_date: endDate.toISOString().split('T')[0],
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Challenge creation error:', error);
+        toast({ title: "Erreur", description: "Impossible de créer le défi: " + error.message, variant: "destructive" });
+        return;
+      }
+      
+      // Add creator as participant
+      const { error: participantError } = await supabase
         .from('challenge_participants')
         .insert({
           challenge_id: challenge.id,
-          user_id: selectedOpponent,
-          accepted: false
+          user_id: user.id,
+          accepted: true
         });
-    }
-    
-    toast({ title: "Défi créé !" });
-    setChallengeDialogOpen(false);
-    setChallengeType(null);
-    setChallengeTitle("");
-    setChallengeDescription("");
-    setChallengeDuration(7);
-    setSelectedOpponent(null);
-    setSelectedChallengeGroup(null);
-    
-    if (user) {
+        
+      if (participantError) {
+        console.error('Participant creation error:', participantError);
+      }
+      
+      // Send notification to opponent or group members
+      if (challengeType === 'duel' && selectedOpponent) {
+        await supabase
+          .from('social_notifications')
+          .insert({
+            sender_id: user.id,
+            recipient_id: selectedOpponent,
+            type: 'challenge',
+            message: `${profile?.full_name || 'Quelqu\'un'} te défie : "${challengeTitle}" !`
+          });
+        
+        // Add opponent as participant (not accepted yet)
+        await supabase
+          .from('challenge_participants')
+          .insert({
+            challenge_id: challenge.id,
+            user_id: selectedOpponent,
+            accepted: false
+          });
+      }
+      
+      toast({ title: "Défi créé et envoyé !" });
+      setChallengeDialogOpen(false);
+      setChallengeType(null);
+      setChallengeTitle("");
+      setChallengeDescription("");
+      setChallengeDuration(7);
+      setSelectedOpponent(null);
+      setSelectedChallengeGroup(null);
+      
       await loadChallenges(user.id);
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast({ title: "Erreur", description: "Une erreur inattendue est survenue", variant: "destructive" });
     }
+  };
+  
+  const deleteFriend = async (friendshipId: string, friendName: string) => {
+    if (demoMode) {
+      toast({ title: "Ami supprimé", description: `${friendName} a été retiré de tes amis (mode démo)` });
+      setSelectedFriend(null);
+      return;
+    }
+    
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .eq('id', friendshipId);
+    
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de supprimer l'ami", variant: "destructive" });
+      return;
+    }
+    
+    setFriends(friends.filter(f => f.id !== friendshipId));
+    setSelectedFriend(null);
+    toast({ title: "Ami supprimé", description: `${friendName} a été retiré de tes amis` });
   };
 
   const acceptChallenge = async (challengeId: string) => {
@@ -1019,6 +1054,40 @@ const Social = () => {
           </div>
         </main>
         
+        <Navigation />
+      </div>
+    );
+  }
+
+  // Show loading state to prevent display flicker
+  if (loading && !initialLoadDone) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <header className="px-6 pt-12 pb-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
+            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+              <Crown className="w-5 h-5 text-primary" />
+            </button>
+          </div>
+        </header>
+        <main className="px-6 max-w-2xl mx-auto space-y-4">
+          <div className="glass rounded-2xl p-5 border border-white/5 animate-pulse">
+            <div className="h-4 bg-muted/30 rounded w-24 mb-2" />
+            <div className="h-8 bg-muted/30 rounded w-32" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="glass rounded-2xl p-4 border border-white/5 animate-pulse">
+                <div className="w-10 h-10 bg-muted/30 rounded-xl mx-auto mb-2" />
+                <div className="h-3 bg-muted/30 rounded w-12 mx-auto" />
+              </div>
+            ))}
+          </div>
+          <div className="glass rounded-xl p-4 border border-white/5 animate-pulse">
+            <div className="h-10 bg-muted/30 rounded" />
+          </div>
+        </main>
         <Navigation />
       </div>
     );
@@ -1884,6 +1953,21 @@ const Social = () => {
                 Défier
               </Button>
             </div>
+            
+            {/* Supprimer ami */}
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="w-full text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={() => {
+                if (selectedFriend) {
+                  deleteFriend(selectedFriend.id, selectedFriend.profile.full_name || 'Cet ami');
+                }
+              }}
+            >
+              <UserMinus className="w-3 h-3 mr-1" />
+              Supprimer de mes amis
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
