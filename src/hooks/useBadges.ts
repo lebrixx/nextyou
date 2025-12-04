@@ -10,7 +10,7 @@ interface BadgeRule {
 }
 
 export const badgeRules: BadgeRule[] = [
-  // Badges simples (faciles à obtenir)
+  // ========== BADGES FACILES (10) ==========
   {
     type: 'first_day',
     name: 'Premier Jour',
@@ -41,8 +41,38 @@ export const badgeRules: BadgeRule[] = [
     description: '7 jours d\'utilisation',
     condition: (stats) => stats.daysActive >= 7,
   },
-  
-  // Badges intermédiaires
+  {
+    type: 'ten_completions',
+    name: 'Bon Début',
+    description: '10 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 10,
+  },
+  {
+    type: 'early_bird',
+    name: 'Lève-tôt',
+    description: 'Complète une habitude avant 8h',
+    condition: (stats) => stats.earlyBird === true,
+  },
+  {
+    type: 'night_owl',
+    name: 'Couche-tard',
+    description: 'Complète une habitude après 22h',
+    condition: (stats) => stats.nightOwl === true,
+  },
+  {
+    type: 'five_habits',
+    name: 'Ambitieux',
+    description: 'Crée 5 habitudes différentes',
+    condition: (stats) => stats.totalHabits >= 5,
+  },
+  {
+    type: 'weekend_warrior',
+    name: 'Guerrier du Weekend',
+    description: 'Complète toutes tes habitudes un weekend',
+    condition: (stats) => stats.weekendWarrior === true,
+  },
+
+  // ========== BADGES MOYENS (15) ==========
   {
     type: 'week_streak',
     name: '7 Jours',
@@ -85,8 +115,56 @@ export const badgeRules: BadgeRule[] = [
     description: 'Toutes les habitudes pendant 7 jours',
     condition: (stats) => stats.perfectWeek === true,
   },
-  
-  // Badges difficiles
+  {
+    type: 'twenty_five_completions',
+    name: 'Quart de Siècle',
+    description: '25 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 25,
+  },
+  {
+    type: 'morning_routine',
+    name: 'Routine Matinale',
+    description: '5 habitudes complétées le matin',
+    condition: (stats) => stats.morningRoutine >= 5,
+  },
+  {
+    type: 'consistency_king',
+    name: 'Roi de la Constance',
+    description: 'Même heure pendant 5 jours',
+    condition: (stats) => stats.consistencyKing === true,
+  },
+  {
+    type: 'multi_tasker',
+    name: 'Multi-tâches',
+    description: '5 habitudes complétées en un jour',
+    condition: (stats) => stats.maxDailyCompletions >= 5,
+  },
+  {
+    type: 'forty_five_days',
+    name: '45 Jours',
+    description: 'Série de 45 jours',
+    condition: (stats) => stats.bestStreak >= 45,
+  },
+  {
+    type: 'category_master',
+    name: 'Maître des Catégories',
+    description: 'Habitudes dans 3 catégories différentes',
+    condition: (stats) => stats.categoriesUsed >= 3,
+  },
+  {
+    type: 'streak_saver',
+    name: 'Sauveur de Série',
+    description: 'Complète in extremis avant minuit',
+    condition: (stats) => stats.streakSaver === true,
+  },
+  {
+    type: 'two_hundred_completions',
+    name: 'Bicentenaire',
+    description: '200 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 200,
+  },
+
+  // ========== BADGES DIFFICILES (10) ==========
   {
     type: 'hundred_completions',
     name: 'Centurion',
@@ -100,17 +178,87 @@ export const badgeRules: BadgeRule[] = [
     condition: (stats) => stats.bestStreak >= 60,
   },
   {
+    type: 'ninety_days',
+    name: 'Trimestre',
+    description: 'Série de 90 jours',
+    condition: (stats) => stats.bestStreak >= 90,
+  },
+  {
     type: 'hundred_days',
     name: '100 Jours',
     description: 'Série de 100 jours consécutifs',
     condition: (stats) => stats.bestStreak >= 100,
   },
   {
+    type: 'three_hundred_completions',
+    name: 'Spartiate',
+    description: '300 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 300,
+  },
+  {
+    type: 'perfect_month',
+    name: 'Mois Parfait',
+    description: 'Toutes les habitudes pendant 30 jours',
+    condition: (stats) => stats.perfectMonth === true,
+  },
+  {
+    type: 'fifteen_habits',
+    name: 'Collectionneur',
+    description: '15 habitudes différentes créées',
+    condition: (stats) => stats.totalHabits >= 15,
+  },
+  {
+    type: 'four_months',
+    name: 'Quatre Mois',
+    description: 'Série de 120 jours',
+    condition: (stats) => stats.bestStreak >= 120,
+  },
+  {
+    type: 'six_months',
+    name: 'Semestre',
+    description: 'Série de 180 jours',
+    condition: (stats) => stats.bestStreak >= 180,
+  },
+  {
+    type: 'daily_champion',
+    name: 'Champion Quotidien',
+    description: '10 habitudes complétées en un jour',
+    condition: (stats) => stats.maxDailyCompletions >= 10,
+  },
+
+  // ========== BADGES TRÈS DIFFICILES (5) ==========
+  {
     type: 'five_hundred_completions',
     name: 'Expert',
     description: '500 habitudes complétées',
     condition: (stats) => stats.totalCompletions >= 500,
   },
+  {
+    type: 'nine_months',
+    name: 'Neuf Mois',
+    description: 'Série de 270 jours',
+    condition: (stats) => stats.bestStreak >= 270,
+  },
+  {
+    type: 'seven_hundred_completions',
+    name: 'Élite',
+    description: '700 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 700,
+  },
+  {
+    type: 'twenty_habits',
+    name: 'Architecte',
+    description: '20 habitudes différentes créées',
+    condition: (stats) => stats.totalHabits >= 20,
+  },
+  {
+    type: 'perfect_quarter',
+    name: 'Trimestre Parfait',
+    description: 'Toutes les habitudes pendant 90 jours',
+    condition: (stats) => stats.perfectQuarter === true,
+  },
+
+  // ========== BADGES LÉGENDAIRES (5) ==========
   {
     type: 'year_streak',
     name: 'Inarrêtable',
@@ -123,8 +271,26 @@ export const badgeRules: BadgeRule[] = [
     description: '1000 habitudes complétées',
     condition: (stats) => stats.totalCompletions >= 1000,
   },
-  
-  // Badges émotionnels / spéciaux
+  {
+    type: 'two_thousand_completions',
+    name: 'Immortel',
+    description: '2000 habitudes complétées',
+    condition: (stats) => stats.totalCompletions >= 2000,
+  },
+  {
+    type: 'five_hundred_days',
+    name: 'Demi-Millénaire',
+    description: 'Série de 500 jours',
+    condition: (stats) => stats.bestStreak >= 500,
+  },
+  {
+    type: 'ultimate_master',
+    name: 'Maître Ultime',
+    description: '30 habitudes créées + 1000 complétées',
+    condition: (stats) => stats.totalHabits >= 30 && stats.totalCompletions >= 1000,
+  },
+
+  // ========== BADGES SPÉCIAUX (5) ==========
   {
     type: 'resilience_return',
     name: 'Résilience',
