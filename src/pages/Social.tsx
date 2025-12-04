@@ -311,23 +311,51 @@ const Social = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    checkUser();
+    
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        
+        // Defer data loading to avoid deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            loadAllData(session.user.id);
+          }, 0);
+        } else {
+          setLoading(false);
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadAllData(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
-    if (user) {
+  const loadAllData = async (userId: string) => {
+    try {
       await Promise.all([
-        loadProfile(user.id),
-        loadGroups(user.id),
-        loadFriends(user.id),
-        loadPendingRequests(user.id),
-        loadChallenges(user.id),
-        loadNotifications(user.id)
+        loadProfile(userId),
+        loadGroups(userId),
+        loadFriends(userId),
+        loadPendingRequests(userId),
+        loadChallenges(userId),
+        loadNotifications(userId)
       ]);
+    } catch (error) {
+      console.error('Error loading social data:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadProfile = async (userId: string) => {
