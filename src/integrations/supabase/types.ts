@@ -687,6 +687,14 @@ export type Database = {
     }
     Functions: {
       get_user_group_ids: { Args: { _user_id: string }; Returns: string[] }
+      is_challenge_creator: {
+        Args: { _challenge_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_challenge_participant: {
+        Args: { _challenge_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
