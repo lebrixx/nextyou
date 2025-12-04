@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useSocialNotifications } from "@/hooks/useSocialNotifications";
 
 interface Profile {
   id: string;
@@ -302,6 +304,10 @@ const Social = () => {
 
   // Demo mode toggle
   const [demoMode, setDemoMode] = useState(false);
+  const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
+  
+  // Social notifications hook for realtime
+  const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
   
   // Demo data
   const displayedGroups = demoMode ? mockGroups : groups;
@@ -340,6 +346,32 @@ const Social = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Realtime subscription for notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('social-notifications-reload')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'social_notifications',
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        () => {
+          // Reload notifications when a new one arrives
+          loadNotifications(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const loadAllData = async (userId: string) => {
     try {
@@ -1419,26 +1451,88 @@ const Social = () => {
           <TabsContent value="notifications" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground">Notifications</h2>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-primary"
-                onClick={async () => {
-                  if (user && notifications.length > 0 && !demoMode) {
-                    await supabase
-                      .from('social_notifications')
-                      .update({ is_read: true })
-                      .eq('recipient_id', user.id);
-                    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-                    toast({ title: "Notifications marquées comme lues" });
-                  } else if (demoMode) {
-                    toast({ title: "Mode démo - Notifications marquées" });
-                  }
-                }}
-              >
-                Tout marquer lu
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs"
+                  onClick={() => setNotificationSettingsOpen(!notificationSettingsOpen)}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-primary"
+                  onClick={async () => {
+                    if (user && notifications.length > 0 && !demoMode) {
+                      await supabase
+                        .from('social_notifications')
+                        .update({ is_read: true })
+                        .eq('recipient_id', user.id);
+                      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+                      toast({ title: "Notifications marquées comme lues" });
+                    } else if (demoMode) {
+                      toast({ title: "Mode démo - Notifications marquées" });
+                    }
+                  }}
+                >
+                  Tout marquer lu
+                </Button>
+              </div>
             </div>
+
+            {/* Notification Preferences */}
+            {notificationSettingsOpen && (
+              <div className="glass rounded-xl p-4 border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent mb-4">
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-primary" />
+                  Préférences de notifications
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-foreground">Demandes d'amis</p>
+                      <p className="text-xs text-muted-foreground">Recevoir les nouvelles demandes</p>
+                    </div>
+                    <Switch 
+                      checked={notifPreferences.friendRequests}
+                      onCheckedChange={(checked) => updateNotifPreferences({ friendRequests: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-foreground">Défis</p>
+                      <p className="text-xs text-muted-foreground">Invitations et mises à jour</p>
+                    </div>
+                    <Switch 
+                      checked={notifPreferences.challenges}
+                      onCheckedChange={(checked) => updateNotifPreferences({ challenges: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-foreground">Encouragements</p>
+                      <p className="text-xs text-muted-foreground">Messages de motivation</p>
+                    </div>
+                    <Switch 
+                      checked={notifPreferences.motivations}
+                      onCheckedChange={(checked) => updateNotifPreferences({ motivations: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-foreground">Activité des groupes</p>
+                      <p className="text-xs text-muted-foreground">Invitations et mises à jour</p>
+                    </div>
+                    <Switch 
+                      checked={notifPreferences.groupActivity}
+                      onCheckedChange={(checked) => updateNotifPreferences({ groupActivity: checked })}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {displayedNotifications.map((notif) => (
               <div 
