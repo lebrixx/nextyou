@@ -47,25 +47,37 @@ interface GroupMember {
 interface Challenge {
   id: string;
   title: string;
-  description: string;
-  type: 'group' | 'friend';
-  targetId: string;
-  targetName: string;
-  startDate: string;
-  endDate: string;
-  progress: number;
-  participants: number;
-  isActive: boolean;
+  description: string | null;
+  type: 'duel' | 'group';
+  target_type: string;
+  target_value: number;
+  creator_id: string;
+  opponent_id: string | null;
+  group_id: string | null;
+  start_date: string;
+  end_date: string;
+  status: string;
+  creator_name?: string;
+  opponent_name?: string;
+  my_progress?: number;
+  opponent_progress?: number;
+}
+
+interface PendingFriendRequest {
+  id: string;
+  profile: Profile;
+  type: 'incoming' | 'outgoing';
 }
 
 interface Notification {
   id: string;
-  type: 'motivation' | 'challenge' | 'achievement' | 'group_invite';
+  type: 'motivation' | 'challenge' | 'achievement' | 'group_invite' | 'friend_request';
   message: string;
   senderName: string;
   senderAvatar: string | null;
   timestamp: string;
   isRead: boolean;
+  senderId?: string;
 }
 
 // Données de démonstration enrichies
@@ -182,26 +194,35 @@ const mockChallenges: Challenge[] = [
     title: '7 jours de sport',
     description: 'Faire du sport pendant 7 jours consécutifs',
     type: 'group',
-    targetId: 'demo-group-1',
-    targetName: 'Sport du matin',
-    startDate: '2024-01-15',
-    endDate: '2024-01-22',
-    progress: 71,
-    participants: 6,
-    isActive: true
+    target_type: 'completions',
+    target_value: 7,
+    creator_id: 'demo-user-1',
+    opponent_id: null,
+    group_id: 'demo-group-1',
+    start_date: '2024-01-15',
+    end_date: '2024-01-22',
+    status: 'active',
+    creator_name: 'Marie Dupont',
+    my_progress: 5,
+    opponent_progress: 0
   },
   {
     id: 'c2',
     title: 'Duel de lecture',
     description: 'Qui lira le plus de pages cette semaine ?',
-    type: 'friend',
-    targetId: 'demo-user-3',
-    targetName: 'Sophie Bernard',
-    startDate: '2024-01-18',
-    endDate: '2024-01-25',
-    progress: 45,
-    participants: 2,
-    isActive: true
+    type: 'duel',
+    target_type: 'completions',
+    target_value: 7,
+    creator_id: 'demo-user-1',
+    opponent_id: 'demo-user-3',
+    group_id: null,
+    start_date: '2024-01-18',
+    end_date: '2024-01-25',
+    status: 'active',
+    creator_name: 'Moi',
+    opponent_name: 'Sophie Bernard',
+    my_progress: 3,
+    opponent_progress: 4
   }
 ];
 
@@ -250,6 +271,9 @@ const Social = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<PendingFriendRequest[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("friends");
@@ -263,6 +287,12 @@ const Social = () => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
+  const [challengeType, setChallengeType] = useState<'duel' | 'group' | null>(null);
+  const [challengeTitle, setChallengeTitle] = useState("");
+  const [challengeDescription, setChallengeDescription] = useState("");
+  const [challengeDuration, setChallengeDuration] = useState(7);
+  const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
+  const [selectedChallengeGroup, setSelectedChallengeGroup] = useState<string | null>(null);
   
   // Form states
   const [newGroupName, setNewGroupName] = useState("");
@@ -287,7 +317,10 @@ const Social = () => {
       await Promise.all([
         loadProfile(user.id),
         loadGroups(user.id),
-        loadFriends(user.id)
+        loadFriends(user.id),
+        loadPendingRequests(user.id),
+        loadChallenges(user.id),
+        loadNotifications(user.id)
       ]);
     }
     setLoading(false);
@@ -350,6 +383,163 @@ const Social = () => {
         }
       }
       setFriends(friendProfiles);
+    }
+  };
+
+  const loadPendingRequests = async (userId: string) => {
+    const { data } = await supabase
+      .from('friendships')
+      .select(`id, status, friend_id, user_id`)
+      .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
+      .eq('status', 'pending');
+    
+    if (data) {
+      const requests: PendingFriendRequest[] = [];
+      for (const friendship of data) {
+        const isIncoming = friendship.friend_id === userId;
+        const otherUserId = isIncoming ? friendship.user_id : friendship.friend_id;
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', otherUserId)
+          .single();
+        if (profile) {
+          requests.push({
+            id: friendship.id,
+            profile,
+            type: isIncoming ? 'incoming' : 'outgoing'
+          });
+        }
+      }
+      setPendingRequests(requests);
+    }
+  };
+
+  const loadChallenges = async (userId: string) => {
+    const { data } = await supabase
+      .from('challenges')
+      .select('*')
+      .or(`creator_id.eq.${userId},opponent_id.eq.${userId}`)
+      .in('status', ['active', 'pending']);
+    
+    if (data && data.length > 0) {
+      const challengesWithNames: Challenge[] = [];
+      for (const challenge of data) {
+        let creatorName = 'Inconnu';
+        let opponentName = 'Inconnu';
+        
+        if (challenge.creator_id) {
+          const { data: creatorProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', challenge.creator_id)
+            .single();
+          creatorName = challenge.creator_id === userId ? 'Toi' : (creatorProfile?.full_name || 'Inconnu');
+        }
+        
+        if (challenge.opponent_id) {
+          const { data: opponentProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', challenge.opponent_id)
+            .single();
+          opponentName = challenge.opponent_id === userId ? 'Toi' : (opponentProfile?.full_name || 'Inconnu');
+        }
+        
+        // Get progress from participants table
+        const { data: myParticipation } = await supabase
+          .from('challenge_participants')
+          .select('progress')
+          .eq('challenge_id', challenge.id)
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        const opponentId = challenge.creator_id === userId ? challenge.opponent_id : challenge.creator_id;
+        const { data: opponentParticipation } = await supabase
+          .from('challenge_participants')
+          .select('progress')
+          .eq('challenge_id', challenge.id)
+          .eq('user_id', opponentId || '')
+          .maybeSingle();
+        
+        challengesWithNames.push({
+          ...challenge,
+          type: challenge.type as 'duel' | 'group',
+          creator_name: creatorName,
+          opponent_name: opponentName,
+          my_progress: myParticipation?.progress || 0,
+          opponent_progress: opponentParticipation?.progress || 0
+        });
+      }
+      setChallenges(challengesWithNames);
+    }
+  };
+
+  const loadNotifications = async (userId: string) => {
+    const { data } = await supabase
+      .from('social_notifications')
+      .select('*')
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    
+    if (data && data.length > 0) {
+      const notifs: Notification[] = [];
+      for (const notif of data) {
+        const { data: senderProfile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', notif.sender_id)
+          .single();
+        
+        notifs.push({
+          id: notif.id,
+          type: notif.type as any,
+          message: notif.message || '',
+          senderName: senderProfile?.full_name || 'Utilisateur',
+          senderAvatar: senderProfile?.avatar_url,
+          timestamp: new Date(notif.created_at).toLocaleString('fr-FR', { 
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
+          }),
+          isRead: notif.is_read,
+          senderId: notif.sender_id
+        });
+      }
+      setNotifications(notifs);
+    }
+  };
+
+  const acceptFriendRequest = async (friendshipId: string) => {
+    const { error } = await supabase
+      .from('friendships')
+      .update({ status: 'accepted' })
+      .eq('id', friendshipId);
+    
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible d'accepter la demande", variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: "Demande acceptée !" });
+    if (user) {
+      await Promise.all([loadFriends(user.id), loadPendingRequests(user.id)]);
+    }
+  };
+
+  const declineFriendRequest = async (friendshipId: string) => {
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .eq('id', friendshipId);
+    
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de refuser la demande", variant: "destructive" });
+      return;
+    }
+    
+    toast({ title: "Demande refusée" });
+    if (user) {
+      await loadPendingRequests(user.id);
     }
   };
 
@@ -474,18 +664,128 @@ const Social = () => {
       .insert({
         user_id: user.id,
         friend_id: friendProfile.id,
-        status: 'accepted'
+        status: 'pending'
       });
     
     if (error) {
-      toast({ title: "Erreur", description: "Impossible d'ajouter l'ami", variant: "destructive" });
+      toast({ title: "Erreur", description: "Impossible d'envoyer la demande", variant: "destructive" });
       return;
     }
     
-    setFriends([...friends, { id: crypto.randomUUID(), profile: friendProfile, status: 'accepted' }]);
+    // Send notification to the friend
+    await supabase
+      .from('social_notifications')
+      .insert({
+        sender_id: user.id,
+        recipient_id: friendProfile.id,
+        type: 'friend_request',
+        message: `${profile?.full_name || 'Quelqu\'un'} veut t'ajouter en ami !`
+      });
+    
+    setPendingRequests([...pendingRequests, { id: crypto.randomUUID(), profile: friendProfile, type: 'outgoing' }]);
     setFriendCode("");
     setAddFriendOpen(false);
-    toast({ title: "Ami ajouté !" });
+    toast({ title: "Demande d'ami envoyée !" });
+  };
+
+  const createChallenge = async () => {
+    if (!user || !challengeTitle.trim()) return;
+    
+    if (challengeType === 'duel' && !selectedOpponent) {
+      toast({ title: "Erreur", description: "Sélectionne un adversaire", variant: "destructive" });
+      return;
+    }
+    
+    if (challengeType === 'group' && !selectedChallengeGroup) {
+      toast({ title: "Erreur", description: "Sélectionne un groupe", variant: "destructive" });
+      return;
+    }
+    
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + challengeDuration);
+    
+    const { data: challenge, error } = await supabase
+      .from('challenges')
+      .insert({
+        creator_id: user.id,
+        title: challengeTitle.trim(),
+        description: challengeDescription.trim() || null,
+        type: challengeType,
+        target_type: 'completions',
+        target_value: challengeDuration,
+        opponent_id: challengeType === 'duel' ? selectedOpponent : null,
+        group_id: challengeType === 'group' ? selectedChallengeGroup : null,
+        end_date: endDate.toISOString().split('T')[0],
+        status: 'pending'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de créer le défi", variant: "destructive" });
+      return;
+    }
+    
+    // Add creator as participant
+    await supabase
+      .from('challenge_participants')
+      .insert({
+        challenge_id: challenge.id,
+        user_id: user.id,
+        accepted: true
+      });
+    
+    // Send notification to opponent or group members
+    if (challengeType === 'duel' && selectedOpponent) {
+      await supabase
+        .from('social_notifications')
+        .insert({
+          sender_id: user.id,
+          recipient_id: selectedOpponent,
+          type: 'challenge',
+          message: `${profile?.full_name || 'Quelqu\'un'} te défie : "${challengeTitle}" !`
+        });
+      
+      // Add opponent as participant (not accepted yet)
+      await supabase
+        .from('challenge_participants')
+        .insert({
+          challenge_id: challenge.id,
+          user_id: selectedOpponent,
+          accepted: false
+        });
+    }
+    
+    toast({ title: "Défi créé !" });
+    setChallengeDialogOpen(false);
+    setChallengeType(null);
+    setChallengeTitle("");
+    setChallengeDescription("");
+    setChallengeDuration(7);
+    setSelectedOpponent(null);
+    setSelectedChallengeGroup(null);
+    
+    if (user) {
+      await loadChallenges(user.id);
+    }
+  };
+
+  const acceptChallenge = async (challengeId: string) => {
+    if (!user) return;
+    
+    await supabase
+      .from('challenge_participants')
+      .update({ accepted: true })
+      .eq('challenge_id', challengeId)
+      .eq('user_id', user.id);
+    
+    await supabase
+      .from('challenges')
+      .update({ status: 'active' })
+      .eq('id', challengeId);
+    
+    toast({ title: "Défi accepté !" });
+    await loadChallenges(user.id);
   };
 
   const sendMotivation = async (friendId: string, friendName: string, message?: string) => {
@@ -707,9 +1007,9 @@ const Social = () => {
             <TabsTrigger value="ranking" className="text-xs">Classement</TabsTrigger>
             <TabsTrigger value="notifications" className="text-xs relative">
               Notifs
-              {mockNotifications.filter(n => !n.isRead).length > 0 && (
+              {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
-                  {mockNotifications.filter(n => !n.isRead).length}
+                  {(notifications.length > 0 ? notifications : mockNotifications).filter(n => !n.isRead).length}
                 </span>
               )}
             </TabsTrigger>
@@ -717,6 +1017,74 @@ const Social = () => {
 
           {/* Tab: Amis */}
           <TabsContent value="friends" className="space-y-3 mt-4">
+            {/* Demandes en attente */}
+            {pendingRequests.filter(r => r.type === 'incoming').length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-orange-500" />
+                  Demandes d'amis ({pendingRequests.filter(r => r.type === 'incoming').length})
+                </h3>
+                {pendingRequests.filter(r => r.type === 'incoming').map((request) => (
+                  <div key={request.id} className="glass rounded-xl p-3 border border-orange-500/20 bg-orange-500/5 mb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                            {(request.profile.full_name || 'A')[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h4 className="font-medium text-foreground">{request.profile.full_name || 'Utilisateur'}</h4>
+                          <p className="text-xs text-muted-foreground">Veut être ton ami</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-gradient-primary h-8"
+                          onClick={() => acceptFriendRequest(request.id)}
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={() => declineFriendRequest(request.id)}
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Demandes envoyées */}
+            {pendingRequests.filter(r => r.type === 'outgoing').length > 0 && (
+              <div className="mb-4">
+                <h3 className="text-xs text-muted-foreground mb-2">
+                  En attente de réponse ({pendingRequests.filter(r => r.type === 'outgoing').length})
+                </h3>
+                {pendingRequests.filter(r => r.type === 'outgoing').map((request) => (
+                  <div key={request.id} className="glass rounded-xl p-3 border border-white/5 opacity-70 mb-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-muted text-muted-foreground">
+                          {(request.profile.full_name || 'A')[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h4 className="text-sm font-medium text-foreground">{request.profile.full_name || 'Utilisateur'}</h4>
+                        <p className="text-xs text-muted-foreground">Demande envoyée</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground">Mes amis ({displayedFriends.length})</h2>
             </div>
@@ -910,12 +1278,26 @@ const Social = () => {
           <TabsContent value="notifications" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground">Notifications</h2>
-              <Button variant="ghost" size="sm" className="text-xs text-primary">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-primary"
+                onClick={async () => {
+                  if (user && notifications.length > 0) {
+                    await supabase
+                      .from('social_notifications')
+                      .update({ is_read: true })
+                      .eq('recipient_id', user.id);
+                    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+                    toast({ title: "Notifications marquées comme lues" });
+                  }
+                }}
+              >
                 Tout marquer lu
               </Button>
             </div>
 
-            {mockNotifications.map((notif) => (
+            {(notifications.length > 0 ? notifications : mockNotifications).map((notif) => (
               <div 
                 key={notif.id} 
                 className={`glass rounded-xl p-4 border ${notif.isRead ? 'border-white/5' : 'border-primary/30 bg-primary/5'}`}
@@ -926,11 +1308,13 @@ const Social = () => {
                       notif.type === 'motivation' ? 'bg-green-500' :
                       notif.type === 'challenge' ? 'bg-orange-500' :
                       notif.type === 'achievement' ? 'bg-yellow-500' :
+                      notif.type === 'friend_request' ? 'bg-purple-500' :
                       'bg-blue-500'
                     } text-white`}>
                       {notif.type === 'motivation' ? <Heart className="w-4 h-4" /> :
                        notif.type === 'challenge' ? <Zap className="w-4 h-4" /> :
                        notif.type === 'achievement' ? <Award className="w-4 h-4" /> :
+                       notif.type === 'friend_request' ? <UserPlus className="w-4 h-4" /> :
                        <Users className="w-4 h-4" />}
                     </AvatarFallback>
                   </Avatar>
@@ -946,6 +1330,13 @@ const Social = () => {
                 </div>
               </div>
             ))}
+
+            {notifications.length === 0 && !isDemo && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Aucune notification</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -955,25 +1346,77 @@ const Social = () => {
             <Zap className="w-5 h-5 text-orange-500" />
             Défis en cours
           </h2>
-          
-          {mockChallenges.filter(c => c.isActive).map((challenge) => (
-            <div key={challenge.id} className="glass rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
+
+          {/* Défis en attente d'acceptation */}
+          {challenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge) => (
+            <div key={challenge.id} className="glass rounded-xl p-4 border border-purple-500/30 bg-purple-500/5">
               <div className="flex items-center justify-between mb-2">
                 <div>
+                  <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full mb-1 inline-block">
+                    Nouveau défi
+                  </span>
                   <h3 className="font-semibold text-foreground">{challenge.title}</h3>
                   <p className="text-xs text-muted-foreground">
-                    {challenge.type === 'group' ? `Groupe: ${challenge.targetName}` : `Contre ${challenge.targetName}`}
+                    De {challenge.creator_name} • {challenge.target_value} jours
                   </p>
                 </div>
-                <div className="text-right">
-                  <span className="text-lg font-bold text-orange-500">{challenge.progress}%</span>
-                  <p className="text-xs text-muted-foreground">{challenge.participants} participants</p>
-                </div>
               </div>
-              <Progress value={challenge.progress} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">{challenge.description}</p>
+              {challenge.description && (
+                <p className="text-xs text-muted-foreground mb-3">{challenge.description}</p>
+              )}
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1 bg-gradient-primary"
+                  onClick={() => acceptChallenge(challenge.id)}
+                >
+                  Accepter
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="flex-1"
+                  onClick={async () => {
+                    await supabase.from('challenges').delete().eq('id', challenge.id);
+                    setChallenges(challenges.filter(c => c.id !== challenge.id));
+                    toast({ title: "Défi refusé" });
+                  }}
+                >
+                  Refuser
+                </Button>
+              </div>
             </div>
           ))}
+          
+          {(challenges.length > 0 ? challenges : mockChallenges).filter(c => c.status === 'active').map((challenge) => {
+            const progress = challenge.target_value > 0 ? Math.round(((challenge.my_progress || 0) / challenge.target_value) * 100) : 0;
+            return (
+              <div key={challenge.id} className="glass rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{challenge.title}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {challenge.type === 'group' ? `Groupe` : `Contre ${challenge.opponent_name || 'Adversaire'}`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-orange-500">{progress}%</span>
+                    <p className="text-xs text-muted-foreground">
+                      {challenge.my_progress || 0}/{challenge.target_value} jours
+                    </p>
+                  </div>
+                </div>
+                {challenge.type === 'duel' && (
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="text-primary">Toi: {challenge.my_progress || 0}</span>
+                    <span className="text-orange-500">{challenge.opponent_name}: {challenge.opponent_progress || 0}</span>
+                  </div>
+                )}
+                <Progress value={progress} className="h-2" />
+                <p className="text-xs text-muted-foreground mt-2">{challenge.description}</p>
+              </div>
+            );
+          })}
 
           <Button variant="outline" className="w-full border-dashed border-primary/30 text-primary" onClick={() => setChallengeDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -1181,28 +1624,157 @@ const Social = () => {
       </Dialog>
 
       {/* Dialog: Créer défi */}
-      <Dialog open={challengeDialogOpen} onOpenChange={setChallengeDialogOpen}>
-        <DialogContent>
+      <Dialog open={challengeDialogOpen} onOpenChange={(open) => {
+        setChallengeDialogOpen(open);
+        if (!open) {
+          setChallengeType(null);
+          setChallengeTitle("");
+          setChallengeDescription("");
+          setChallengeDuration(7);
+          setSelectedOpponent(null);
+          setSelectedChallengeGroup(null);
+        }
+      }}>
+        <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Créer un défi</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <p className="text-sm text-muted-foreground">
-              Les défis permettent de se challenger entre amis ou au sein d'un groupe pour atteindre un objectif commun.
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button className="glass rounded-xl p-4 text-center border border-white/5 hover:border-primary/30 transition-colors">
-                <Users className="w-8 h-8 text-primary mx-auto mb-2" />
-                <p className="font-medium text-foreground">Défi groupe</p>
-                <p className="text-xs text-muted-foreground">Tous ensemble</p>
-              </button>
-              <button className="glass rounded-xl p-4 text-center border border-white/5 hover:border-primary/30 transition-colors">
-                <Zap className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                <p className="font-medium text-foreground">Duel</p>
-                <p className="text-xs text-muted-foreground">1 contre 1</p>
-              </button>
-            </div>
-            <p className="text-xs text-center text-muted-foreground">Fonctionnalité bientôt disponible !</p>
+            {!challengeType ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Choisis le type de défi que tu veux créer.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => setChallengeType('group')}
+                    className="glass rounded-xl p-4 text-center border border-white/5 hover:border-primary/30 transition-colors"
+                  >
+                    <Users className="w-8 h-8 text-primary mx-auto mb-2" />
+                    <p className="font-medium text-foreground">Défi groupe</p>
+                    <p className="text-xs text-muted-foreground">Tous ensemble</p>
+                  </button>
+                  <button 
+                    onClick={() => setChallengeType('duel')}
+                    className="glass rounded-xl p-4 text-center border border-white/5 hover:border-orange-500/30 transition-colors"
+                  >
+                    <Zap className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                    <p className="font-medium text-foreground">Duel</p>
+                    <p className="text-xs text-muted-foreground">1 contre 1</p>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <Input
+                  placeholder="Nom du défi"
+                  value={challengeTitle}
+                  onChange={(e) => setChallengeTitle(e.target.value)}
+                />
+                <Textarea
+                  placeholder="Description (optionnel)"
+                  value={challengeDescription}
+                  onChange={(e) => setChallengeDescription(e.target.value)}
+                  rows={2}
+                />
+                
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">
+                    Durée : {challengeDuration} jours
+                  </label>
+                  <div className="flex gap-2">
+                    {[3, 7, 14, 30].map((days) => (
+                      <Button
+                        key={days}
+                        variant={challengeDuration === days ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setChallengeDuration(days)}
+                        className={challengeDuration === days ? "bg-gradient-primary" : ""}
+                      >
+                        {days}j
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {challengeType === 'duel' && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Choisir un adversaire
+                    </label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {(displayedFriends as typeof mockFriends).map((friend) => (
+                        <button
+                          key={friend.id}
+                          onClick={() => setSelectedOpponent(friend.profile.id)}
+                          className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                            selectedOpponent === friend.profile.id 
+                              ? 'bg-primary/20 border border-primary/50' 
+                              : 'hover:bg-muted/50 border border-transparent'
+                          }`}
+                        >
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
+                              {(friend.profile.full_name || 'A')[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm text-foreground">{friend.profile.full_name}</span>
+                          {selectedOpponent === friend.profile.id && (
+                            <Check className="w-4 h-4 text-primary ml-auto" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {challengeType === 'group' && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Choisir un groupe
+                    </label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {(displayedGroups as typeof mockGroups).map((group) => (
+                        <button
+                          key={group.id}
+                          onClick={() => setSelectedChallengeGroup(group.id)}
+                          className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                            selectedChallengeGroup === group.id 
+                              ? 'bg-primary/20 border border-primary/50' 
+                              : 'hover:bg-muted/50 border border-transparent'
+                          }`}
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                            <Users className="w-4 h-4 text-primary-foreground" />
+                          </div>
+                          <span className="text-sm text-foreground">{group.name}</span>
+                          {selectedChallengeGroup === group.id && (
+                            <Check className="w-4 h-4 text-primary ml-auto" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setChallengeType(null)}
+                    className="flex-1"
+                  >
+                    Retour
+                  </Button>
+                  <Button 
+                    onClick={createChallenge}
+                    className="flex-1 bg-gradient-primary"
+                    disabled={!challengeTitle.trim() || (challengeType === 'duel' && !selectedOpponent) || (challengeType === 'group' && !selectedChallengeGroup)}
+                  >
+                    Créer le défi
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

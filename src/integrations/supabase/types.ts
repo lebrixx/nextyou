@@ -44,6 +44,101 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_participants: {
+        Row: {
+          accepted: boolean
+          challenge_id: string
+          created_at: string
+          id: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepted?: boolean
+          challenge_id: string
+          created_at?: string
+          id?: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepted?: boolean
+          challenge_id?: string
+          created_at?: string
+          id?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string
+          group_id: string | null
+          habit_id: string | null
+          id: string
+          opponent_id: string | null
+          start_date: string
+          status: string
+          target_type: string
+          target_value: number
+          title: string
+          type: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date: string
+          group_id?: string | null
+          habit_id?: string | null
+          id?: string
+          opponent_id?: string | null
+          start_date?: string
+          status?: string
+          target_type?: string
+          target_value?: number
+          title: string
+          type?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string
+          group_id?: string | null
+          habit_id?: string | null
+          id?: string
+          opponent_id?: string | null
+          start_date?: string
+          status?: string
+          target_type?: string
+          target_value?: number
+          title?: string
+          type?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           created_at: string
