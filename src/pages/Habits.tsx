@@ -18,6 +18,7 @@ import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import useBadges from "@/hooks/useBadges";
+import { useChallengeProgress } from "@/hooks/useChallengeProgress";
 
 interface Habit {
   id: string;
@@ -123,21 +124,46 @@ const Habits = () => {
 
   // Auto-unlock badges
   useBadges(user?.id, stats);
+  
+  // Challenge progress tracking
+  const { updateChallengeProgress, postHabitActivityToGroups } = useChallengeProgress(user?.id);
 
-  const toggleHabit = (id: string) => {
-    const updatedHabits = habits.map((habit) => {
-      if (habit.id === id) {
-        const newCompleted = !habit.completed;
+  const toggleHabit = async (id: string) => {
+    const habit = habits.find(h => h.id === id);
+    if (!habit) return;
+    
+    const newCompleted = !habit.completed;
+    
+    const updatedHabits = habits.map((h) => {
+      if (h.id === id) {
         return {
-          ...habit,
+          ...h,
           completed: newCompleted,
-          streak: newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1)
+          streak: newCompleted ? h.streak + 1 : Math.max(0, h.streak - 1)
         };
       }
-      return habit;
+      return h;
     });
     setHabits(updatedHabits);
     localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
+    
+    // If completing a habit, update challenge progress and post to groups
+    if (newCompleted && user) {
+      // Record completion in database
+      await supabase
+        .from('habit_completions')
+        .insert({
+          user_id: user.id,
+          habit_id: id,
+          completed_at: new Date().toISOString().split('T')[0]
+        });
+      
+      // Update challenge progress
+      updateChallengeProgress();
+      
+      // Post activity to groups
+      postHabitActivityToGroups(habit.name);
+    }
   };
 
   // Sort habits: uncompleted first, completed last

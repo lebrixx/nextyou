@@ -139,6 +139,47 @@ export type Database = {
         }
         Relationships: []
       }
+      duel_results: {
+        Row: {
+          badge_awarded: boolean | null
+          challenge_id: string
+          created_at: string
+          id: string
+          loser_id: string | null
+          loser_score: number | null
+          winner_id: string | null
+          winner_score: number | null
+        }
+        Insert: {
+          badge_awarded?: boolean | null
+          challenge_id: string
+          created_at?: string
+          id?: string
+          loser_id?: string | null
+          loser_score?: number | null
+          winner_id?: string | null
+          winner_score?: number | null
+        }
+        Update: {
+          badge_awarded?: boolean | null
+          challenge_id?: string
+          created_at?: string
+          id?: string
+          loser_id?: string | null
+          loser_score?: number | null
+          winner_id?: string | null
+          winner_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duel_results_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: true
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           created_at: string
@@ -181,6 +222,44 @@ export type Database = {
           },
         ]
       }
+      group_activity: {
+        Row: {
+          activity_type: string
+          created_at: string
+          group_id: string
+          habit_name: string | null
+          id: string
+          message: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          group_id: string
+          habit_name?: string | null
+          id?: string
+          message?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          group_id?: string
+          habit_name?: string | null
+          id?: string
+          message?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_activity_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -216,6 +295,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_stats: {
+        Row: {
+          best_streak: number
+          current_streak: number
+          group_id: string
+          id: string
+          last_activity_date: string | null
+          total_habits_completed: number
+          updated_at: string
+          weekly_goal: number | null
+          weekly_progress: number | null
+        }
+        Insert: {
+          best_streak?: number
+          current_streak?: number
+          group_id: string
+          id?: string
+          last_activity_date?: string | null
+          total_habits_completed?: number
+          updated_at?: string
+          weekly_goal?: number | null
+          weekly_progress?: number | null
+        }
+        Update: {
+          best_streak?: number
+          current_streak?: number
+          group_id?: string
+          id?: string
+          last_activity_date?: string | null
+          total_habits_completed?: number
+          updated_at?: string
+          weekly_goal?: number | null
+          weekly_progress?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_stats_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: true
+            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
         ]
