@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Settings as SettingsIcon, Crown } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Settings as SettingsIcon, Crown, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
@@ -28,26 +28,49 @@ const Settings = () => {
   const [profile, setProfile] = useState<any>(null);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [profileExpanded, setProfileExpanded] = useState(false);
 
   useEffect(() => {
     applyTheme(currentTheme);
-    loadUserData();
+    
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        
+        // Defer profile loading to avoid deadlock
+        if (session?.user) {
+          setTimeout(() => {
+            loadUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+          setFullName("");
+        }
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserProfile(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      
-      if (profileData) {
-        setProfile(profileData);
-        setFullName(profileData.full_name || "");
-      }
+  const loadUserProfile = async (userId: string) => {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    
+    if (profileData) {
+      setProfile(profileData);
+      setFullName(profileData.full_name || "");
     }
   };
 
@@ -84,7 +107,7 @@ const Settings = () => {
         title: "Profil mis à jour",
         description: "Tes informations ont été sauvegardées.",
       });
-      loadUserData();
+      if (user) loadUserProfile(user.id);
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -182,48 +205,76 @@ const Settings = () => {
             Compte
           </h2>
           {user ? (
-            <div className="glass rounded-xl p-4 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground text-sm">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user.email}
-                  disabled
-                  className="glass border-white/10"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-foreground text-sm">
-                  Nom complet
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="glass border-white/10 focus:border-primary/50"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleUpdateProfile}
-                  disabled={loading}
-                  className="flex-1 bg-gradient-primary text-primary-foreground shadow-glow"
-                >
-                  {loading ? "Enregistrement..." : "Enregistrer"}
-                </Button>
-                <Button
-                  onClick={handleSignOut}
-                  variant="outline"
-                  className="glass border-destructive/50 text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="w-4 h-4 mr-1.5" />
-                  Déconnexion
-                </Button>
-              </div>
+            <div className="glass rounded-xl overflow-hidden">
+              {/* Compact view */}
+              <button 
+                onClick={() => setProfileExpanded(!profileExpanded)}
+                className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center">
+                    <span className="text-primary-foreground font-bold">
+                      {(profile?.full_name || user.email)?.[0]?.toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">
+                      {profile?.full_name || 'Mon compte'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Connecté avec {user.email}
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${profileExpanded ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Expanded view */}
+              {profileExpanded && (
+                <div className="p-4 pt-0 space-y-4 border-t border-white/5">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-foreground text-sm">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={user.email}
+                      disabled
+                      className="glass border-white/10"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-foreground text-sm">
+                      Nom complet
+                    </Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="glass border-white/10 focus:border-primary/50"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleUpdateProfile}
+                      disabled={loading}
+                      className="flex-1 bg-gradient-primary text-primary-foreground shadow-glow"
+                    >
+                      {loading ? "Enregistrement..." : "Enregistrer"}
+                    </Button>
+                    <Button
+                      onClick={handleSignOut}
+                      variant="outline"
+                      className="glass border-destructive/50 text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="w-4 h-4 mr-1.5" />
+                      Déconnexion
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="glass rounded-xl p-6 text-center space-y-4">
