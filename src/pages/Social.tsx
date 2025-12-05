@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield, Clock, Activity } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, ChevronDown, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield, Clock, Activity, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -324,6 +324,7 @@ const Social = () => {
 
   // Demo mode toggle
   const [demoMode, setDemoMode] = useState(false);
+  const [challengesExpanded, setChallengesExpanded] = useState(false);
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
   const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [mutedFriends, setMutedFriends] = useState<string[]>(() => {
@@ -1057,27 +1058,62 @@ const Social = () => {
       return;
     }
     
-    // Check if owner
     const group = groups.find(g => g.id === groupId);
-    if (group?.owner_id === user.id) {
-      toast({ title: "Erreur", description: "Tu ne peux pas quitter un groupe que tu as créé. Supprime-le plutôt.", variant: "destructive" });
-      return;
+    const isOwner = group?.owner_id === user.id;
+    
+    if (isOwner) {
+      // Owner leaving: check if there are other members
+      const { data: members } = await supabase
+        .from('group_members')
+        .select('id, user_id')
+        .eq('group_id', groupId);
+      
+      const otherMembers = members?.filter(m => m.user_id !== user.id) || [];
+      
+      if (otherMembers.length === 0) {
+        // No other members, delete the group
+        await supabase.from('group_stats').delete().eq('group_id', groupId);
+        await supabase.from('group_activity').delete().eq('group_id', groupId);
+        await supabase.from('group_members').delete().eq('group_id', groupId);
+        await supabase.from('groups').delete().eq('id', groupId);
+        setGroups(groups.filter(g => g.id !== groupId));
+        setSelectedGroup(null);
+        toast({ title: "Groupe supprimé", description: "Le groupe a été supprimé car il n'avait plus de membres" });
+        return;
+      } else {
+        // Transfer ownership to the first other member
+        const newOwner = otherMembers[0];
+        await supabase.from('groups').update({ owner_id: newOwner.user_id }).eq('id', groupId);
+        await supabase.from('group_members').update({ role: 'owner' }).eq('group_id', groupId).eq('user_id', newOwner.user_id);
+      }
     }
     
-    const { error } = await supabase
+    // Leave the group
+    await supabase
       .from('group_members')
       .delete()
       .eq('group_id', groupId)
       .eq('user_id', user.id);
     
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de quitter le groupe", variant: "destructive" });
-      return;
-    }
-    
     setGroups(groups.filter(g => g.id !== groupId));
     setSelectedGroup(null);
     toast({ title: "Groupe quitté" });
+  };
+
+  const quitChallenge = async (challengeId: string) => {
+    if (!user || demoMode) {
+      setChallenges(challenges.filter(c => c.id !== challengeId));
+      toast({ title: "Défi abandonné" });
+      return;
+    }
+    
+    // Delete participant entries
+    await supabase.from('challenge_participants').delete().eq('challenge_id', challengeId);
+    // Delete the challenge
+    await supabase.from('challenges').delete().eq('id', challengeId);
+    
+    setChallenges(challenges.filter(c => c.id !== challengeId));
+    toast({ title: "Défi abandonné" });
   };
 
   // Ranking des amis par streak
@@ -1861,22 +1897,27 @@ const Social = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Challenges actifs */}
-        <section className="space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+        {/* Challenges actifs - Collapsible */}
+        <section className="space-y-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <button 
+            onClick={() => setChallengesExpanded(!challengesExpanded)}
+            className="w-full glass rounded-xl p-3 border border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-transparent flex items-center justify-between hover:border-orange-500/40 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              Défis en cours
-            </h2>
+              <div className="text-left">
+                <h2 className="text-sm font-bold text-foreground">Défis en cours</h2>
+                <p className="text-[10px] text-muted-foreground">
+                  {displayedChallenges.filter(c => c.status === 'active').length} actifs • {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).length} en attente
+                </p>
+              </div>
+            </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                {displayedChallenges.filter(c => c.status === 'active').length} actifs
-              </span>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground h-7 px-2">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground" onClick={(e) => e.stopPropagation()}>
                     <MessageCircle className="w-3 h-3" />
                   </Button>
                 </DialogTrigger>
@@ -1895,32 +1936,27 @@ const Social = () => {
                       </div>
                       <p className="text-muted-foreground text-xs leading-relaxed">
                         Défie un ami sur une durée définie. Le but : <strong className="text-foreground">se motiver mutuellement</strong> ! 
-                        Celui qui complète le plus d'habitudes "gagne" symboliquement. 
-                        C'est un jeu amical pour rester motivé, pas une vraie compétition.
+                        Celui qui complète le plus d'habitudes "gagne" symboliquement.
                       </p>
                     </div>
-                    
                     <div className="glass rounded-xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">👥</span>
                         <strong className="text-foreground">Défi de groupe</strong>
                       </div>
                       <p className="text-muted-foreground text-xs leading-relaxed">
-                        Tout le groupe participe à un objectif commun. 
-                        L'entraide et la motivation collective pour atteindre vos buts ensemble.
-                      </p>
-                    </div>
-                    
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground">
-                        <strong className="text-foreground">💡 Astuce :</strong> La progression est comptée automatiquement quand tu complètes tes habitudes quotidiennes !
+                        Tout le groupe participe à un objectif commun.
                       </p>
                     </div>
                   </div>
                 </DialogContent>
               </Dialog>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${challengesExpanded ? 'rotate-180' : ''}`} />
             </div>
-          </div>
+          </button>
+
+          {challengesExpanded && (
+            <div className="space-y-3 pl-2">
 
           {/* Défis en attente d'acceptation */}
           {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge, index) => (
@@ -2092,16 +2128,30 @@ const Social = () => {
                 )}
                 
                 <div className="flex items-center justify-between pt-3 border-t border-white/5 relative z-10">
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Target className="w-3 h-3" />
-                    Objectif: {challenge.target_value} jours
-                  </span>
-                  <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${
-                    daysLeft <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-muted/50 text-muted-foreground'
-                  }`}>
-                    <Clock className="w-3 h-3" />
-                    {daysLeft === 0 ? 'Dernier jour !' : `${daysLeft}j restants`}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Target className="w-3 h-3" />
+                      {challenge.target_value}j
+                    </span>
+                    <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${
+                      daysLeft <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-muted/50 text-muted-foreground'
+                    }`}>
+                      <Clock className="w-3 h-3" />
+                      {daysLeft === 0 ? 'Dernier jour !' : `${daysLeft}j`}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      quitChallenge(challenge.id);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3 mr-1" />
+                    Quitter
+                  </Button>
                 </div>
               </div>
             );
@@ -2109,12 +2159,14 @@ const Social = () => {
 
           <Button 
             variant="outline" 
-            className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-all duration-300 h-12 rounded-2xl group" 
+            className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-all duration-300 h-10 rounded-xl group" 
             onClick={() => setChallengeDialogOpen(true)}
           >
-            <Plus className="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
             Créer un défi
           </Button>
+            </div>
+          )}
         </section>
       </main>
 
