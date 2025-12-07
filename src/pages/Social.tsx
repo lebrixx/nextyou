@@ -1242,12 +1242,33 @@ const Social = () => {
                           </div>
                           
                           {/* Dynamic motivation message */}
-                          <div className="mt-2 text-center">
+                          <div className="mt-2 text-center space-y-2">
                             <p className="text-xs text-muted-foreground italic">
                               {currentAnimation?.show 
                                 ? (currentAnimation.type === 'my' ? "🎯 Bien joué ! Continue comme ça !" : "⚡ Ton adversaire a marqué ! Réagis vite !")
                                 : (isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !")}
                             </p>
+                            
+                            {/* How to score explanation */}
+                            <div className="bg-primary/10 rounded-lg p-2 border border-primary/20">
+                              <p className="text-[10px] text-primary font-medium">
+                                📊 Comment marquer : {challenge.habit_name 
+                                  ? `Complète "${challenge.habit_name}" sur la page Habitudes`
+                                  : "Complète n'importe quelle habitude sur la page Habitudes"
+                                }
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 mt-1 text-[10px] text-primary hover:bg-primary/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate('/habits');
+                                }}
+                              >
+                                👉 Aller aux Habitudes
+                              </Button>
+                            </div>
                           </div>
                           
                           {/* Cheer button */}
