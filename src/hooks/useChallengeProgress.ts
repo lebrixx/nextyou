@@ -151,8 +151,12 @@ export const useChallengeProgress = (userId: string | undefined) => {
             badge_awarded: false
           }, { onConflict: 'challenge_id' });
         
-        // Award badge to winner
+        // Update winner's profile with duel stats
         if (winnerId) {
+          // Increment duel wins and streak
+          await supabase.rpc('increment_duel_wins', { _user_id: winnerId });
+          
+          // Award badges
           const { data: existingBadge } = await supabase
             .from('badges')
             .select('id')
@@ -171,7 +175,7 @@ export const useChallengeProgress = (userId: string | undefined) => {
               });
           }
           
-          // Count total duel wins
+          // Count total duel wins for milestone badges
           const { count: duelWins } = await supabase
             .from('duel_results')
             .select('*', { count: 'exact', head: true })
@@ -185,35 +189,52 @@ export const useChallengeProgress = (userId: string | undefined) => {
                 user_id: winnerId,
                 badge_type: 'duel_master',
                 badge_name: 'Maître des duels',
-                badge_description: 'A gagné 5 duels'
+                badge_description: 'A gagné 5 duels - Domination totale !'
               });
           }
           
-          // Update duel_results
+          if (duelWins === 10) {
+            await supabase
+              .from('badges')
+              .insert({
+                user_id: winnerId,
+                badge_type: 'duel_legend',
+                badge_name: 'Légende des duels',
+                badge_description: 'A gagné 10 duels - Imbattable !'
+              });
+          }
+          
+          // Update duel_results badge status
           await supabase
             .from('duel_results')
             .update({ badge_awarded: true })
             .eq('challenge_id', challengeId);
           
-          // Notify winner
+          // Calculate XP earned (base XP * bonus for winning margin)
+          const marginBonus = Math.min(winnerScore - loserScore, 5) * 10;
+          const xpEarned = 100 + marginBonus;
+          
+          // Notify winner with XP info
           await supabase
             .from('social_notifications')
             .insert({
               sender_id: currentUserId,
               recipient_id: winnerId,
               type: 'achievement',
-              message: `Tu as gagné le duel "${challenge.title}" ! 🏆 Score final: ${winnerScore} - ${loserScore}`
+              message: `🏆 Victoire ! Tu as gagné le duel "${challenge.title}" ! Score: ${winnerScore} - ${loserScore}. +${xpEarned} XP gagnés !`
             });
           
-          // Notify loser
+          // Notify loser and reset their streak
           if (loserId) {
+            await supabase.rpc('reset_duel_streak', { _user_id: loserId });
+            
             await supabase
               .from('social_notifications')
               .insert({
                 sender_id: currentUserId,
                 recipient_id: loserId,
                 type: 'challenge',
-                message: `Le duel "${challenge.title}" est terminé. Score: ${loserScore} - ${winnerScore}. Revanche ? 💪`
+                message: `Le duel "${challenge.title}" est terminé. Score: ${loserScore} - ${winnerScore}. Prêt pour une revanche ? 💪`
               });
           }
         }
@@ -221,7 +242,7 @@ export const useChallengeProgress = (userId: string | undefined) => {
       
       toast({
         title: "🏆 Défi terminé !",
-        description: winnerId === currentUserId ? "Tu as gagné !" : "Le défi est terminé"
+        description: winnerId === currentUserId ? "Tu as gagné ! Bravo champion !" : "Le défi est terminé, retente ta chance !"
       });
     } catch (error) {
       console.error('Error finishing challenge:', error);
