@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -20,6 +20,8 @@ export const useSocialNotifications = (userId: string | undefined) => {
       groupActivity: true,
     };
   });
+  
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Save preferences to localStorage
   const updatePreferences = (newPrefs: Partial<SocialNotificationPreferences>) => {
@@ -28,12 +30,28 @@ export const useSocialNotifications = (userId: string | undefined) => {
     localStorage.setItem('social_notification_preferences', JSON.stringify(updated));
   };
 
+  // Load unread count
+  const loadUnreadCount = useCallback(async () => {
+    if (!userId) return;
+    
+    const { count } = await supabase
+      .from('social_notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .eq('is_read', false);
+    
+    setUnreadCount(count || 0);
+  }, [userId]);
+
   // Subscribe to realtime notifications
   useEffect(() => {
     if (!userId) return;
 
+    // Load initial unread count
+    loadUnreadCount();
+
     const channel = supabase
-      .channel('social-notifications')
+      .channel(`social-notifications-${userId}`)
       .on(
         'postgres_changes',
         {
@@ -45,20 +63,14 @@ export const useSocialNotifications = (userId: string | undefined) => {
         async (payload) => {
           const notification = payload.new as any;
           
+          // Update unread count
+          setUnreadCount(prev => prev + 1);
+          
           // Check preferences before showing toast
           if (notification.type === 'friend_request' && !preferences.friendRequests) return;
           if (notification.type === 'challenge' && !preferences.challenges) return;
           if (notification.type === 'motivation' && !preferences.motivations) return;
           if (notification.type.includes('group') && !preferences.groupActivity) return;
-
-          // Get sender name
-          const { data: sender } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', notification.sender_id)
-            .single();
-
-          const senderName = sender?.full_name || 'Quelqu\'un';
           
           let title = '📬 Nouvelle notification';
           let description = notification.message || '';
@@ -66,25 +78,29 @@ export const useSocialNotifications = (userId: string | undefined) => {
           switch (notification.type) {
             case 'friend_request':
               title = '👋 Demande d\'ami';
-              description = `${senderName} veut être ton ami !`;
+              description = notification.message || 'Quelqu\'un veut être ton ami !';
               break;
             case 'challenge':
-              title = '⚔️ Nouveau défi';
-              description = `${senderName} te défie !`;
+              title = '⚔️ Défi reçu !';
+              description = notification.message || 'Tu as reçu un nouveau défi !';
               break;
             case 'motivation':
-              title = '💪 Encouragement';
-              description = `${senderName} t'encourage !`;
+              title = '💪 Encouragement reçu !';
+              description = notification.message || 'Quelqu\'un t\'encourage !';
+              break;
+            case 'duel_update':
+              title = '⚔️ Mise à jour du duel';
+              description = notification.message || 'Ton duel a été mis à jour';
               break;
             case 'group_invite':
               title = '👥 Invitation groupe';
-              description = `${senderName} t'invite à rejoindre un groupe`;
+              description = notification.message || 'Tu as été invité à rejoindre un groupe';
               break;
           }
 
           toast({
             title,
-            description: description || notification.message,
+            description,
           });
         }
       )
@@ -93,7 +109,7 @@ export const useSocialNotifications = (userId: string | undefined) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, preferences]);
+  }, [userId, preferences, loadUnreadCount]);
 
-  return { preferences, updatePreferences };
+  return { preferences, updatePreferences, unreadCount, loadUnreadCount };
 };

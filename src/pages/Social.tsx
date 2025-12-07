@@ -664,11 +664,12 @@ const Social = () => {
     }
     
     if (!friendId || friendId === '') {
-      toast({ title: "Erreur", description: "Ami non trouvé", variant: "destructive" });
+      toast({ title: "Erreur", description: "Sélectionne un ami d'abord", variant: "destructive" });
       return;
     }
     
     const finalMessage = message || '💪 Continue comme ça !';
+    const senderName = profile?.full_name || 'Un ami';
     
     try {
       const { error } = await supabase
@@ -677,7 +678,7 @@ const Social = () => {
           sender_id: user.id,
           recipient_id: friendId,
           type: 'motivation',
-          message: finalMessage
+          message: `${senderName} t'encourage : "${finalMessage}"`
         });
       
       if (error) {
@@ -686,14 +687,15 @@ const Social = () => {
         return;
       }
       
+      setMessageDialogOpen(false);
+      setCustomMessage("");
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2000);
       toast({ title: `💪 Encouragement envoyé à ${friendName} !` });
     } catch (err) {
       console.error('Unexpected error sending motivation:', err);
       toast({ title: "Erreur", description: "Une erreur inattendue est survenue", variant: "destructive" });
     }
-    
-    setMessageDialogOpen(false);
-    setCustomMessage("");
   };
 
   const toggleMuteFriend = (friendId: string) => {
