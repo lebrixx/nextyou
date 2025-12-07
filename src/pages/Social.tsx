@@ -740,16 +740,16 @@ const Social = () => {
   const addFriend = async () => {
     if (!user || !friendCode.trim()) return;
     
-    const { data: friendProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('friend_code', friendCode.trim().toUpperCase())
-      .maybeSingle();
+    // Use secure RPC function to search by friend code (doesn't expose email)
+    const { data: friendProfiles, error: searchError } = await supabase
+      .rpc('search_profile_by_friend_code', { _friend_code: friendCode.trim().toUpperCase() });
     
-    if (!friendProfile) {
+    if (searchError || !friendProfiles || friendProfiles.length === 0) {
       toast({ title: "Erreur", description: "Code ami invalide", variant: "destructive" });
       return;
     }
+    
+    const friendProfile = friendProfiles[0];
     
     if (friendProfile.id === user.id) {
       toast({ title: "Erreur", description: "Tu ne peux pas t'ajouter toi-même", variant: "destructive" });
