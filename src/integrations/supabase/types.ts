@@ -818,6 +818,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_group_by_invite_code: {
+        Args: { _invite_code: string }
+        Returns: {
+          description: string
+          id: string
+          name: string
+          owner_id: string
+        }[]
+      }
       get_user_group_ids: { Args: { _user_id: string }; Returns: string[] }
       increment_duel_wins: { Args: { _user_id: string }; Returns: undefined }
       increment_group_stats: {
