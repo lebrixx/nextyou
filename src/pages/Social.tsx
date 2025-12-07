@@ -158,21 +158,55 @@ const Social = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Realtime subscription for duel updates
+  // State for live score animations
+  const [scoreAnimations, setScoreAnimations] = useState<Record<string, { type: 'my' | 'opponent', show: boolean }>>({});
+
+  // Realtime subscription for duel updates with live animations
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
-      .channel('duel-updates')
+      .channel('duel-updates-live')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'UPDATE',
           schema: 'public',
           table: 'challenge_participants',
         },
-        (payload) => {
-          // Reload challenges when participant progress changes
+        async (payload) => {
+          const updatedParticipant = payload.new as { challenge_id: string; user_id: string; progress: number };
+          const oldProgress = (payload.old as { progress: number })?.progress || 0;
+          
+          // Find challenge and show animation
+          const challenge = challenges.find(c => c.id === updatedParticipant.challenge_id);
+          if (challenge && updatedParticipant.progress > oldProgress) {
+            const isMyProgress = updatedParticipant.user_id === user.id;
+            
+            // Trigger score animation
+            setScoreAnimations(prev => ({
+              ...prev,
+              [challenge.id]: { type: isMyProgress ? 'my' : 'opponent', show: true }
+            }));
+            
+            // Clear animation after delay
+            setTimeout(() => {
+              setScoreAnimations(prev => ({
+                ...prev,
+                [challenge.id]: { ...prev[challenge.id], show: false }
+              }));
+            }, 1500);
+            
+            // Show toast for opponent progress
+            if (!isMyProgress) {
+              toast({
+                title: "⚡ Score mis à jour !",
+                description: `Ton adversaire vient de marquer un point dans "${challenge.title}"`,
+              });
+            }
+          }
+          
+          // Reload challenges to update scores
           loadChallenges(user.id);
         }
       )
@@ -193,7 +227,7 @@ const Social = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, challenges]);
 
   const loadAllData = async (userId: string) => {
     try {
@@ -1075,9 +1109,16 @@ const Social = () => {
               const isTie = (challenge.my_progress || 0) === (challenge.opponent_progress || 0);
               const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
               const isExpanded = expandedChallenges[challenge.id] ?? false;
+              const currentAnimation = scoreAnimations[challenge.id];
+              const potentialXP = Math.ceil(challenge.target_value * 10 * (isWinning ? 1.5 : 1));
               
               return (
-                <div key={challenge.id} className="glass rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent hover:border-red-500/50 transition-all duration-300 relative overflow-hidden group animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div key={challenge.id} className={`glass rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent hover:border-red-500/50 transition-all duration-300 relative overflow-hidden group animate-fade-in ${currentAnimation?.show ? 'ring-2 ring-yellow-500/50' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
+                  
+                  {/* Live score update flash */}
+                  {currentAnimation?.show && (
+                    <div className={`absolute inset-0 animate-pulse pointer-events-none ${currentAnimation.type === 'my' ? 'bg-green-500/10' : 'bg-orange-500/10'}`} />
+                  )}
                   
                   {/* Collapsible header */}
                   <button
@@ -1085,17 +1126,25 @@ const Social = () => {
                     className="w-full p-4 flex items-center justify-between text-left"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/30">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/30 relative">
                         <span className="text-white font-black text-xs">VS</span>
+                        {currentAnimation?.show && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-500 rounded-full animate-ping" />
+                        )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                           {challenge.habit_name && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/20 text-primary">
                               {challenge.habit_name}
                             </span>
                           )}
-                          {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">🏆 En tête</span>}
+                          {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full animate-pulse">🏆 En tête</span>}
+                          {!isWinning && !isTie && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">💪 Rattrape !</span>}
+                          <span className="text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <Zap className="w-2.5 h-2.5" />
+                            {potentialXP} XP
+                          </span>
                         </div>
                         <h3 className="font-bold text-foreground text-sm truncate">{challenge.title}</h3>
                         <p className="text-[10px] text-muted-foreground">
@@ -1104,12 +1153,21 @@ const Social = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="text-center">
+                      <div className="text-center relative">
                         <div className="flex items-center gap-1 text-lg font-black">
-                          <span className="text-primary">{challenge.my_progress || 0}</span>
+                          <span className={`text-primary transition-all duration-300 ${currentAnimation?.show && currentAnimation.type === 'my' ? 'scale-125 text-green-500' : ''}`}>
+                            {challenge.my_progress || 0}
+                          </span>
                           <span className="text-muted-foreground text-sm">-</span>
-                          <span className="text-orange-500">{challenge.opponent_progress || 0}</span>
+                          <span className={`text-orange-500 transition-all duration-300 ${currentAnimation?.show && currentAnimation.type === 'opponent' ? 'scale-125 text-red-500' : ''}`}>
+                            {challenge.opponent_progress || 0}
+                          </span>
                         </div>
+                        {currentAnimation?.show && (
+                          <span className={`absolute -top-3 ${currentAnimation.type === 'my' ? 'left-0' : 'right-0'} text-xs font-bold ${currentAnimation.type === 'my' ? 'text-green-500' : 'text-orange-500'} animate-bounce`}>
+                            +1
+                          </span>
+                        )}
                       </div>
                       <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 flex-shrink-0 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
                     </div>
@@ -1124,26 +1182,38 @@ const Social = () => {
                           <div className="flex items-center justify-between mb-3">
                             <div className="text-center flex-1">
                               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-primary/30">
-                                <span className="text-primary-foreground font-bold">T</span>
+                              <span className={`text-primary-foreground font-bold transition-transform duration-300 ${currentAnimation?.show && currentAnimation.type === 'my' ? 'scale-125' : ''}`}>T</span>
                               </div>
                               <span className="text-xs text-foreground font-medium">Toi</span>
+                              {currentAnimation?.show && currentAnimation.type === 'my' && (
+                                <span className="text-xs text-green-400 animate-bounce">+1 !</span>
+                              )}
                             </div>
                             
                             <div className="flex-shrink-0 px-4">
-                              <div className="text-center">
+                              <div className="text-center relative">
                                 <div className="flex items-center gap-2 text-2xl font-black">
-                                  <span className="text-primary">{challenge.my_progress || 0}</span>
+                                  <span className={`transition-all duration-500 ${currentAnimation?.show && currentAnimation.type === 'my' ? 'text-green-500 scale-125' : 'text-primary'}`}>
+                                    {challenge.my_progress || 0}
+                                  </span>
                                   <span className="text-muted-foreground text-lg">-</span>
-                                  <span className="text-orange-500">{challenge.opponent_progress || 0}</span>
+                                  <span className={`transition-all duration-500 ${currentAnimation?.show && currentAnimation.type === 'opponent' ? 'text-red-500 scale-125' : 'text-orange-500'}`}>
+                                    {challenge.opponent_progress || 0}
+                                  </span>
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                   {challenge.habit_name ? `fois "${challenge.habit_name}"` : 'habitudes complétées'}
                                 </p>
+                                {/* XP reward preview */}
+                                <div className="mt-2 flex items-center justify-center gap-1 text-yellow-500">
+                                  <Zap className="w-3 h-3" />
+                                  <span className="text-[10px] font-medium">{potentialXP} XP à gagner</span>
+                                </div>
                               </div>
                             </div>
                             
                             <div className="text-center flex-1">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-orange-500/30">
+                              <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-orange-500/30 transition-transform duration-300 ${currentAnimation?.show && currentAnimation.type === 'opponent' ? 'scale-110' : ''}`}>
                                 <span className="text-white font-bold">
                                   {((challenge.creator_id === user?.id ? challenge.opponent_name : challenge.creator_name) || 'A')[0].toUpperCase()}
                                 </span>
@@ -1151,25 +1221,30 @@ const Social = () => {
                               <span className="text-xs text-foreground font-medium">
                                 {challenge.creator_id === user?.id ? challenge.opponent_name : challenge.creator_name}
                               </span>
+                              {currentAnimation?.show && currentAnimation.type === 'opponent' && (
+                                <span className="text-xs text-orange-400 animate-bounce">+1 !</span>
+                              )}
                             </div>
                           </div>
                           
-                          {/* Progress bar battle */}
+                          {/* Progress bar battle with animation */}
                           <div className="relative h-3 bg-muted/50 rounded-full overflow-hidden">
                             <div 
-                              className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-primary/70 rounded-l-full transition-all duration-500"
+                              className={`absolute left-0 top-0 h-full bg-gradient-to-r from-primary to-primary/70 rounded-l-full transition-all duration-700 ${currentAnimation?.show && currentAnimation.type === 'my' ? 'animate-pulse' : ''}`}
                               style={{ width: `${Math.min(((challenge.my_progress || 0) / ((challenge.my_progress || 0) + (challenge.opponent_progress || 0) + 1)) * 100, 100)}%` }}
                             />
                             <div 
-                              className="absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-red-500/70 rounded-r-full transition-all duration-500"
+                              className={`absolute right-0 top-0 h-full bg-gradient-to-l from-orange-500 to-red-500/70 rounded-r-full transition-all duration-700 ${currentAnimation?.show && currentAnimation.type === 'opponent' ? 'animate-pulse' : ''}`}
                               style={{ width: `${Math.min(((challenge.opponent_progress || 0) / ((challenge.my_progress || 0) + (challenge.opponent_progress || 0) + 1)) * 100, 100)}%` }}
                             />
                           </div>
                           
-                          {/* Motivation message */}
+                          {/* Dynamic motivation message */}
                           <div className="mt-2 text-center">
                             <p className="text-xs text-muted-foreground italic">
-                              {isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !"}
+                              {currentAnimation?.show 
+                                ? (currentAnimation.type === 'my' ? "🎯 Bien joué ! Continue comme ça !" : "⚡ Ton adversaire a marqué ! Réagis vite !")
+                                : (isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !")}
                             </p>
                           </div>
                           
@@ -1235,20 +1310,49 @@ const Social = () => {
             })}
 
             {challenges.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Swords className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Aucun duel en cours</p>
-                <p className="text-xs mt-1">Lance un duel à un ami pour commencer !</p>
+              <div className="text-center py-6 text-muted-foreground">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Swords className="w-10 h-10 text-red-500/50" />
+                </div>
+                <h3 className="font-bold text-foreground text-lg mb-2">Aucun duel en cours</h3>
+                <p className="text-sm mb-4">Lance un duel à un ami pour commencer !</p>
+                
+                {/* Why duels section */}
+                <div className="glass rounded-xl p-4 border border-white/10 text-left max-w-sm mx-auto">
+                  <h4 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-yellow-500" />
+                    Pourquoi faire des duels ?
+                  </h4>
+                  <ul className="space-y-2 text-xs text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Trophy className="w-3.5 h-3.5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <span>Gagne des <span className="text-yellow-500 font-medium">badges exclusifs</span> en remportant des duels</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Flame className="w-3.5 h-3.5 text-orange-500 mt-0.5 flex-shrink-0" />
+                      <span>Construis ta <span className="text-orange-500 font-medium">série de victoires</span> pour monter dans le classement</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Target className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      <span>La <span className="text-primary font-medium">compétition amicale</span> te motive à tenir tes habitudes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Award className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Gagne jusqu'à <span className="text-green-500 font-medium">150 XP par duel</span> remporté</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             )}
 
             <Button 
               variant="outline" 
-              className="w-full border-dashed border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-all duration-300 h-10 rounded-xl group" 
+              className="w-full border-dashed border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-all duration-300 h-12 rounded-xl group" 
               onClick={() => setChallengeDialogOpen(true)}
             >
               <Swords className="w-4 h-4 mr-2 group-hover:rotate-45 transition-transform duration-300" />
-              Lancer un nouveau duel
+              <span>Lancer un nouveau duel</span>
+              <span className="ml-2 text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full">+XP</span>
             </Button>
           </TabsContent>
 
@@ -1261,43 +1365,64 @@ const Social = () => {
               </h2>
             </div>
 
-            {/* My stats */}
-            <div className="glass rounded-2xl p-4 border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 mb-4">
-              <div className="flex items-center justify-between">
+            {/* My stats - Enhanced */}
+            <div className="glass rounded-2xl p-5 border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12 ring-2 ring-primary/50">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
+                  <Avatar className="w-14 h-14 ring-2 ring-primary/50">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-xl">
                       {(profile?.full_name || 'T')[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-bold text-foreground">Toi</h3>
-                    <p className="text-xs text-primary">Tes statistiques</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Trophy className="w-4 h-4" />
-                      <span className="font-bold text-lg">{(profile as any)?.duel_wins || 0}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">victoires</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="flex items-center gap-1 text-orange-500">
-                      <Flame className="w-4 h-4" />
-                      <span className="font-bold text-lg">{(profile as any)?.duel_streak || 0}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">série</p>
+                    <h3 className="font-bold text-foreground text-lg">Toi</h3>
+                    <p className="text-xs text-primary">Champion en devenir</p>
                   </div>
                 </div>
               </div>
+              
+              {/* Stats grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-yellow-500/10 rounded-xl p-3 text-center border border-yellow-500/20">
+                  <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <span className="font-black text-2xl text-foreground">{(profile as any)?.duel_wins || 0}</span>
+                  <p className="text-[10px] text-muted-foreground">victoires</p>
+                </div>
+                <div className="bg-orange-500/10 rounded-xl p-3 text-center border border-orange-500/20">
+                  <div className="flex items-center justify-center gap-1 text-orange-500 mb-1">
+                    <Flame className="w-5 h-5" />
+                  </div>
+                  <span className="font-black text-2xl text-foreground">{(profile as any)?.duel_streak || 0}</span>
+                  <p className="text-[10px] text-muted-foreground">série</p>
+                </div>
+                <div className="bg-green-500/10 rounded-xl p-3 text-center border border-green-500/20">
+                  <div className="flex items-center justify-center gap-1 text-green-500 mb-1">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <span className="font-black text-2xl text-foreground">{((profile as any)?.duel_wins || 0) * 100}</span>
+                  <p className="text-[10px] text-muted-foreground">XP gagnés</p>
+                </div>
+              </div>
+              
+              {/* Progress to next badge */}
+              {((profile as any)?.duel_wins || 0) < 5 && (
+                <div className="mt-4 pt-3 border-t border-white/10">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-muted-foreground">Prochain badge : Maître des duels</span>
+                    <span className="text-yellow-500 font-medium">{(profile as any)?.duel_wins || 0}/5</span>
+                  </div>
+                  <Progress value={((profile as any)?.duel_wins || 0) / 5 * 100} className="h-2" />
+                </div>
+              )}
             </div>
 
             {rankedFriends.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Trophy className="w-12 h-12 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Ajoute des amis pour voir le classement</p>
+                <p className="text-xs mt-1">Tes amis apparaîtront ici avec leurs victoires</p>
               </div>
             ) : (
               rankedFriends.map((friend, index) => (
