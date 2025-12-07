@@ -810,6 +810,10 @@ export type Database = {
     }
     Functions: {
       get_user_group_ids: { Args: { _user_id: string }; Returns: string[] }
+      increment_group_stats: {
+        Args: { _group_id: string; _habits_completed?: number }
+        Returns: undefined
+      }
       is_challenge_creator: {
         Args: { _challenge_id: string; _user_id: string }
         Returns: boolean
@@ -821,6 +825,15 @@ export type Database = {
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
+      }
+      search_profile_by_friend_code: {
+        Args: { _friend_code: string }
+        Returns: {
+          avatar_url: string
+          friend_code: string
+          full_name: string
+          id: string
+        }[]
       }
     }
     Enums: {
