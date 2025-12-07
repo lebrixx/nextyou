@@ -251,14 +251,17 @@ const Quotes = () => {
                 value={[settings.quotesPerDay]}
                 onValueChange={([value]) => setSettings(prev => ({ ...prev, quotesPerDay: value }))}
                 min={1}
-                max={10}
+                max={6}
                 step={1}
                 className="w-full"
               />
               <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                 <span>1</span>
-                <span>10</span>
+                <span>6</span>
               </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                Min. 1h entre chaque notification
+              </p>
             </div>
 
             {/* Notification Mode */}
