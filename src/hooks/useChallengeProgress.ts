@@ -31,10 +31,10 @@ export const useChallengeProgress = (userId: string | undefined) => {
         
         if (!challenge) continue;
         
-        // Count completions during challenge period (filter by habit if specified)
+        // Count UNIQUE DAYS with completions (1 point per day max)
         let query = supabase
           .from('habit_completions')
-          .select('*', { count: 'exact', head: true })
+          .select('completed_at')
           .eq('user_id', userId)
           .gte('completed_at', challenge.start_date)
           .lte('completed_at', challenge.end_date);
@@ -44,9 +44,13 @@ export const useChallengeProgress = (userId: string | undefined) => {
           query = query.eq('habit_id', challenge.habit_id);
         }
         
-        const { count } = await query;
+        const { data: completions } = await query;
         
-        const newProgress = count || 0;
+        // Count unique days (1 point per day)
+        const uniqueDays = new Set(
+          (completions || []).map(c => c.completed_at)
+        );
+        const newProgress = uniqueDays.size;
         
         // Update progress if changed
         if (newProgress !== participation.progress) {
