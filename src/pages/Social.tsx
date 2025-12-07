@@ -1600,12 +1600,12 @@ const Social = () => {
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Habitude du duel (optionnel)
               </label>
-              <Select value={selectedHabitId || ''} onValueChange={(v) => setSelectedHabitId(v || null)}>
+              <Select value={selectedHabitId || 'all'} onValueChange={(v) => setSelectedHabitId(v === 'all' ? null : v)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Toutes les habitudes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes les habitudes</SelectItem>
+                  <SelectItem value="all">Toutes les habitudes</SelectItem>
                   {habits.map((habit) => (
                     <SelectItem key={habit.id} value={habit.id}>
                       {habit.name}
