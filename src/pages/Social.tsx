@@ -158,6 +158,29 @@ const Social = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Refresh data when page becomes visible (coming back from Habits page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        loadChallenges(user.id);
+      }
+    };
+    
+    const handleFocus = () => {
+      if (user) {
+        loadChallenges(user.id);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user]);
+
   // State for live score animations
   const [scoreAnimations, setScoreAnimations] = useState<Record<string, { type: 'my' | 'opponent', show: boolean }>>({});
 
@@ -1252,10 +1275,7 @@ const Social = () => {
                             {/* How to score explanation */}
                             <div className="bg-primary/10 rounded-lg p-2 border border-primary/20">
                               <p className="text-[10px] text-primary font-medium">
-                                📊 Comment marquer : {challenge.habit_name 
-                                  ? `Complète "${challenge.habit_name}" sur la page Habitudes`
-                                  : "Complète n'importe quelle habitude sur la page Habitudes"
-                                }
+                                📊 1 point/jour max : Complète au moins 1 habitude{challenge.habit_name ? ` (${challenge.habit_name})` : ''} pour gagner ton point du jour !
                               </p>
                               <Button
                                 variant="ghost"
