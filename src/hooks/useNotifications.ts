@@ -152,6 +152,7 @@ function getNotificationTimes(
   dayOffset: number
 ): { hours: number; minutes: number }[] {
   const times: { hours: number; minutes: number }[] = [];
+  const MIN_INTERVAL_MINUTES = 60; // Minimum 1 hour between notifications
 
   switch (settings.mode) {
     case 'specific':
@@ -162,19 +163,46 @@ function getNotificationTimes(
       break;
 
     case 'random':
-      // Random times between 8:00 and 22:00
-      for (let i = 0; i < quotesPerDay; i++) {
-        const randomHour = 8 + Math.floor(Math.random() * 14);
-        const randomMinute = Math.floor(Math.random() * 60);
-        times.push({ hours: randomHour, minutes: randomMinute });
+      // Random times between 8:00 and 22:00 with minimum 1h interval
+      const randomStartMinutes = 8 * 60; // 8:00
+      const randomEndMinutes = 22 * 60; // 22:00
+      const randomTotalRange = randomEndMinutes - randomStartMinutes;
+      
+      // Calculate max possible notifications with 1h intervals
+      const maxPossibleRandom = Math.floor(randomTotalRange / MIN_INTERVAL_MINUTES) + 1;
+      const actualQuotesRandom = Math.min(quotesPerDay, maxPossibleRandom);
+      
+      // Generate random times with spacing
+      const randomSlots: number[] = [];
+      let attempts = 0;
+      
+      while (randomSlots.length < actualQuotesRandom && attempts < 100) {
+        const randomMinutes = randomStartMinutes + Math.floor(Math.random() * randomTotalRange);
+        
+        // Check if this time respects minimum interval from existing times
+        const isTooClose = randomSlots.some(existing => 
+          Math.abs(randomMinutes - existing) < MIN_INTERVAL_MINUTES
+        );
+        
+        if (!isTooClose) {
+          randomSlots.push(randomMinutes);
+        }
+        attempts++;
       }
-      // Sort by time
-      times.sort((a, b) => a.hours * 60 + a.minutes - (b.hours * 60 + b.minutes));
+      
+      // Sort and convert to hours/minutes
+      randomSlots.sort((a, b) => a - b);
+      for (const minutes of randomSlots) {
+        times.push({
+          hours: Math.floor(minutes / 60),
+          minutes: minutes % 60
+        });
+      }
       break;
 
     case 'range':
     default:
-      // Distribute evenly between start and end time
+      // Distribute evenly between start and end time with minimum 1h interval
       const start = parseTime(settings.startTime);
       const end = parseTime(settings.endTime);
       
@@ -182,7 +210,11 @@ function getNotificationTimes(
       const endMinutes = end.hours * 60 + end.minutes;
       const totalRange = endMinutes - startMinutes;
       
-      if (quotesPerDay === 1) {
+      // Calculate max possible notifications with 1h intervals
+      const maxPossible = Math.floor(totalRange / MIN_INTERVAL_MINUTES) + 1;
+      const actualQuotes = Math.min(quotesPerDay, maxPossible);
+      
+      if (actualQuotes === 1) {
         // Single notification in the middle of the range
         const midMinutes = startMinutes + Math.floor(totalRange / 2);
         times.push({
@@ -190,18 +222,33 @@ function getNotificationTimes(
           minutes: midMinutes % 60
         });
       } else {
-        const interval = totalRange / (quotesPerDay - 1);
+        // Ensure minimum 1h interval between notifications
+        const interval = Math.max(MIN_INTERVAL_MINUTES, totalRange / (actualQuotes - 1));
         
-        for (let i = 0; i < quotesPerDay; i++) {
-          const currentMinutes = startMinutes + Math.floor(i * interval);
-          // Add some randomness (±15 minutes)
-          const randomOffset = Math.floor(Math.random() * 30) - 15;
-          const finalMinutes = Math.max(startMinutes, Math.min(endMinutes, currentMinutes + randomOffset));
+        for (let i = 0; i < actualQuotes; i++) {
+          const baseMinutes = startMinutes + Math.floor(i * interval);
+          // Add small randomness (±10 minutes) but respect boundaries
+          const randomOffset = Math.floor(Math.random() * 20) - 10;
+          let finalMinutes = baseMinutes + randomOffset;
           
-          times.push({
-            hours: Math.floor(finalMinutes / 60),
-            minutes: finalMinutes % 60
-          });
+          // Clamp to range
+          finalMinutes = Math.max(startMinutes, Math.min(endMinutes, finalMinutes));
+          
+          // Ensure minimum 1h from previous notification
+          if (times.length > 0) {
+            const prevMinutes = times[times.length - 1].hours * 60 + times[times.length - 1].minutes;
+            if (finalMinutes - prevMinutes < MIN_INTERVAL_MINUTES) {
+              finalMinutes = prevMinutes + MIN_INTERVAL_MINUTES;
+            }
+          }
+          
+          // Only add if still within range
+          if (finalMinutes <= endMinutes) {
+            times.push({
+              hours: Math.floor(finalMinutes / 60),
+              minutes: finalMinutes % 60
+            });
+          }
         }
       }
       break;
