@@ -5,6 +5,7 @@ import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
 import EditHabitDialog from "@/components/EditHabitDialog";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,14 @@ const Habits = () => {
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [editingGoalId, setEditingGoalId] = useState<string | null>(null);
   const [newActionText, setNewActionText] = useState("");
+  
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', description: '', onConfirm: () => {} });
 
   const handleEditHabit = (habit: Habit) => {
     setSelectedHabit(habit);
@@ -85,8 +94,17 @@ const Habits = () => {
   };
 
   const handleDeleteHabit = (id: string) => {
-    setHabits(prev => prev.filter(h => h.id !== id));
-    toast({ title: "Habitude supprimée", description: "L'habitude a été retirée de ta liste" });
+    const habitToDelete = habits.find(h => h.id === id);
+    setConfirmDialog({
+      open: true,
+      title: "Supprimer cette habitude ?",
+      description: `L'habitude "${habitToDelete?.name || 'cette habitude'}" sera définitivement supprimée avec tout son historique.`,
+      onConfirm: () => {
+        setHabits(prev => prev.filter(h => h.id !== id));
+        setEditDialogOpen(false);
+        toast({ title: "Habitude supprimée", description: "L'habitude a été retirée de ta liste" });
+      }
+    });
   };
 
   useEffect(() => {
@@ -206,9 +224,16 @@ const Habits = () => {
     sonnerToast.success("Objectif ajouté avec succès");
   };
 
-  const deleteGoal = (goalId: string) => {
-    setGoals(goals.filter((g) => g.id !== goalId));
-    sonnerToast.success("Objectif supprimé");
+  const deleteGoal = (goalId: string, title: string) => {
+    setConfirmDialog({
+      open: true,
+      title: "Supprimer cet objectif ?",
+      description: `L'objectif "${title}" et toutes ses actions seront supprimés.`,
+      onConfirm: () => {
+        setGoals(goals.filter((g) => g.id !== goalId));
+        sonnerToast.success("Objectif supprimé");
+      }
+    });
   };
 
   const addAction = (goalId: string) => {
@@ -423,7 +448,7 @@ const Habits = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteGoal(goal.id)}
+                        onClick={() => deleteGoal(goal.id, goal.title)}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -528,6 +553,21 @@ const Habits = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={() => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        variant="destructive"
+      />
     </div>
   );
 };
