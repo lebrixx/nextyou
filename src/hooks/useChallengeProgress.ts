@@ -31,13 +31,20 @@ export const useChallengeProgress = (userId: string | undefined) => {
         
         if (!challenge) continue;
         
-        // Count completions during challenge period
-        const { count } = await supabase
+        // Count completions during challenge period (filter by habit if specified)
+        let query = supabase
           .from('habit_completions')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', userId)
           .gte('completed_at', challenge.start_date)
           .lte('completed_at', challenge.end_date);
+        
+        // If challenge has a specific habit, only count that habit
+        if (challenge.habit_id) {
+          query = query.eq('habit_id', challenge.habit_id);
+        }
+        
+        const { count } = await query;
         
         const newProgress = count || 0;
         

@@ -90,6 +90,7 @@ export type Database = {
           end_date: string
           group_id: string | null
           habit_id: string | null
+          habit_name: string | null
           id: string
           opponent_id: string | null
           start_date: string
@@ -108,6 +109,7 @@ export type Database = {
           end_date: string
           group_id?: string | null
           habit_id?: string | null
+          habit_name?: string | null
           id?: string
           opponent_id?: string | null
           start_date?: string
@@ -126,6 +128,7 @@ export type Database = {
           end_date?: string
           group_id?: string | null
           habit_id?: string | null
+          habit_name?: string | null
           id?: string
           opponent_id?: string | null
           start_date?: string
@@ -601,6 +604,8 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          duel_streak: number
+          duel_wins: number
           email: string | null
           friend_code: string | null
           full_name: string | null
@@ -610,6 +615,8 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          duel_streak?: number
+          duel_wins?: number
           email?: string | null
           friend_code?: string | null
           full_name?: string | null
@@ -619,6 +626,8 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          duel_streak?: number
+          duel_wins?: number
           email?: string | null
           friend_code?: string | null
           full_name?: string | null
@@ -810,6 +819,7 @@ export type Database = {
     }
     Functions: {
       get_user_group_ids: { Args: { _user_id: string }; Returns: string[] }
+      increment_duel_wins: { Args: { _user_id: string }; Returns: undefined }
       increment_group_stats: {
         Args: { _group_id: string; _habits_completed?: number }
         Returns: undefined
@@ -826,6 +836,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      reset_duel_streak: { Args: { _user_id: string }; Returns: undefined }
       search_profile_by_friend_code: {
         Args: { _friend_code: string }
         Returns: {
