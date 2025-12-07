@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSocialNotifications } from "@/hooks/useSocialNotifications";
-
+import ConfirmDialog from "@/components/ConfirmDialog";
 interface Profile {
   id: string;
   full_name: string | null;
@@ -125,6 +125,16 @@ const Social = () => {
     const saved = localStorage.getItem('muted_friends');
     return saved ? JSON.parse(saved) : [];
   });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Confirm dialog states
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    variant?: 'default' | 'destructive';
+  }>({ open: false, title: '', description: '', onConfirm: () => {} });
   
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
@@ -634,19 +644,27 @@ const Social = () => {
   };
   
   const deleteFriend = async (friendshipId: string, friendName: string) => {
-    const { error } = await supabase
-      .from('friendships')
-      .delete()
-      .eq('id', friendshipId);
-    
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de supprimer l'ami", variant: "destructive" });
-      return;
-    }
-    
-    setFriends(friends.filter(f => f.id !== friendshipId));
-    setSelectedFriend(null);
-    toast({ title: "Ami supprimé", description: `${friendName} a été retiré de tes amis` });
+    setConfirmDialog({
+      open: true,
+      title: "Supprimer cet ami ?",
+      description: `Tu ne pourras plus voir ${friendName} dans ta liste d'amis ni lui envoyer de messages.`,
+      variant: 'destructive',
+      onConfirm: async () => {
+        const { error } = await supabase
+          .from('friendships')
+          .delete()
+          .eq('id', friendshipId);
+        
+        if (error) {
+          toast({ title: "Erreur", description: "Impossible de supprimer l'ami", variant: "destructive" });
+          return;
+        }
+        
+        setFriends(friends.filter(f => f.id !== friendshipId));
+        setSelectedFriend(null);
+        toast({ title: "Ami supprimé", description: `${friendName} a été retiré de tes amis` });
+      }
+    });
   };
 
   const acceptChallenge = async (challengeId: string) => {
@@ -735,11 +753,44 @@ const Social = () => {
   const quitChallenge = async (challengeId: string) => {
     if (!user) return;
     
-    await supabase.from('challenge_participants').delete().eq('challenge_id', challengeId);
-    await supabase.from('challenges').delete().eq('id', challengeId);
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (!challenge) return;
     
-    setChallenges(challenges.filter(c => c.id !== challengeId));
-    toast({ title: "Duel abandonné" });
+    setConfirmDialog({
+      open: true,
+      title: "Abandonner ce duel ?",
+      description: `Tu vas abandonner le duel "${challenge.title}". Ton adversaire sera notifié et le duel sera supprimé.`,
+      variant: 'destructive',
+      onConfirm: async () => {
+        // Notify opponent that user quit
+        const opponentId = challenge.creator_id === user.id ? challenge.opponent_id : challenge.creator_id;
+        if (opponentId) {
+          await supabase
+            .from('social_notifications')
+            .insert({
+              sender_id: user.id,
+              recipient_id: opponentId,
+              type: 'duel_update',
+              message: `${profile?.full_name || 'Ton adversaire'} a abandonné le duel "${challenge.title}". Le défi est annulé.`
+            });
+        }
+        
+        await supabase.from('challenge_participants').delete().eq('challenge_id', challengeId);
+        await supabase.from('challenges').delete().eq('id', challengeId);
+        
+        setChallenges(challenges.filter(c => c.id !== challengeId));
+        toast({ title: "Duel abandonné" });
+      }
+    });
+  };
+
+  // Refresh scores manually
+  const refreshScores = async () => {
+    if (!user || isRefreshing) return;
+    setIsRefreshing(true);
+    await loadChallenges(user.id);
+    setIsRefreshing(false);
+    toast({ title: "Scores actualisés !" });
   };
 
   // Cheer for a friend in a challenge
@@ -758,6 +809,24 @@ const Social = () => {
     });
     
     toast({ title: "Encouragement envoyé ! 👏" });
+  };
+
+  // Mark all notifications as read
+  const markNotificationsAsRead = async () => {
+    if (!user) return;
+    
+    const unreadIds = notifications.filter(n => !n.isRead).map(n => n.id);
+    if (unreadIds.length === 0) return;
+    
+    // Update in database
+    await supabase
+      .from('social_notifications')
+      .update({ is_read: true })
+      .eq('recipient_id', user.id)
+      .eq('is_read', false);
+    
+    // Update local state
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 
   // Ranking des amis par victoires en duel
@@ -916,7 +985,13 @@ const Social = () => {
         </section>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <Tabs value={activeTab} onValueChange={(value) => {
+          setActiveTab(value);
+          // Mark notifications as read when viewing notifications tab
+          if (value === 'notifications' && user) {
+            markNotificationsAsRead();
+          }
+        }} className="w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl">
             <TabsTrigger value="friends" className="rounded-lg data-[state=active]:bg-background">
               <Users className="w-4 h-4 mr-1.5" />
@@ -1055,28 +1130,40 @@ const Social = () => {
                 <Swords className="w-5 h-5 text-red-500" />
                 Mes duels
               </h2>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                    <MessageCircle className="w-3 h-3 mr-1" />
-                    Comment ça marche ?
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Swords className="w-5 h-5 text-red-500" />
-                      À propos des duels
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p><strong className="text-foreground">Duel sur habitude :</strong> Choisis une habitude spécifique et affronte ton ami. Celui qui complète le plus cette habitude gagne !</p>
-                    <p><strong className="text-foreground">Comptage automatique :</strong> Chaque fois que tu complètes l'habitude du duel, ton score augmente automatiquement.</p>
-                    <p><strong className="text-foreground">Récompenses :</strong> Gagne des duels pour obtenir des badges exclusifs et grimper dans le classement !</p>
-                    <p><strong className="text-foreground">Notifications :</strong> Reçois des notifications quand ton adversaire progresse ou te dépasse.</p>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-xs h-8"
+                  onClick={refreshScores}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`w-3 h-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  Actualiser
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+                      <MessageCircle className="w-3 h-3 mr-1" />
+                      ?
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Swords className="w-5 h-5 text-red-500" />
+                        À propos des duels
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <p><strong className="text-foreground">Duel sur habitude :</strong> Choisis une habitude spécifique et affronte ton ami. Celui qui complète le plus cette habitude gagne !</p>
+                      <p><strong className="text-foreground">Comptage automatique :</strong> Chaque fois que tu complètes l'habitude du duel, ton score augmente automatiquement.</p>
+                      <p><strong className="text-foreground">Récompenses :</strong> Gagne des duels pour obtenir des badges exclusifs et grimper dans le classement !</p>
+                      <p><strong className="text-foreground">Notifications :</strong> Reçois des notifications quand ton adversaire progresse ou te dépasse.</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
             {/* Pending duels */}
@@ -1115,10 +1202,18 @@ const Social = () => {
                     size="sm" 
                     variant="outline"
                     className="flex-1 border-red-500/30 hover:bg-red-500/10 h-10"
-                    onClick={async () => {
-                      await supabase.from('challenges').delete().eq('id', challenge.id);
-                      setChallenges(challenges.filter(c => c.id !== challenge.id));
-                      toast({ title: "Duel refusé" });
+                    onClick={() => {
+                      setConfirmDialog({
+                        open: true,
+                        title: "Refuser ce duel ?",
+                        description: `Tu refuses le duel "${challenge.title}" de ${challenge.creator_name}.`,
+                        variant: 'destructive',
+                        onConfirm: async () => {
+                          await supabase.from('challenges').delete().eq('id', challenge.id);
+                          setChallenges(challenges.filter(c => c.id !== challenge.id));
+                          toast({ title: "Duel refusé" });
+                        }
+                      });
                     }}
                   >
                     <X className="w-4 h-4 mr-2" />
@@ -1849,6 +1944,21 @@ const Social = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Dialog for destructive actions */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText="Confirmer"
+        cancelText="Annuler"
+        onConfirm={() => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        variant={confirmDialog.variant}
+      />
 
       <Navigation />
     </div>
