@@ -326,6 +326,9 @@ const Social = () => {
   const [demoMode, setDemoMode] = useState(false);
   const [expandedChallenges, setExpandedChallenges] = useState<Record<string, boolean>>({});
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
+  const [challengeReactions, setChallengeReactions] = useState<Record<string, string[]>>({});
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [cheeredChallenges, setCheeredChallenges] = useState<string[]>([]);
   const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [mutedFriends, setMutedFriends] = useState<string[]>(() => {
     const saved = localStorage.getItem('muted_friends');
@@ -1149,42 +1152,67 @@ const Social = () => {
     );
   }
 
-  // Show loading state to prevent display flicker
-  if (loading && !initialLoadDone) {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <header className="px-6 pt-12 pb-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
-            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
-              <Crown className="w-5 h-5 text-primary" />
-            </button>
-          </div>
-        </header>
-        <main className="px-6 max-w-2xl mx-auto space-y-4">
-          <div className="glass rounded-2xl p-5 border border-white/5 animate-pulse">
-            <div className="h-4 bg-muted/30 rounded w-24 mb-2" />
-            <div className="h-8 bg-muted/30 rounded w-32" />
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="glass rounded-2xl p-4 border border-white/5 animate-pulse">
-                <div className="w-10 h-10 bg-muted/30 rounded-xl mx-auto mb-2" />
-                <div className="h-3 bg-muted/30 rounded w-12 mx-auto" />
-              </div>
-            ))}
-          </div>
-          <div className="glass rounded-xl p-4 border border-white/5 animate-pulse">
-            <div className="h-10 bg-muted/30 rounded" />
-          </div>
-        </main>
-        <Navigation />
-      </div>
-    );
-  }
+  // Add reaction to a challenge
+  const addReaction = async (challengeId: string, emoji: string) => {
+    setChallengeReactions(prev => {
+      const current = prev[challengeId] || [];
+      if (current.includes(emoji)) {
+        return { ...prev, [challengeId]: current.filter(e => e !== emoji) };
+      }
+      return { ...prev, [challengeId]: [...current.slice(-4), emoji] };
+    });
+    
+    // Haptic feedback simulation
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+  };
+
+  // Cheer for a friend in a challenge
+  const cheerChallenge = async (challengeId: string, opponentId: string | null) => {
+    if (!user || !opponentId || cheeredChallenges.includes(challengeId)) return;
+    
+    setCheeredChallenges(prev => [...prev, challengeId]);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 2000);
+    
+    // Send encouragement notification
+    await supabase.from('social_notifications').insert({
+      sender_id: user.id,
+      recipient_id: opponentId,
+      type: 'motivation',
+      message: `${profile?.full_name || 'Quelqu\'un'} t'encourage dans votre duel ! 👏`
+    });
+    
+    toast({ title: "Encouragement envoyé ! 👏" });
+  };
+
+  // Consistent loading state with smooth transition
+  const isLoading = loading && !initialLoadDone;
 
   return (
-    <div className="min-h-screen bg-background pb-24 relative overflow-hidden">
+    <div className={`min-h-screen bg-background pb-24 relative overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
+      {/* Confetti effect */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-confetti"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: '-20px',
+                animationDelay: `${Math.random() * 0.5}s`,
+                backgroundColor: ['#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#3B82F6'][i % 5],
+                width: '10px',
+                height: '10px',
+                borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-20 -left-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -2107,6 +2135,51 @@ const Social = () => {
                               {isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !"}
                             </p>
                           </div>
+                          
+                          {/* Reactions and cheer button */}
+                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/10">
+                            <div className="flex items-center gap-1">
+                              {['🔥', '💪', '⚡', '🎯'].map(emoji => (
+                                <button
+                                  key={emoji}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addReaction(challenge.id, emoji);
+                                  }}
+                                  className={`text-lg p-1 rounded-lg transition-all duration-200 hover:scale-125 ${
+                                    (challengeReactions[challenge.id] || []).includes(emoji) 
+                                      ? 'bg-primary/20 scale-110' 
+                                      : 'hover:bg-muted/50'
+                                  }`}
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                              {(challengeReactions[challenge.id] || []).length > 0 && (
+                                <span className="text-[10px] text-muted-foreground ml-1">
+                                  {challengeReactions[challenge.id]?.join('')}
+                                </span>
+                              )}
+                            </div>
+                            {!cheeredChallenges.includes(challenge.id) && challenge.opponent_id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-400 hover:from-green-500/20 hover:to-emerald-500/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  cheerChallenge(challenge.id, challenge.opponent_id);
+                                }}
+                              >
+                                👏 Encourager
+                              </Button>
+                            )}
+                            {cheeredChallenges.includes(challenge.id) && (
+                              <span className="text-xs text-green-400 flex items-center gap-1">
+                                <Check className="w-3 h-3" /> Encouragé !
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2500,14 +2573,14 @@ const Social = () => {
               </p>
             </div>
 
-            {/* Fil d'activité LIVE */}
+            {/* Fil d'activité LIVE avec réactions */}
             <div>
               <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                 <Activity className="w-4 h-4 text-green-500 animate-pulse" />
                 Activité en direct
-                <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">LIVE</span>
+                <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
               </p>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-2 max-h-40 overflow-y-auto">
                 {groupActivities.length > 0 ? groupActivities.slice(0, 5).map((activity) => {
                   const timeAgo = getTimeAgo(activity.created_at);
                   const icon = activity.activity_type === 'habit_completed' ? '✅' : 
@@ -2518,10 +2591,27 @@ const Social = () => {
                     : activity.message || `${activity.user_name} - ${activity.activity_type}`;
                   
                   return (
-                    <div key={activity.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 animate-fade-in">
-                      <span className="text-sm">{icon}</span>
-                      <span className="text-xs text-foreground flex-1">{text}</span>
-                      <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
+                    <div key={activity.id} className="p-2 rounded-lg bg-muted/30 animate-fade-in group">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{icon}</span>
+                        <span className="text-xs text-foreground flex-1">{text}</span>
+                        <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
+                      </div>
+                      {/* Quick reactions */}
+                      <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        {['👏', '🔥', '💪', '❤️'].map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              toast({ title: `${emoji} envoyé !` });
+                              // Could add reaction to DB here
+                            }}
+                            className="text-sm p-0.5 rounded hover:bg-muted/50 hover:scale-125 transition-all duration-200"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   );
                 }) : (
