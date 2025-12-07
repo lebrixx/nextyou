@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, Eye, Calendar, TrendingUp, Award, Heart, Zap, ChevronRight, ChevronDown, X, Settings, BarChart3, MessageSquare, Star, UserMinus, Shield, Clock, Activity, Trash2 } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -10,25 +10,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSocialNotifications } from "@/hooks/useSocialNotifications";
-import { useGroupFeatures } from "@/hooks/useGroupFeatures";
 
 interface Profile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
   friend_code: string | null;
-}
-
-interface Group {
-  id: string;
-  name: string;
-  description: string | null;
-  invite_code: string;
-  owner_id: string;
-  member_count?: number;
+  duel_wins?: number;
+  duel_streak?: number;
 }
 
 interface Friend {
@@ -37,26 +30,24 @@ interface Friend {
   status: string;
 }
 
-interface GroupMember {
+interface Habit {
   id: string;
   name: string;
-  avatar: string | null;
-  streak: number;
-  completedToday: number;
-  totalHabits: number;
-  isOnline: boolean;
+  icon: string;
+  color: string;
 }
 
 interface Challenge {
   id: string;
   title: string;
   description: string | null;
-  type: 'duel' | 'group';
+  type: 'duel';
   target_type: string;
   target_value: number;
   creator_id: string;
   opponent_id: string | null;
-  group_id: string | null;
+  habit_id: string | null;
+  habit_name: string | null;
   start_date: string;
   end_date: string;
   status: string;
@@ -74,7 +65,7 @@ interface PendingFriendRequest {
 
 interface Notification {
   id: string;
-  type: 'motivation' | 'challenge' | 'achievement' | 'group_invite' | 'friend_request';
+  type: 'motivation' | 'challenge' | 'achievement' | 'friend_request' | 'duel_update';
   message: string;
   senderName: string;
   senderAvatar: string | null;
@@ -82,196 +73,6 @@ interface Notification {
   isRead: boolean;
   senderId?: string;
 }
-
-interface MutedFriend {
-  friendId: string;
-  muted: boolean;
-}
-
-// Données de démonstration enrichies
-const mockFriends: (Friend & { 
-  streak: number; 
-  completedToday: number; 
-  totalHabits: number;
-  weeklyProgress: number;
-  lastActive: string;
-  achievements: number;
-})[] = [
-  {
-    id: 'demo-1',
-    profile: { id: 'demo-user-1', full_name: 'Marie Dupont', avatar_url: null, friend_code: 'MARIE123' },
-    status: 'accepted',
-    streak: 15,
-    completedToday: 4,
-    totalHabits: 5,
-    weeklyProgress: 85,
-    lastActive: 'En ligne',
-    achievements: 12
-  },
-  {
-    id: 'demo-2',
-    profile: { id: 'demo-user-2', full_name: 'Thomas Martin', avatar_url: null, friend_code: 'THOM456' },
-    status: 'accepted',
-    streak: 7,
-    completedToday: 2,
-    totalHabits: 4,
-    weeklyProgress: 60,
-    lastActive: 'Il y a 2h',
-    achievements: 8
-  },
-  {
-    id: 'demo-3',
-    profile: { id: 'demo-user-3', full_name: 'Sophie Bernard', avatar_url: null, friend_code: 'SOPH789' },
-    status: 'accepted',
-    streak: 23,
-    completedToday: 6,
-    totalHabits: 6,
-    weeklyProgress: 95,
-    lastActive: 'Il y a 30min',
-    achievements: 18
-  },
-  {
-    id: 'demo-4',
-    profile: { id: 'demo-user-4', full_name: 'Lucas Petit', avatar_url: null, friend_code: 'LUCA321' },
-    status: 'accepted',
-    streak: 3,
-    completedToday: 1,
-    totalHabits: 3,
-    weeklyProgress: 45,
-    lastActive: 'Hier',
-    achievements: 4
-  }
-];
-
-const mockGroups: (Group & { 
-  member_count: number; 
-  weeklyChallenge?: string;
-  totalHabitsCompleted: number;
-  activeMembers: number;
-  ranking: number;
-})[] = [
-  {
-    id: 'demo-group-1',
-    name: '🏃 Sport du matin',
-    description: 'On se motive pour faire du sport chaque matin ! Objectif : 30 min d\'exercice',
-    invite_code: 'SPORT123',
-    owner_id: 'demo-user-1',
-    member_count: 8,
-    weeklyChallenge: '5 jours de sport cette semaine',
-    totalHabitsCompleted: 156,
-    activeMembers: 6,
-    ranking: 2
-  },
-  {
-    id: 'demo-group-2',
-    name: '📚 Lecture quotidienne',
-    description: 'Objectif : lire 20 pages par jour minimum. Partagez vos lectures !',
-    invite_code: 'READ456',
-    owner_id: 'demo-user-2',
-    member_count: 12,
-    weeklyChallenge: 'Finir un chapitre chaque jour',
-    totalHabitsCompleted: 234,
-    activeMembers: 10,
-    ranking: 1
-  },
-  {
-    id: 'demo-group-3',
-    name: '🧘 Méditation & Bien-être',
-    description: 'Groupe dédié à la méditation et au développement personnel',
-    invite_code: 'ZEN789',
-    owner_id: 'demo-user-3',
-    member_count: 5,
-    weeklyChallenge: '10 min de méditation quotidienne',
-    totalHabitsCompleted: 89,
-    activeMembers: 4,
-    ranking: 3
-  }
-];
-
-const mockGroupMembers: GroupMember[] = [
-  { id: '1', name: 'Marie D.', avatar: null, streak: 15, completedToday: 4, totalHabits: 5, isOnline: true },
-  { id: '2', name: 'Thomas M.', avatar: null, streak: 7, completedToday: 2, totalHabits: 4, isOnline: false },
-  { id: '3', name: 'Sophie B.', avatar: null, streak: 23, completedToday: 6, totalHabits: 6, isOnline: true },
-  { id: '4', name: 'Lucas P.', avatar: null, streak: 3, completedToday: 1, totalHabits: 3, isOnline: false },
-  { id: '5', name: 'Emma L.', avatar: null, streak: 11, completedToday: 3, totalHabits: 4, isOnline: true },
-];
-
-const mockChallenges: Challenge[] = [
-  {
-    id: 'c1',
-    title: '7 jours de sport',
-    description: 'Faire du sport pendant 7 jours consécutifs',
-    type: 'group',
-    target_type: 'completions',
-    target_value: 7,
-    creator_id: 'demo-user-1',
-    opponent_id: null,
-    group_id: 'demo-group-1',
-    start_date: '2024-01-15',
-    end_date: '2024-01-22',
-    status: 'active',
-    creator_name: 'Marie Dupont',
-    my_progress: 5,
-    opponent_progress: 0
-  },
-  {
-    id: 'c2',
-    title: 'Duel de lecture',
-    description: 'Qui lira le plus de pages cette semaine ?',
-    type: 'duel',
-    target_type: 'completions',
-    target_value: 7,
-    creator_id: 'demo-user-1',
-    opponent_id: 'demo-user-3',
-    group_id: null,
-    start_date: '2024-01-18',
-    end_date: '2024-01-25',
-    status: 'active',
-    creator_name: 'Moi',
-    opponent_name: 'Sophie Bernard',
-    my_progress: 3,
-    opponent_progress: 4
-  }
-];
-
-const mockNotifications: Notification[] = [
-  {
-    id: 'n1',
-    type: 'motivation',
-    message: 'Continue comme ça ! Tu es sur la bonne voie 💪',
-    senderName: 'Marie Dupont',
-    senderAvatar: null,
-    timestamp: 'Il y a 10 min',
-    isRead: false
-  },
-  {
-    id: 'n2',
-    type: 'challenge',
-    message: 't\'a défié pour un duel de lecture !',
-    senderName: 'Sophie Bernard',
-    senderAvatar: null,
-    timestamp: 'Il y a 2h',
-    isRead: false
-  },
-  {
-    id: 'n3',
-    type: 'achievement',
-    message: 'a débloqué le badge "Série de 20 jours" 🏆',
-    senderName: 'Thomas Martin',
-    senderAvatar: null,
-    timestamp: 'Hier',
-    isRead: true
-  },
-  {
-    id: 'n4',
-    type: 'group_invite',
-    message: 't\'invite à rejoindre "Yoga matinal"',
-    senderName: 'Emma Laurent',
-    senderAvatar: null,
-    timestamp: 'Il y a 3 jours',
-    isRead: true
-  }
-];
 
 // Helper function to format time ago
 const getTimeAgo = (dateString: string): string => {
@@ -290,8 +91,8 @@ const Social = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [groups, setGroups] = useState<Group[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [pendingRequests, setPendingRequests] = useState<PendingFriendRequest[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -301,80 +102,40 @@ const Social = () => {
   const [activeTab, setActiveTab] = useState("friends");
   
   // Dialog states
-  const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [addFriendOpen, setAddFriendOpen] = useState(false);
-  const [joinGroupOpen, setJoinGroupOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<typeof mockGroups[0] | null>(null);
-  const [selectedFriend, setSelectedFriend] = useState<typeof mockFriends[0] | null>(null);
+  const [selectedFriend, setSelectedFriend] = useState<Friend & { duel_wins?: number; duel_streak?: number } | null>(null);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
-  const [challengeType, setChallengeType] = useState<'duel' | 'group' | null>(null);
   const [challengeTitle, setChallengeTitle] = useState("");
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeDuration, setChallengeDuration] = useState(7);
   const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
-  const [selectedChallengeGroup, setSelectedChallengeGroup] = useState<string | null>(null);
+  const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
   
   // Form states
-  const [newGroupName, setNewGroupName] = useState("");
-  const [newGroupDescription, setNewGroupDescription] = useState("");
   const [friendCode, setFriendCode] = useState("");
-  const [groupInviteCode, setGroupInviteCode] = useState("");
 
-  // Demo mode toggle
-  const [demoMode, setDemoMode] = useState(false);
+  // UI states
   const [expandedChallenges, setExpandedChallenges] = useState<Record<string, boolean>>({});
   const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
-  const [challengeReactions, setChallengeReactions] = useState<Record<string, string[]>>({});
   const [showConfetti, setShowConfetti] = useState(false);
   const [cheeredChallenges, setCheeredChallenges] = useState<string[]>([]);
-  const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [mutedFriends, setMutedFriends] = useState<string[]>(() => {
     const saved = localStorage.getItem('muted_friends');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [mutedGroups, setMutedGroups] = useState<string[]>(() => {
-    const saved = localStorage.getItem('muted_groups');
     return saved ? JSON.parse(saved) : [];
   });
   
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
-  
-  // Group features hook
-  const { stats: groupStats, activities: groupActivities, memberStats: groupMemberStats, loading: groupLoading } = useGroupFeatures(selectedGroup?.id || null, user?.id);
-  
-  // Demo data - Only show mock data when demoMode is explicitly enabled
-  const displayedGroups = demoMode ? mockGroups : groups.map(g => ({
-    ...g,
-    member_count: g.member_count || 1,
-    weeklyChallenge: undefined,
-    totalHabitsCompleted: 0,
-    activeMembers: 0,
-    ranking: 0
-  }));
-  const displayedFriends = demoMode ? mockFriends : friends.map(f => ({
-    ...f,
-    streak: 0,
-    completedToday: 0,
-    totalHabits: 0,
-    weeklyProgress: 0,
-    lastActive: 'Inconnu',
-    achievements: 0
-  }));
-  const displayedChallenges = demoMode ? mockChallenges : challenges;
-  const displayedNotifications = demoMode ? mockNotifications : notifications;
 
   useEffect(() => {
     window.scrollTo(0, 0);
     
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
         
-        // Defer data loading to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
             loadAllData(session.user.id);
@@ -385,7 +146,6 @@ const Social = () => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -398,12 +158,24 @@ const Social = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Realtime subscription for notifications
+  // Realtime subscription for duel updates
   useEffect(() => {
     if (!user) return;
 
     const channel = supabase
-      .channel('social-notifications-reload')
+      .channel('duel-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'challenge_participants',
+        },
+        (payload) => {
+          // Reload challenges when participant progress changes
+          loadChallenges(user.id);
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -413,7 +185,6 @@ const Social = () => {
           filter: `recipient_id=eq.${user.id}`,
         },
         () => {
-          // Reload notifications when a new one arrives
           loadNotifications(user.id);
         }
       )
@@ -428,8 +199,8 @@ const Social = () => {
     try {
       await Promise.all([
         loadProfile(userId),
-        loadGroups(userId),
         loadFriends(userId),
+        loadHabits(userId),
         loadPendingRequests(userId),
         loadChallenges(userId),
         loadNotifications(userId)
@@ -448,30 +219,16 @@ const Social = () => {
       .select('*')
       .eq('id', userId)
       .single();
-    if (data) setProfile(data);
+    if (data) setProfile(data as Profile);
   };
 
-  const loadGroups = async (userId: string) => {
-    const { data: ownedGroups } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('owner_id', userId);
-    
-    const { data: memberGroups } = await supabase
-      .from('group_members')
-      .select('group_id, groups(*)')
-      .eq('user_id', userId);
-    
-    const allGroups: Group[] = [];
-    if (ownedGroups) allGroups.push(...ownedGroups);
-    if (memberGroups) {
-      memberGroups.forEach((m: any) => {
-        if (m.groups && !allGroups.find(g => g.id === m.groups.id)) {
-          allGroups.push(m.groups);
-        }
-      });
-    }
-    setGroups(allGroups);
+  const loadHabits = async (userId: string) => {
+    const { data } = await supabase
+      .from('habits')
+      .select('id, name, icon, color')
+      .eq('user_id', userId)
+      .eq('is_archived', false);
+    if (data) setHabits(data);
   };
 
   const loadFriends = async (userId: string) => {
@@ -493,7 +250,7 @@ const Social = () => {
         if (profile) {
           friendProfiles.push({
             id: friendship.id,
-            profile,
+            profile: profile as Profile,
             status: friendship.status
           });
         }
@@ -522,7 +279,7 @@ const Social = () => {
         if (profile) {
           requests.push({
             id: friendship.id,
-            profile,
+            profile: profile as Profile,
             type: isIncoming ? 'incoming' : 'outgoing'
           });
         }
@@ -535,6 +292,7 @@ const Social = () => {
     const { data } = await supabase
       .from('challenges')
       .select('*')
+      .eq('type', 'duel')
       .or(`creator_id.eq.${userId},opponent_id.eq.${userId}`)
       .in('status', ['active', 'pending']);
     
@@ -580,7 +338,7 @@ const Social = () => {
         
         challengesWithNames.push({
           ...challenge,
-          type: challenge.type as 'duel' | 'group',
+          type: 'duel',
           creator_name: creatorName,
           opponent_name: opponentName,
           my_progress: myParticipation?.progress || 0,
@@ -588,6 +346,8 @@ const Social = () => {
         });
       }
       setChallenges(challengesWithNames);
+    } else {
+      setChallenges([]);
     }
   };
 
@@ -614,9 +374,7 @@ const Social = () => {
           message: notif.message || '',
           senderName: senderProfile?.full_name || 'Utilisateur',
           senderAvatar: senderProfile?.avatar_url,
-          timestamp: new Date(notif.created_at).toLocaleString('fr-FR', { 
-            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' 
-          }),
+          timestamp: getTimeAgo(notif.created_at),
           isRead: notif.is_read,
           senderId: notif.sender_id
         });
@@ -668,79 +426,9 @@ const Social = () => {
     }
   };
 
-  const createGroup = async () => {
-    if (!user || !newGroupName.trim()) return;
-    
-    const { data, error } = await supabase
-      .from('groups')
-      .insert({
-        name: newGroupName.trim(),
-        description: newGroupDescription.trim() || null,
-        owner_id: user.id
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de créer le groupe", variant: "destructive" });
-      return;
-    }
-    
-    if (data) {
-      setGroups([...groups, data]);
-      setNewGroupName("");
-      setNewGroupDescription("");
-      setCreateGroupOpen(false);
-      toast({ title: "Groupe créé !" });
-    }
-  };
-
-  const joinGroup = async () => {
-    if (!user || !groupInviteCode.trim()) return;
-    
-    const { data: group } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('invite_code', groupInviteCode.trim().toUpperCase())
-      .single();
-    
-    if (!group) {
-      toast({ title: "Erreur", description: "Code d'invitation invalide", variant: "destructive" });
-      return;
-    }
-    
-    const { data: existing } = await supabase
-      .from('group_members')
-      .select('id')
-      .eq('group_id', group.id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-    
-    if (existing || group.owner_id === user.id) {
-      toast({ title: "Info", description: "Tu fais déjà partie de ce groupe" });
-      setJoinGroupOpen(false);
-      return;
-    }
-    
-    const { error } = await supabase
-      .from('group_members')
-      .insert({ group_id: group.id, user_id: user.id });
-    
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de rejoindre le groupe", variant: "destructive" });
-      return;
-    }
-    
-    setGroups([...groups, group]);
-    setGroupInviteCode("");
-    setJoinGroupOpen(false);
-    toast({ title: "Groupe rejoint !" });
-  };
-
   const addFriend = async () => {
     if (!user || !friendCode.trim()) return;
     
-    // Use secure RPC function to search by friend code (doesn't expose email)
     const { data: friendProfiles, error: searchError } = await supabase
       .rpc('search_profile_by_friend_code', { _friend_code: friendCode.trim().toUpperCase() });
     
@@ -788,7 +476,6 @@ const Social = () => {
       return;
     }
     
-    // Send notification to the friend
     await supabase
       .from('social_notifications')
       .insert({
@@ -804,29 +491,14 @@ const Social = () => {
     toast({ title: "Demande d'ami envoyée !" });
   };
 
-  const createChallenge = async () => {
+  const createDuel = async () => {
     if (!user || !challengeTitle.trim()) {
-      toast({ title: "Erreur", description: "Donne un nom au défi", variant: "destructive" });
+      toast({ title: "Erreur", description: "Donne un nom au duel", variant: "destructive" });
       return;
     }
     
-    if (challengeType === 'duel' && !selectedOpponent) {
+    if (!selectedOpponent) {
       toast({ title: "Erreur", description: "Sélectionne un adversaire", variant: "destructive" });
-      return;
-    }
-    
-    if (challengeType === 'group' && !selectedChallengeGroup) {
-      toast({ title: "Erreur", description: "Sélectionne un groupe", variant: "destructive" });
-      return;
-    }
-    
-    // Demo mode - just show toast
-    if (demoMode) {
-      toast({ title: "Défi créé !", description: "Mode démo - le défi n'est pas réellement créé" });
-      setChallengeDialogOpen(false);
-      setChallengeType(null);
-      setChallengeTitle("");
-      setChallengeDescription("");
       return;
     }
     
@@ -834,17 +506,20 @@ const Social = () => {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + challengeDuration);
       
+      const selectedHabit = habits.find(h => h.id === selectedHabitId);
+      
       const { data: challenge, error } = await supabase
         .from('challenges')
         .insert({
           creator_id: user.id,
           title: challengeTitle.trim(),
           description: challengeDescription.trim() || null,
-          type: challengeType,
+          type: 'duel',
           target_type: 'completions',
           target_value: challengeDuration,
-          opponent_id: challengeType === 'duel' ? selectedOpponent : null,
-          group_id: challengeType === 'group' ? selectedChallengeGroup : null,
+          opponent_id: selectedOpponent,
+          habit_id: selectedHabitId || null,
+          habit_name: selectedHabit?.name || null,
           end_date: endDate.toISOString().split('T')[0],
           status: 'pending'
         })
@@ -853,52 +528,46 @@ const Social = () => {
       
       if (error) {
         console.error('Challenge creation error:', error);
-        toast({ title: "Erreur", description: "Impossible de créer le défi: " + error.message, variant: "destructive" });
+        toast({ title: "Erreur", description: "Impossible de créer le duel", variant: "destructive" });
         return;
       }
       
       // Add creator as participant
-      const { error: participantError } = await supabase
+      await supabase
         .from('challenge_participants')
         .insert({
           challenge_id: challenge.id,
           user_id: user.id,
           accepted: true
         });
-        
-      if (participantError) {
-        console.error('Participant creation error:', participantError);
-      }
       
-      // Send notification to opponent or group members
-      if (challengeType === 'duel' && selectedOpponent) {
-        await supabase
-          .from('social_notifications')
-          .insert({
-            sender_id: user.id,
-            recipient_id: selectedOpponent,
-            type: 'challenge',
-            message: `${profile?.full_name || 'Quelqu\'un'} te défie : "${challengeTitle}" !`
-          });
-        
-        // Add opponent as participant (not accepted yet)
-        await supabase
-          .from('challenge_participants')
-          .insert({
-            challenge_id: challenge.id,
-            user_id: selectedOpponent,
-            accepted: false
-          });
-      }
+      // Add opponent as participant (not accepted yet)
+      await supabase
+        .from('challenge_participants')
+        .insert({
+          challenge_id: challenge.id,
+          user_id: selectedOpponent,
+          accepted: false
+        });
       
-      toast({ title: "Défi créé et envoyé !" });
+      // Send notification to opponent
+      const habitInfo = selectedHabit ? ` sur "${selectedHabit.name}"` : '';
+      await supabase
+        .from('social_notifications')
+        .insert({
+          sender_id: user.id,
+          recipient_id: selectedOpponent,
+          type: 'challenge',
+          message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel${habitInfo} : "${challengeTitle}" ! ⚔️`
+        });
+      
+      toast({ title: "⚔️ Duel envoyé !", description: "En attente de la réponse de ton adversaire" });
       setChallengeDialogOpen(false);
-      setChallengeType(null);
       setChallengeTitle("");
       setChallengeDescription("");
       setChallengeDuration(7);
       setSelectedOpponent(null);
-      setSelectedChallengeGroup(null);
+      setSelectedHabitId(null);
       
       await loadChallenges(user.id);
     } catch (err) {
@@ -908,12 +577,6 @@ const Social = () => {
   };
   
   const deleteFriend = async (friendshipId: string, friendName: string) => {
-    if (demoMode) {
-      toast({ title: "Ami supprimé", description: `${friendName} a été retiré de tes amis (mode démo)` });
-      setSelectedFriend(null);
-      return;
-    }
-    
     const { error } = await supabase
       .from('friendships')
       .delete()
@@ -943,7 +606,20 @@ const Social = () => {
       .update({ status: 'active' })
       .eq('id', challengeId);
     
-    toast({ title: "Défi accepté !" });
+    // Notify creator that duel was accepted
+    const challenge = challenges.find(c => c.id === challengeId);
+    if (challenge) {
+      await supabase
+        .from('social_notifications')
+        .insert({
+          sender_id: user.id,
+          recipient_id: challenge.creator_id,
+          type: 'challenge',
+          message: `${profile?.full_name || 'Ton adversaire'} a accepté ton duel "${challenge.title}" ! Le combat commence ! ⚔️`
+        });
+    }
+    
+    toast({ title: "⚔️ Duel accepté ! Que le meilleur gagne !" });
     await loadChallenges(user.id);
   };
 
@@ -955,13 +631,6 @@ const Social = () => {
     
     if (!friendId || friendId === '') {
       toast({ title: "Erreur", description: "Ami non trouvé", variant: "destructive" });
-      return;
-    }
-    
-    if (demoMode) {
-      toast({ title: `💪 Encouragement envoyé à ${friendName} !`, description: "Mode démo" });
-      setMessageDialogOpen(false);
-      setCustomMessage("");
       return;
     }
     
@@ -993,43 +662,6 @@ const Social = () => {
     setCustomMessage("");
   };
 
-  const sendGroupMotivation = async (groupId: string, groupName: string) => {
-    if (!user || demoMode) {
-      toast({ title: `Notification envoyée au groupe ${groupName} !` });
-      return;
-    }
-    
-    const { data: members } = await supabase
-      .from('group_members')
-      .select('user_id')
-      .eq('group_id', groupId);
-    
-    const { data: group } = await supabase
-      .from('groups')
-      .select('owner_id')
-      .eq('id', groupId)
-      .single();
-    
-    const allMemberIds = new Set<string>();
-    if (members) members.forEach(m => allMemberIds.add(m.user_id));
-    if (group) allMemberIds.add(group.owner_id);
-    allMemberIds.delete(user.id);
-    
-    for (const memberId of allMemberIds) {
-      await supabase
-        .from('social_notifications')
-        .insert({
-          sender_id: user.id,
-          recipient_id: memberId,
-          type: 'group_motivation',
-          group_id: groupId,
-          message: `${profile?.full_name || 'Un membre'} du groupe "${groupName}" vous encourage ! 🔥`
-        });
-    }
-    
-    toast({ title: `Notification envoyée au groupe ${groupName} !` });
-  };
-
   const toggleMuteFriend = (friendId: string) => {
     const newMuted = mutedFriends.includes(friendId)
       ? mutedFriends.filter(id => id !== friendId)
@@ -1037,109 +669,63 @@ const Social = () => {
     setMutedFriends(newMuted);
     localStorage.setItem('muted_friends', JSON.stringify(newMuted));
     toast({ 
-      title: mutedFriends.includes(friendId) ? "Notifications activées" : "Notifications désactivées",
-      description: mutedFriends.includes(friendId) ? "Tu recevras à nouveau les notifications de cet ami" : "Tu ne recevras plus de notifications de cet ami"
+      title: mutedFriends.includes(friendId) ? "Notifications activées" : "Notifications désactivées"
     });
-  };
-
-  const toggleMuteGroup = (groupId: string) => {
-    const newMuted = mutedGroups.includes(groupId)
-      ? mutedGroups.filter(id => id !== groupId)
-      : [...mutedGroups, groupId];
-    setMutedGroups(newMuted);
-    localStorage.setItem('muted_groups', JSON.stringify(newMuted));
-    toast({ 
-      title: mutedGroups.includes(groupId) ? "Notifications activées" : "Notifications désactivées",
-      description: mutedGroups.includes(groupId) ? "Tu recevras à nouveau les notifications de ce groupe" : "Tu ne recevras plus de notifications de ce groupe"
-    });
-  };
-
-  const leaveGroup = async (groupId: string) => {
-    if (!user || demoMode) {
-      toast({ title: "Groupe quitté" });
-      setSelectedGroup(null);
-      return;
-    }
-    
-    const group = groups.find(g => g.id === groupId);
-    const isOwner = group?.owner_id === user.id;
-    
-    if (isOwner) {
-      // Owner leaving: check if there are other members
-      const { data: members } = await supabase
-        .from('group_members')
-        .select('id, user_id')
-        .eq('group_id', groupId);
-      
-      const otherMembers = members?.filter(m => m.user_id !== user.id) || [];
-      
-      if (otherMembers.length === 0) {
-        // No other members, delete the group
-        await supabase.from('group_stats').delete().eq('group_id', groupId);
-        await supabase.from('group_activity').delete().eq('group_id', groupId);
-        await supabase.from('group_members').delete().eq('group_id', groupId);
-        await supabase.from('groups').delete().eq('id', groupId);
-        setGroups(groups.filter(g => g.id !== groupId));
-        setSelectedGroup(null);
-        toast({ title: "Groupe supprimé", description: "Le groupe a été supprimé car il n'avait plus de membres" });
-        return;
-      } else {
-        // Transfer ownership to the first other member
-        const newOwner = otherMembers[0];
-        await supabase.from('groups').update({ owner_id: newOwner.user_id }).eq('id', groupId);
-        await supabase.from('group_members').update({ role: 'owner' }).eq('group_id', groupId).eq('user_id', newOwner.user_id);
-      }
-    }
-    
-    // Leave the group
-    await supabase
-      .from('group_members')
-      .delete()
-      .eq('group_id', groupId)
-      .eq('user_id', user.id);
-    
-    setGroups(groups.filter(g => g.id !== groupId));
-    setSelectedGroup(null);
-    toast({ title: "Groupe quitté" });
   };
 
   const quitChallenge = async (challengeId: string) => {
-    if (!user || demoMode) {
-      setChallenges(challenges.filter(c => c.id !== challengeId));
-      toast({ title: "Défi abandonné" });
-      return;
-    }
+    if (!user) return;
     
-    // Delete participant entries
     await supabase.from('challenge_participants').delete().eq('challenge_id', challengeId);
-    // Delete the challenge
     await supabase.from('challenges').delete().eq('id', challengeId);
     
     setChallenges(challenges.filter(c => c.id !== challengeId));
-    toast({ title: "Défi abandonné" });
+    toast({ title: "Duel abandonné" });
   };
 
-  // Ranking des amis par streak
-  const rankedFriends = [...(displayedFriends as typeof mockFriends)].sort((a, b) => (b.streak || 0) - (a.streak || 0));
+  // Cheer for a friend in a challenge
+  const cheerChallenge = async (challengeId: string, opponentId: string | null) => {
+    if (!user || !opponentId || cheeredChallenges.includes(challengeId)) return;
+    
+    setCheeredChallenges(prev => [...prev, challengeId]);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 2000);
+    
+    await supabase.from('social_notifications').insert({
+      sender_id: user.id,
+      recipient_id: opponentId,
+      type: 'motivation',
+      message: `${profile?.full_name || 'Quelqu\'un'} t'encourage dans votre duel ! 👏`
+    });
+    
+    toast({ title: "Encouragement envoyé ! 👏" });
+  };
+
+  // Ranking des amis par victoires en duel
+  const rankedFriends = [...friends].sort((a, b) => 
+    ((b.profile as any).duel_wins || 0) - ((a.profile as any).duel_wins || 0)
+  );
+
+  const isLoading = loading && !initialLoadDone;
 
   if (!user) {
     return (
       <div className="min-h-screen bg-background pb-24">
-      <header className="px-6 pt-12 pb-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Social & Entraide</h1>
-          <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
-            <Crown className="w-5 h-5 text-primary" />
-          </button>
-        </div>
-      </header>
-        
+        <header className="px-6 pt-12 pb-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground">Duels & Amis</h1>
+            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+              <Crown className="w-5 h-5 text-primary" />
+            </button>
+          </div>
+        </header>
+          
         <main className="px-6 max-w-2xl mx-auto">
           <div className="glass rounded-xl p-8 text-center border border-white/5">
-            <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <Swords className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-foreground mb-2">Connecte-toi</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              Crée un compte pour accéder aux fonctionnalités sociales
+              Crée un compte pour défier tes amis en duel !
             </p>
             <Button onClick={() => navigate('/auth')} className="bg-gradient-primary">
               Se connecter
@@ -1151,44 +737,6 @@ const Social = () => {
       </div>
     );
   }
-
-  // Add reaction to a challenge
-  const addReaction = async (challengeId: string, emoji: string) => {
-    setChallengeReactions(prev => {
-      const current = prev[challengeId] || [];
-      if (current.includes(emoji)) {
-        return { ...prev, [challengeId]: current.filter(e => e !== emoji) };
-      }
-      return { ...prev, [challengeId]: [...current.slice(-4), emoji] };
-    });
-    
-    // Haptic feedback simulation
-    if ('vibrate' in navigator) {
-      navigator.vibrate(50);
-    }
-  };
-
-  // Cheer for a friend in a challenge
-  const cheerChallenge = async (challengeId: string, opponentId: string | null) => {
-    if (!user || !opponentId || cheeredChallenges.includes(challengeId)) return;
-    
-    setCheeredChallenges(prev => [...prev, challengeId]);
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 2000);
-    
-    // Send encouragement notification
-    await supabase.from('social_notifications').insert({
-      sender_id: user.id,
-      recipient_id: opponentId,
-      type: 'motivation',
-      message: `${profile?.full_name || 'Quelqu\'un'} t'encourage dans votre duel ! 👏`
-    });
-    
-    toast({ title: "Encouragement envoyé ! 👏" });
-  };
-
-  // Consistent loading state with smooth transition
-  const isLoading = loading && !initialLoadDone;
 
   return (
     <div className={`min-h-screen bg-background pb-24 relative overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
@@ -1215,46 +763,35 @@ const Social = () => {
       
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-20 -left-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-40 -right-20 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-40 left-1/2 w-40 h-40 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-20 -left-20 w-60 h-60 bg-red-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 -right-20 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <header className="px-6 pt-12 pb-4 relative z-10">
         <div className="flex items-center justify-between animate-fade-in">
           <div>
-            <h1 className="text-2xl font-bold text-foreground bg-clip-text">Social & Entraide</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Connecte-toi avec tes amis</p>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Swords className="w-6 h-6 text-red-500" />
+              Duels & Amis
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Défie tes amis et prouve ta valeur</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setDemoMode(!demoMode)}
-              className={`text-xs px-3 py-1.5 rounded-full transition-all duration-300 ${
-                demoMode 
-                  ? 'bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25' 
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:scale-105'
-              }`}
-            >
-              {demoMode ? '✓ Démo' : 'Démo'}
-            </button>
-            <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-all duration-300 hover:scale-110 hover:rotate-12">
-              <Crown className="w-5 h-5 text-primary" />
-            </button>
-          </div>
+          <button onClick={() => navigate('/premium')} className="p-2 hover:bg-primary/10 rounded-full transition-all duration-300 hover:scale-110">
+            <Crown className="w-5 h-5 text-primary" />
+          </button>
         </div>
       </header>
 
       <main className="px-6 space-y-6 max-w-2xl mx-auto relative z-10">
         {/* Mon code ami */}
-        <section className="glass rounded-2xl p-5 border border-primary/30 bg-gradient-to-br from-primary/10 to-transparent animate-fade-in relative overflow-hidden group hover:border-primary/50 transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <section className="glass rounded-2xl p-5 border border-red-500/30 bg-gradient-to-br from-red-500/10 to-orange-500/5 animate-fade-in relative overflow-hidden group hover:border-red-500/50 transition-all duration-300">
           <div className="flex items-center justify-between relative z-10">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-2">
-                <Star className="w-3 h-3 text-primary animate-pulse" />
+                <Swords className="w-3 h-3 text-red-500" />
                 Mon code ami
               </p>
-              <p className="text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent tracking-[0.3em] animate-pulse">
+              <p className="text-2xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent tracking-[0.3em]">
                 {profile?.friend_code || '--------'}
               </p>
             </div>
@@ -1262,7 +799,7 @@ const Social = () => {
               variant="outline" 
               size="icon" 
               onClick={copyFriendCode} 
-              className="border-primary/30 hover:bg-primary/20 hover:scale-110 transition-all duration-300 hover:border-primary"
+              className="border-red-500/30 hover:bg-red-500/20 hover:scale-110 transition-all duration-300"
             >
               {copied ? <Check className="w-4 h-4 text-green-500 animate-scale-in" /> : <Copy className="w-4 h-4" />}
             </Button>
@@ -1270,16 +807,16 @@ const Social = () => {
         </section>
 
         {/* Actions rapides */}
-        <section className="grid grid-cols-3 gap-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <section className="grid grid-cols-2 gap-3 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <Dialog open={addFriendOpen} onOpenChange={setAddFriendOpen}>
             <DialogTrigger asChild>
-              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
+              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 group relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative z-10">
                   <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                     <UserPlus className="w-5 h-5 text-primary" />
                   </div>
-                  <p className="text-xs font-medium text-foreground">Ajouter</p>
+                  <p className="text-xs font-medium text-foreground">Ajouter un ami</p>
                 </div>
               </button>
             </DialogTrigger>
@@ -1298,107 +835,48 @@ const Social = () => {
                   className="text-center text-lg tracking-widest"
                   maxLength={8}
                 />
-                <Button onClick={addFriend} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
+                <Button onClick={addFriend} className="w-full bg-gradient-to-r from-primary to-accent">
                   Ajouter
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
 
-          <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
-            <DialogTrigger asChild>
-              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
-                    <Plus className="w-5 h-5 text-accent" />
-                  </div>
-                  <p className="text-xs font-medium text-foreground">Créer</p>
-                </div>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[70vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-accent" />
-                  Créer un groupe
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Nom du groupe"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Description (optionnel)"
-                  value={newGroupDescription}
-                  onChange={(e) => setNewGroupDescription(e.target.value)}
-                  rows={3}
-                />
-                <Button onClick={createGroup} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
-                  Créer
-                </Button>
+          <button 
+            onClick={() => setChallengeDialogOpen(true)}
+            className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-red-500/40 transition-all duration-300 hover:scale-105 group relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                <Swords className="w-5 h-5 text-red-500" />
               </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={joinGroupOpen} onOpenChange={setJoinGroupOpen}>
-            <DialogTrigger asChild>
-              <button className="glass rounded-2xl p-4 text-center border border-white/5 hover:border-primary/40 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20 group relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="w-5 h-5 text-green-500" />
-                  </div>
-                  <p className="text-xs font-medium text-foreground">Rejoindre</p>
-                </div>
-              </button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[70vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-green-500" />
-                  Rejoindre un groupe
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Code d'invitation"
-                  value={groupInviteCode}
-                  onChange={(e) => setGroupInviteCode(e.target.value.toUpperCase())}
-                  className="text-center text-lg tracking-widest"
-                  maxLength={8}
-                />
-                <Button onClick={joinGroup} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-300">
-                  Rejoindre
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              <p className="text-xs font-medium text-foreground">Lancer un duel</p>
+            </div>
+          </button>
         </section>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <TabsList className="grid w-full grid-cols-4 bg-muted/30 backdrop-blur-xl border border-white/5 rounded-2xl p-1 h-auto">
-            <TabsTrigger value="friends" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
-              <Users className="w-3.5 h-3.5 mr-1.5" />
-              Amis
+          <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="friends" className="rounded-lg data-[state=active]:bg-background">
+              <Users className="w-4 h-4 mr-1.5" />
+              <span className="text-xs">Amis</span>
             </TabsTrigger>
-            <TabsTrigger value="groups" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
-              <Shield className="w-3.5 h-3.5 mr-1.5" />
-              Groupes
+            <TabsTrigger value="duels" className="rounded-lg data-[state=active]:bg-background">
+              <Swords className="w-4 h-4 mr-1.5" />
+              <span className="text-xs">Duels</span>
             </TabsTrigger>
-            <TabsTrigger value="ranking" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5">
-              <Trophy className="w-3.5 h-3.5 mr-1.5" />
-              Rang
+            <TabsTrigger value="ranking" className="rounded-lg data-[state=active]:bg-background">
+              <Trophy className="w-4 h-4 mr-1.5" />
+              <span className="text-xs">Palmarès</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-accent data-[state=active]:text-white transition-all duration-300 py-2.5 relative">
-              <Bell className="w-3.5 h-3.5 mr-1.5" />
-              Notifs
-              {displayedNotifications.filter(n => !n.isRead).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-orange-500 rounded-full text-[10px] text-white flex items-center justify-center animate-pulse shadow-lg shadow-red-500/50">
-                  {displayedNotifications.filter(n => !n.isRead).length}
+            <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-background relative">
+              <Bell className="w-4 h-4 mr-1.5" />
+              <span className="text-xs">Notifs</span>
+              {notifications.filter(n => !n.isRead).length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                  {notifications.filter(n => !n.isRead).length}
                 </span>
               )}
             </TabsTrigger>
@@ -1406,42 +884,31 @@ const Social = () => {
 
           {/* Tab: Amis */}
           <TabsContent value="friends" className="space-y-3 mt-4">
-            {/* Demandes en attente */}
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-foreground">Mes amis ({friends.length})</h2>
+            </div>
+            
+            {/* Pending requests */}
             {pendingRequests.filter(r => r.type === 'incoming').length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-orange-500" />
-                  Demandes d'amis ({pendingRequests.filter(r => r.type === 'incoming').length})
-                </h3>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm text-muted-foreground">Demandes en attente</p>
                 {pendingRequests.filter(r => r.type === 'incoming').map((request) => (
-                  <div key={request.id} className="glass rounded-xl p-3 border border-orange-500/20 bg-orange-500/5 mb-2">
+                  <div key={request.id} className="glass rounded-xl p-3 border border-primary/20 bg-primary/5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
                             {(request.profile.full_name || 'A')[0].toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <h4 className="font-medium text-foreground">{request.profile.full_name || 'Utilisateur'}</h4>
-                          <p className="text-xs text-muted-foreground">Veut être ton ami</p>
-                        </div>
+                        <span className="text-sm font-medium">{request.profile.full_name}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          className="bg-gradient-primary h-8"
-                          onClick={() => acceptFriendRequest(request.id)}
-                        >
-                          <Check className="w-4 h-4" />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => acceptFriendRequest(request.id)} className="h-7 bg-green-500 hover:bg-green-600">
+                          <Check className="w-3 h-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8"
-                          onClick={() => declineFriendRequest(request.id)}
-                        >
-                          ✕
+                        <Button size="sm" variant="outline" onClick={() => declineFriendRequest(request.id)} className="h-7">
+                          <X className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
@@ -1449,132 +916,86 @@ const Social = () => {
                 ))}
               </div>
             )}
-
-            {/* Demandes envoyées */}
-            {pendingRequests.filter(r => r.type === 'outgoing').length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-xs text-muted-foreground mb-2">
-                  En attente de réponse ({pendingRequests.filter(r => r.type === 'outgoing').length})
-                </h3>
-                {pendingRequests.filter(r => r.type === 'outgoing').map((request) => (
-                  <div key={request.id} className="glass rounded-xl p-3 border border-white/5 opacity-70 mb-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-muted text-muted-foreground">
-                          {(request.profile.full_name || 'A')[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h4 className="text-sm font-medium text-foreground">{request.profile.full_name || 'Utilisateur'}</h4>
-                        <p className="text-xs text-muted-foreground">Demande envoyée</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-foreground">Mes amis ({displayedFriends.length})</h2>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                    <MessageCircle className="w-3 h-3 mr-1" />
-                    Comment ça marche ?
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-primary" />
-                      À propos des amis
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p><strong className="text-foreground">Ajouter un ami :</strong> Utilise le code ami de ton contact pour l'ajouter. Il recevra une demande qu'il devra accepter.</p>
-                    <p><strong className="text-foreground">Encourager :</strong> Envoie des messages de motivation à tes amis pour les aider à rester motivés !</p>
-                    <p><strong className="text-foreground">Défier :</strong> Lance un duel à un ami pour voir qui complète le plus d'habitudes.</p>
-                    <p><strong className="text-foreground">Ton code ami :</strong> Partage ton code pour que d'autres puissent t'ajouter.</p>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
             
-            {(displayedFriends as typeof mockFriends).map((friend, index) => (
-              <div 
-                key={friend.id} 
-                className="glass rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 group animate-fade-in relative overflow-hidden"
-                style={{ animationDelay: `${index * 0.05}s` }}
-                onClick={() => setSelectedFriend(friend)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
+            {friends.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Aucun ami pour le moment</p>
+                <p className="text-xs mt-1">Ajoute des amis avec leur code pour lancer des duels !</p>
+              </div>
+            ) : (
+              friends.map((friend, index) => (
+                <div 
+                  key={friend.id} 
+                  className="glass rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:scale-[1.02] group animate-fade-in"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                  onClick={() => setSelectedFriend(friend)}
+                >
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-3">
                       <Avatar className="ring-2 ring-white/10 group-hover:ring-primary/30 transition-all duration-300">
                         <AvatarImage src={friend.profile.avatar_url || undefined} />
                         <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
                           {(friend.profile.full_name || 'A')[0].toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      {friend.lastActive === 'En ligne' && (
-                        <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full animate-pulse shadow-lg shadow-green-500/50" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{friend.profile.full_name || 'Ami'}</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {demoMode ? (
-                          <>
-                            <div className="flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 rounded-full">
-                              <Flame className="w-3 h-3 text-orange-500" />
-                              <span className="text-orange-400 font-medium">{friend.streak}j</span>
-                            </div>
-                            <span className="text-muted-foreground/50">•</span>
-                            <span>{friend.completedToday}/{friend.totalHabits} aujourd'hui</span>
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">#{friend.profile.friend_code}</span>
-                        )}
+                      <div>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{friend.profile.full_name || 'Ami'}</h3>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>#{friend.profile.friend_code}</span>
+                          {(friend.profile as any).duel_wins > 0 && (
+                            <>
+                              <span className="text-muted-foreground/50">•</span>
+                              <span className="flex items-center gap-1 text-yellow-500">
+                                <Trophy className="w-3 h-3" />
+                                {(friend.profile as any).duel_wins} victoires
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedFriend(friend);
-                        setMessageDialogOpen(true);
-                      }}
-                      className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
-                  </div>
-                </div>
-                {demoMode && (
-                  <div className="relative z-10 mt-3">
-                    <Progress value={friend.weeklyProgress} className="h-1.5 bg-muted/50" />
-                    <div className="flex justify-between items-center mt-1.5">
-                      <p className="text-[10px] text-muted-foreground">{friend.weeklyProgress}% cette semaine</p>
-                      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3 text-green-500" />
-                        {friend.lastActive}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFriend(friend);
+                          setSelectedOpponent(friend.profile.id);
+                          setChallengeDialogOpen(true);
+                        }}
+                        className="text-red-500 hover:bg-red-500/20 hover:scale-110 transition-all duration-300"
+                      >
+                        <Swords className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFriend(friend);
+                          setMessageDialogOpen(true);
+                        }}
+                        className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </TabsContent>
 
-          {/* Tab: Groupes */}
-          <TabsContent value="groups" className="space-y-3 mt-4">
+          {/* Tab: Duels */}
+          <TabsContent value="duels" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-foreground">Mes groupes ({displayedGroups.length})</h2>
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Swords className="w-5 h-5 text-red-500" />
+                Mes duels
+              </h2>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
@@ -1585,509 +1006,119 @@ const Social = () => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-primary" />
-                      À propos des groupes
+                      <Swords className="w-5 h-5 text-red-500" />
+                      À propos des duels
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3 text-sm text-muted-foreground">
-                    <p><strong className="text-foreground">Créer un groupe :</strong> Crée ton propre groupe pour rassembler des personnes autour d'un objectif commun (sport, lecture, méditation...).</p>
-                    <p><strong className="text-foreground">Rejoindre :</strong> Utilise le code d'invitation d'un groupe existant pour le rejoindre.</p>
-                    <p><strong className="text-foreground">Défis de groupe :</strong> Participez ensemble à des défis collectifs et voyez qui progresse le plus !</p>
-                    <p><strong className="text-foreground">Motivation :</strong> Envoyez des notifications d'encouragement à tous les membres du groupe.</p>
+                    <p><strong className="text-foreground">Duel sur habitude :</strong> Choisis une habitude spécifique et affronte ton ami. Celui qui complète le plus cette habitude gagne !</p>
+                    <p><strong className="text-foreground">Comptage automatique :</strong> Chaque fois que tu complètes l'habitude du duel, ton score augmente automatiquement.</p>
+                    <p><strong className="text-foreground">Récompenses :</strong> Gagne des duels pour obtenir des badges exclusifs et grimper dans le classement !</p>
+                    <p><strong className="text-foreground">Notifications :</strong> Reçois des notifications quand ton adversaire progresse ou te dépasse.</p>
                   </div>
                 </DialogContent>
               </Dialog>
             </div>
 
-            {(displayedGroups as typeof mockGroups).map((group, index) => (
-              <div 
-                key={group.id} 
-                className="glass rounded-2xl p-4 border border-white/5 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/10 group animate-fade-in relative overflow-hidden"
-                style={{ animationDelay: `${index * 0.05}s` }}
-                onClick={() => setSelectedGroup(group)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="flex items-center justify-between mb-2 relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
-                      <span className="text-xl">{group.name.split(' ')[0]}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{group.name.replace(/^[^\s]+\s/, '')}</h3>
-                      <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {group.member_count || 1}
-                        </span>
-                        {demoMode && group.activeMembers > 0 && (
-                          <>
-                            <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-green-400">{group.activeMembers} actifs</span>
-                          </>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        sendGroupMotivation(group.id, group.name);
-                      }}
-                      className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
-                    >
-                      <Bell className="w-4 h-4" />
-                    </Button>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
-                  </div>
-                </div>
-                
-                {demoMode && group.weeklyChallenge && (
-                  <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl p-3 mt-3 border border-primary/20 relative z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Target className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Défi de la semaine</p>
-                        <span className="text-xs font-medium text-foreground">{group.weeklyChallenge}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {demoMode && (
-                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
-                    <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-full">
-                      <Check className="w-3 h-3 text-green-500" /> 
-                      <span className="text-foreground font-medium">{group.totalHabitsCompleted}</span> habitudes
-                    </span>
-                    <span className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-1 rounded-full">
-                      <Trophy className="w-3 h-3 text-yellow-500" /> 
-                      <span className="text-yellow-400 font-bold">#{group.ranking}</span>
-                    </span>
-                  </div>
-                )}
-
-                {!demoMode && (
-                  <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground relative z-10">
-                    <span className="text-muted-foreground">Code: {group.invite_code}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </TabsContent>
-
-          {/* Tab: Classement */}
-          <TabsContent value="ranking" className="space-y-3 mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                Classement des séries
-              </h2>
-            </div>
-
-            {rankedFriends.map((friend, index) => (
-              <div 
-                key={friend.id} 
-                className={`glass rounded-2xl p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-fade-in relative overflow-hidden group ${
-                  index === 0 ? 'border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/20' : 
-                  index === 1 ? 'border-gray-400/50 bg-gradient-to-br from-gray-400/10 to-transparent' : 
-                  index === 2 ? 'border-amber-600/50 bg-gradient-to-br from-amber-600/10 to-transparent' : 
-                  'border-white/5 hover:border-primary/30'
-                }`}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {index < 3 && (
-                  <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
-                    <Trophy className={`w-full h-full ${
-                      index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'
-                    }`} />
-                  </div>
-                )}
-                <div className="flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg ${
-                      index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-950 shadow-yellow-500/50' : 
-                      index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900 shadow-gray-500/50' : 
-                      index === 2 ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-amber-950 shadow-amber-500/50' : 
-                      'bg-muted text-muted-foreground'
-                    }`}>
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                    </div>
-                    <Avatar className="w-10 h-10 ring-2 ring-white/10">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                        {(friend.profile.full_name || 'A')[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{friend.profile.full_name}</h3>
-                      {demoMode ? (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Award className="w-3 h-3 text-yellow-500" />
-                          {friend.achievements} badges
-                        </p>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">#{friend.profile.friend_code}</p>
-                      )}
-                    </div>
-                  </div>
-                  {demoMode ? (
-                    <div className="text-right">
-                      <div className="flex items-center gap-1.5 bg-orange-500/10 px-3 py-1.5 rounded-full">
-                        <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
-                        <span className="font-bold text-orange-400 text-lg">{friend.streak}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
-                    </div>
-                  ) : (
-                    <div className="text-right">
-                      <span className="text-xs text-muted-foreground">Ami</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {/* Ton classement - only in demo mode */}
-            {demoMode && (
-              <div className="glass rounded-2xl p-5 border-2 border-primary/50 bg-gradient-to-br from-primary/10 to-accent/5 mt-4 relative overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.2),transparent_70%)]" />
+            {/* Pending duels */}
+            {challenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge) => (
+              <div key={challenge.id} className="glass rounded-2xl p-4 border-2 border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 to-orange-500/5 animate-pulse-slow relative overflow-hidden">
                 <div className="absolute top-2 right-2">
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-medium">C'est toi !</span>
-                </div>
-                <div className="flex items-center justify-between relative z-10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-bold text-lg text-primary-foreground shadow-lg shadow-primary/50">
-                      5
-                    </div>
-                    <Avatar className="w-12 h-12 ring-2 ring-primary/50">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
-                        T
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-bold text-foreground text-lg">Toi</h3>
-                      <p className="text-sm text-primary flex items-center gap-1">
-                        <TrendingUp className="w-4 h-4" />
-                        Continue comme ça !
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 bg-orange-500/20 px-4 py-2 rounded-xl">
-                      <Flame className="w-6 h-6 text-orange-500 animate-pulse" />
-                      <span className="font-bold text-orange-400 text-2xl">5</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">jours consécutifs</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {!demoMode && displayedFriends.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Trophy className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Ajoute des amis pour voir le classement</p>
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Tab: Notifications */}
-          <TabsContent value="notifications" className="space-y-3 mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-bold text-foreground">Notifications</h2>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs"
-                  onClick={() => setNotificationSettingsOpen(!notificationSettingsOpen)}
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-xs text-primary"
-                  onClick={async () => {
-                    if (user && notifications.length > 0 && !demoMode) {
-                      await supabase
-                        .from('social_notifications')
-                        .update({ is_read: true })
-                        .eq('recipient_id', user.id);
-                      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-                      toast({ title: "Notifications marquées comme lues" });
-                    } else if (demoMode) {
-                      toast({ title: "Mode démo - Notifications marquées" });
-                    }
-                  }}
-                >
-                  Tout marquer lu
-                </Button>
-              </div>
-            </div>
-
-            {/* Notification Preferences */}
-            {notificationSettingsOpen && (
-              <div className="glass rounded-xl p-4 border border-primary/30 bg-gradient-to-br from-primary/5 to-transparent mb-4">
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-primary" />
-                  Préférences de notifications
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-foreground">Demandes d'amis</p>
-                      <p className="text-xs text-muted-foreground">Recevoir les nouvelles demandes</p>
-                    </div>
-                    <Switch 
-                      checked={notifPreferences.friendRequests}
-                      onCheckedChange={(checked) => updateNotifPreferences({ friendRequests: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-foreground">Défis</p>
-                      <p className="text-xs text-muted-foreground">Invitations et mises à jour</p>
-                    </div>
-                    <Switch 
-                      checked={notifPreferences.challenges}
-                      onCheckedChange={(checked) => updateNotifPreferences({ challenges: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-foreground">Encouragements</p>
-                      <p className="text-xs text-muted-foreground">Messages de motivation</p>
-                    </div>
-                    <Switch 
-                      checked={notifPreferences.motivations}
-                      onCheckedChange={(checked) => updateNotifPreferences({ motivations: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-foreground">Activité des groupes</p>
-                      <p className="text-xs text-muted-foreground">Invitations et mises à jour</p>
-                    </div>
-                    <Switch 
-                      checked={notifPreferences.groupActivity}
-                      onCheckedChange={(checked) => updateNotifPreferences({ groupActivity: checked })}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {displayedNotifications.map((notif) => (
-              <div 
-                key={notif.id} 
-                className={`glass rounded-xl p-4 border ${notif.isRead ? 'border-white/5' : 'border-primary/30 bg-primary/5'}`}
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback className={`${
-                      notif.type === 'motivation' ? 'bg-green-500' :
-                      notif.type === 'challenge' ? 'bg-orange-500' :
-                      notif.type === 'achievement' ? 'bg-yellow-500' :
-                      notif.type === 'friend_request' ? 'bg-purple-500' :
-                      'bg-blue-500'
-                    } text-white`}>
-                      {notif.type === 'motivation' ? <Heart className="w-4 h-4" /> :
-                       notif.type === 'challenge' ? <Zap className="w-4 h-4" /> :
-                       notif.type === 'achievement' ? <Award className="w-4 h-4" /> :
-                       notif.type === 'friend_request' ? <UserPlus className="w-4 h-4" /> :
-                       <Users className="w-4 h-4" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm text-foreground">
-                      <span className="font-semibold">{notif.senderName}</span> {notif.message}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">{notif.timestamp}</p>
-                  </div>
-                  {!notif.isRead && (
-                    <span className="w-2 h-2 bg-primary rounded-full" />
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {displayedNotifications.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Aucune notification</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Challenges actifs */}
-        <section className="space-y-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-foreground">Défis en cours</h2>
-                <p className="text-[10px] text-muted-foreground">
-                  {displayedChallenges.filter(c => c.status === 'active').length} actifs • {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).length} en attente
-                </p>
-              </div>
-            </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-                  <MessageCircle className="w-3 h-3" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-orange-500" />
-                    Comprendre les défis
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 text-sm">
-                  <div className="glass rounded-xl p-4 border border-red-500/20 bg-gradient-to-br from-red-500/10 to-transparent">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">⚔️</span>
-                      <strong className="text-foreground">Duel symbolique</strong>
-                    </div>
-                    <p className="text-muted-foreground text-xs leading-relaxed">
-                      Défie un ami sur une durée définie. Le but : <strong className="text-foreground">se motiver mutuellement</strong> ! 
-                      Celui qui complète le plus d'habitudes "gagne" symboliquement.
-                    </p>
-                  </div>
-                  <div className="glass rounded-xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-transparent">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg">👥</span>
-                      <strong className="text-foreground">Défi de groupe</strong>
-                    </div>
-                    <p className="text-muted-foreground text-xs leading-relaxed">
-                      Tout le groupe participe à un objectif commun.
-                    </p>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {/* Défis en attente d'acceptation */}
-          {displayedChallenges.filter(c => c.status === 'pending' && c.opponent_id === user?.id).map((challenge, index) => (
-            <div key={challenge.id} className="glass rounded-2xl p-5 border-2 border-purple-500/40 bg-gradient-to-br from-purple-500/10 to-transparent animate-pulse-slow relative overflow-hidden" style={{ animationDelay: `${index * 0.1}s` }}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-10 -mt-10" />
-              <div className="flex items-center justify-between mb-3 relative z-10">
-                <div>
-                  <span className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full mb-2 inline-flex items-center gap-1 shadow-lg shadow-purple-500/30">
-                    <Zap className="w-3 h-3" />
-                    Nouveau défi
+                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full font-medium animate-pulse">
+                    ⚔️ Défi reçu !
                   </span>
-                  <h3 className="font-bold text-foreground text-lg mt-1">{challenge.title}</h3>
-                  <p className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                    <span>De {challenge.creator_name}</span>
-                    <span className="w-1 h-1 bg-muted-foreground rounded-full" />
-                    <span>{challenge.target_value} jours</span>
-                  </p>
                 </div>
-              </div>
-              {challenge.description && (
-                <p className="text-sm text-muted-foreground mb-4 relative z-10">{challenge.description}</p>
-              )}
-              <div className="flex gap-3 relative z-10">
-                <Button 
-                  size="sm" 
-                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 transition-all duration-300 shadow-lg shadow-purple-500/30 h-10"
-                  onClick={() => !demoMode && acceptChallenge(challenge.id)}
-                >
-                  <Check className="w-4 h-4 mr-2" />
-                  Accepter
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="flex-1 border-purple-500/30 hover:bg-purple-500/10 h-10"
-                  onClick={async () => {
-                    if (!demoMode) {
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
+                    <Swords className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground">{challenge.title}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      De {challenge.creator_name} • {challenge.target_value} jours
+                      {challenge.habit_name && <span className="text-primary"> • {challenge.habit_name}</span>}
+                    </p>
+                  </div>
+                </div>
+                {challenge.description && (
+                  <p className="text-xs text-muted-foreground mb-3">{challenge.description}</p>
+                )}
+                <div className="flex gap-3 relative z-10">
+                  <Button 
+                    size="sm" 
+                    className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:opacity-90 h-10"
+                    onClick={() => acceptChallenge(challenge.id)}
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Accepter le duel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="flex-1 border-red-500/30 hover:bg-red-500/10 h-10"
+                    onClick={async () => {
                       await supabase.from('challenges').delete().eq('id', challenge.id);
                       setChallenges(challenges.filter(c => c.id !== challenge.id));
-                    }
-                    toast({ title: "Défi refusé" });
-                  }}
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Refuser
-                </Button>
+                      toast({ title: "Duel refusé" });
+                    }}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Refuser
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
-          
-          {displayedChallenges.filter(c => c.status === 'active').map((challenge, index) => {
-            const progress = challenge.target_value > 0 ? Math.round(((challenge.my_progress || 0) / challenge.target_value) * 100) : 0;
-            const isWinning = challenge.type === 'duel' && (challenge.my_progress || 0) > (challenge.opponent_progress || 0);
-            const isTie = challenge.type === 'duel' && (challenge.my_progress || 0) === (challenge.opponent_progress || 0);
-            const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-            const isExpanded = expandedChallenges[challenge.id] ?? false;
+            ))}
             
-            return (
-              <div key={challenge.id} className={`glass rounded-2xl border ${
-                challenge.type === 'duel' 
-                  ? 'border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent' 
-                  : 'border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-transparent'
-              } hover:border-opacity-50 transition-all duration-300 relative overflow-hidden group animate-fade-in`} style={{ animationDelay: `${index * 0.1}s` }}>
-                
-                {/* Collapsible header */}
-                <button
-                  onClick={() => setExpandedChallenges(prev => ({ ...prev, [challenge.id]: !isExpanded }))}
-                  className="w-full p-4 flex items-center justify-between text-left"
-                >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      challenge.type === 'duel' 
-                        ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-lg shadow-red-500/30' 
-                        : 'bg-gradient-to-br from-blue-500 to-primary shadow-lg shadow-blue-500/30'
-                    }`}>
-                      {challenge.type === 'duel' ? (
+            {/* Active duels */}
+            {challenges.filter(c => c.status === 'active').map((challenge, index) => {
+              const isWinning = (challenge.my_progress || 0) > (challenge.opponent_progress || 0);
+              const isTie = (challenge.my_progress || 0) === (challenge.opponent_progress || 0);
+              const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+              const isExpanded = expandedChallenges[challenge.id] ?? false;
+              
+              return (
+                <div key={challenge.id} className="glass rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent hover:border-red-500/50 transition-all duration-300 relative overflow-hidden group animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  
+                  {/* Collapsible header */}
+                  <button
+                    onClick={() => setExpandedChallenges(prev => ({ ...prev, [challenge.id]: !isExpanded }))}
+                    className="w-full p-4 flex items-center justify-between text-left"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/30">
                         <span className="text-white font-black text-xs">VS</span>
-                      ) : (
-                        <Users className="w-5 h-5 text-white" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                          challenge.type === 'duel' 
-                            ? 'bg-red-500/20 text-red-400' 
-                            : 'bg-blue-500/20 text-blue-400'
-                        }`}>
-                          {challenge.type === 'duel' ? '⚔️ Duel' : '👥 Groupe'}
-                        </span>
-                        {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">🏆</span>}
                       </div>
-                      <h3 className="font-bold text-foreground text-sm truncate">{challenge.title}</h3>
-                      <p className="text-[10px] text-muted-foreground">
-                        {challenge.type === 'duel' 
-                          ? `vs ${challenge.opponent_name || 'Adversaire'} • ${daysLeft}j restants`
-                          : `${challenge.my_progress || 0}/${challenge.target_value} • ${daysLeft}j restants`
-                        }
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          {challenge.habit_name && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/20 text-primary">
+                              {challenge.habit_name}
+                            </span>
+                          )}
+                          {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">🏆 En tête</span>}
+                        </div>
+                        <h3 className="font-bold text-foreground text-sm truncate">{challenge.title}</h3>
+                        <p className="text-[10px] text-muted-foreground">
+                          vs {challenge.creator_id === user?.id ? challenge.opponent_name : challenge.creator_name} • {daysLeft}j restants
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 flex-shrink-0 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {/* Expanded content */}
-                {isExpanded && (
-                  <div className="px-4 pb-4 space-y-4">
-                    {/* Background decorations */}
-                    <div className={`absolute top-0 right-0 w-24 h-24 ${challenge.type === 'duel' ? 'bg-red-500/10' : 'bg-blue-500/10'} rounded-full blur-2xl -mr-8 -mt-8 group-hover:opacity-150 transition-opacity duration-500`} />
-                    
-                    {/* Duel: Visual battle representation */}
-                    {challenge.type === 'duel' && (
+                    <div className="flex items-center gap-2">
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 text-lg font-black">
+                          <span className="text-primary">{challenge.my_progress || 0}</span>
+                          <span className="text-muted-foreground text-sm">-</span>
+                          <span className="text-orange-500">{challenge.opponent_progress || 0}</span>
+                        </div>
+                      </div>
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 flex-shrink-0 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+                  
+                  {/* Expanded content */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 space-y-4">
+                      {/* Visual battle representation */}
                       <div className="relative z-10">
                         <div className="bg-gradient-to-r from-primary/10 via-muted/30 to-orange-500/10 rounded-xl p-4 border border-white/5">
                           <div className="flex items-center justify-between mb-3">
@@ -2105,15 +1136,21 @@ const Social = () => {
                                   <span className="text-muted-foreground text-lg">-</span>
                                   <span className="text-orange-500">{challenge.opponent_progress || 0}</span>
                                 </div>
-                                <p className="text-[10px] text-muted-foreground mt-1">habitudes complétées</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                  {challenge.habit_name ? `fois "${challenge.habit_name}"` : 'habitudes complétées'}
+                                </p>
                               </div>
                             </div>
                             
                             <div className="text-center flex-1">
                               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-1 shadow-lg shadow-orange-500/30">
-                                <span className="text-white font-bold">{(challenge.opponent_name || 'A')[0].toUpperCase()}</span>
+                                <span className="text-white font-bold">
+                                  {((challenge.creator_id === user?.id ? challenge.opponent_name : challenge.creator_name) || 'A')[0].toUpperCase()}
+                                </span>
                               </div>
-                              <span className="text-xs text-foreground font-medium">{challenge.opponent_name || 'Adversaire'}</span>
+                              <span className="text-xs text-foreground font-medium">
+                                {challenge.creator_id === user?.id ? challenge.opponent_name : challenge.creator_name}
+                              </span>
                             </div>
                           </div>
                           
@@ -2136,42 +1173,20 @@ const Social = () => {
                             </p>
                           </div>
                           
-                          {/* Reactions and cheer button */}
-                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/10">
-                            <div className="flex items-center gap-1">
-                              {['🔥', '💪', '⚡', '🎯'].map(emoji => (
-                                <button
-                                  key={emoji}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    addReaction(challenge.id, emoji);
-                                  }}
-                                  className={`text-lg p-1 rounded-lg transition-all duration-200 hover:scale-125 ${
-                                    (challengeReactions[challenge.id] || []).includes(emoji) 
-                                      ? 'bg-primary/20 scale-110' 
-                                      : 'hover:bg-muted/50'
-                                  }`}
-                                >
-                                  {emoji}
-                                </button>
-                              ))}
-                              {(challengeReactions[challenge.id] || []).length > 0 && (
-                                <span className="text-[10px] text-muted-foreground ml-1">
-                                  {challengeReactions[challenge.id]?.join('')}
-                                </span>
-                              )}
-                            </div>
-                            {!cheeredChallenges.includes(challenge.id) && challenge.opponent_id && (
+                          {/* Cheer button */}
+                          <div className="flex items-center justify-end mt-3 pt-2 border-t border-white/10">
+                            {!cheeredChallenges.includes(challenge.id) && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-7 px-2 text-xs bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-400 hover:from-green-500/20 hover:to-emerald-500/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  cheerChallenge(challenge.id, challenge.opponent_id);
+                                  const opponentId = challenge.creator_id === user?.id ? challenge.opponent_id : challenge.creator_id;
+                                  cheerChallenge(challenge.id, opponentId);
                                 }}
                               >
-                                👏 Encourager
+                                👏 Encourager l'adversaire
                               </Button>
                             )}
                             {cheeredChallenges.includes(challenge.id) && (
@@ -2182,96 +1197,255 @@ const Social = () => {
                           </div>
                         </div>
                       </div>
-                    )}
-                    
-                    {/* Group challenge progress */}
-                    {challenge.type === 'group' && (
-                      <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm text-foreground">Ta progression</span>
-                          <span className="text-sm font-bold text-primary">{progress}%</span>
+                      
+                      {challenge.description && (
+                        <p className="text-xs text-muted-foreground relative z-10">{challenge.description}</p>
+                      )}
+                      
+                      <div className="flex items-center justify-between pt-3 border-t border-white/5 relative z-10">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Target className="w-3 h-3" />
+                            {challenge.target_value}j
+                          </span>
+                          <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${
+                            daysLeft <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-muted/50 text-muted-foreground'
+                          }`}>
+                            <Clock className="w-3 h-3" />
+                            {daysLeft === 0 ? 'Dernier jour !' : `${daysLeft}j`}
+                          </span>
                         </div>
-                        <div className="h-3 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-primary rounded-full transition-all duration-500"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            quitChallenge(challenge.id);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Abandonner
+                        </Button>
                       </div>
-                    )}
-                    
-                    {challenge.description && (
-                      <p className="text-xs text-muted-foreground relative z-10">{challenge.description}</p>
-                    )}
-                    
-                    <div className="flex items-center justify-between pt-3 border-t border-white/5 relative z-10">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Target className="w-3 h-3" />
-                          {challenge.target_value}j
-                        </span>
-                        <span className={`text-[10px] px-2 py-1 rounded-full flex items-center gap-1 ${
-                          daysLeft <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-muted/50 text-muted-foreground'
-                        }`}>
-                          <Clock className="w-3 h-3" />
-                          {daysLeft === 0 ? 'Dernier jour !' : `${daysLeft}j`}
-                        </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {challenges.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Swords className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Aucun duel en cours</p>
+                <p className="text-xs mt-1">Lance un duel à un ami pour commencer !</p>
+              </div>
+            )}
+
+            <Button 
+              variant="outline" 
+              className="w-full border-dashed border-red-500/40 text-red-500 hover:bg-red-500/10 hover:border-red-500 transition-all duration-300 h-10 rounded-xl group" 
+              onClick={() => setChallengeDialogOpen(true)}
+            >
+              <Swords className="w-4 h-4 mr-2 group-hover:rotate-45 transition-transform duration-300" />
+              Lancer un nouveau duel
+            </Button>
+          </TabsContent>
+
+          {/* Tab: Palmarès */}
+          <TabsContent value="ranking" className="space-y-3 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                Palmarès des duels
+              </h2>
+            </div>
+
+            {/* My stats */}
+            <div className="glass rounded-2xl p-4 border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 mb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12 ring-2 ring-primary/50">
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-lg">
+                      {(profile?.full_name || 'T')[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-bold text-foreground">Toi</h3>
+                    <p className="text-xs text-primary">Tes statistiques</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 text-yellow-500">
+                      <Trophy className="w-4 h-4" />
+                      <span className="font-bold text-lg">{(profile as any)?.duel_wins || 0}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">victoires</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center gap-1 text-orange-500">
+                      <Flame className="w-4 h-4" />
+                      <span className="font-bold text-lg">{(profile as any)?.duel_streak || 0}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">série</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {rankedFriends.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Trophy className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Ajoute des amis pour voir le classement</p>
+              </div>
+            ) : (
+              rankedFriends.map((friend, index) => (
+                <div 
+                  key={friend.id} 
+                  className={`glass rounded-2xl p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-fade-in relative overflow-hidden group ${
+                    index === 0 ? 'border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/20' : 
+                    index === 1 ? 'border-gray-400/50 bg-gradient-to-br from-gray-400/10 to-transparent' : 
+                    index === 2 ? 'border-amber-600/50 bg-gradient-to-br from-amber-600/10 to-transparent' : 
+                    'border-white/5 hover:border-primary/30'
+                  }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  {index < 3 && (
+                    <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
+                      <Trophy className={`w-full h-full ${
+                        index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'
+                      }`} />
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg ${
+                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-950 shadow-yellow-500/50' : 
+                        index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900 shadow-gray-500/50' : 
+                        index === 2 ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-amber-950 shadow-amber-500/50' : 
+                        'bg-muted text-muted-foreground'
+                      }`}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-[10px] text-destructive/70 hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          quitChallenge(challenge.id);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Quitter
-                      </Button>
+                      <Avatar className="w-10 h-10 ring-2 ring-white/10">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                          {(friend.profile.full_name || 'A')[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{friend.profile.full_name}</h3>
+                        <p className="text-xs text-muted-foreground">#{friend.profile.friend_code}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-full">
+                        <Trophy className="w-4 h-4 text-yellow-500" />
+                        <span className="font-bold text-yellow-400">{(friend.profile as any).duel_wins || 0}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">victoires</p>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              ))
+            )}
+          </TabsContent>
 
-          <Button 
-            variant="outline" 
-            className="w-full border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-all duration-300 h-10 rounded-xl group" 
-            onClick={() => setChallengeDialogOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-            Créer un défi
-          </Button>
-        </section>
+          {/* Tab: Notifications */}
+          <TabsContent value="notifications" className="space-y-3 mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold text-foreground">Notifications</h2>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-xs"
+                onClick={() => setNotificationSettingsOpen(!notificationSettingsOpen)}
+              >
+                <Bell className="w-3 h-3 mr-1" />
+                Paramètres
+              </Button>
+            </div>
+
+            {notificationSettingsOpen && (
+              <div className="glass rounded-xl p-4 border border-white/10 space-y-3 mb-4">
+                <h3 className="text-sm font-medium text-foreground">Préférences de notification</h3>
+                <div className="space-y-2">
+                  {[
+                    { key: 'friendRequests', label: 'Demandes d\'amis' },
+                    { key: 'challenges', label: 'Duels et défis' },
+                    { key: 'motivations', label: 'Encouragements' },
+                  ].map(({ key, label }) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">{label}</span>
+                      <Switch 
+                        checked={notifPreferences[key as keyof typeof notifPreferences]}
+                        onCheckedChange={(checked) => updateNotifPreferences({ [key]: checked })}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {notifications.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Aucune notification</p>
+              </div>
+            ) : (
+              notifications.map((notif, index) => (
+                <div 
+                  key={notif.id}
+                  className={`glass rounded-xl p-3 border transition-all duration-300 animate-fade-in ${
+                    !notif.isRead ? 'border-primary/30 bg-primary/5' : 'border-white/5'
+                  }`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
+                        {notif.senderName[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">
+                        <span className="font-medium text-foreground">{notif.senderName}</span>
+                        <span className="text-muted-foreground"> {notif.message}</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">{notif.timestamp}</p>
+                    </div>
+                    <span className={`text-lg ${
+                      notif.type === 'motivation' ? '' : 
+                      notif.type === 'challenge' ? '' : 
+                      notif.type === 'achievement' ? '' : 
+                      notif.type === 'friend_request' ? '' : ''
+                    }`}>
+                      {notif.type === 'motivation' ? '💪' : 
+                       notif.type === 'challenge' ? '⚔️' : 
+                       notif.type === 'achievement' ? '🏆' : 
+                       notif.type === 'friend_request' ? '👋' : '🔔'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Dialog: Profil ami détaillé */}
-      <Dialog open={!!selectedFriend && !messageDialogOpen} onOpenChange={() => setSelectedFriend(null)}>
+      <Dialog open={!!selectedFriend && !messageDialogOpen && !challengeDialogOpen} onOpenChange={() => setSelectedFriend(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-4">
-              <div className="relative">
-                <Avatar className="w-16 h-16 ring-2 ring-primary/30">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xl">
-                    {(selectedFriend?.profile.full_name || 'A')[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {selectedFriend?.lastActive === 'En ligne' && (
-                  <span className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
-                )}
-              </div>
+              <Avatar className="w-16 h-16 ring-2 ring-primary/30">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xl">
+                  {(selectedFriend?.profile.full_name || 'A')[0].toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1">
                 <span className="text-lg">{selectedFriend?.profile.full_name}</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    selectedFriend?.lastActive === 'En ligne' 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {selectedFriend?.lastActive}
-                  </span>
                   <span className="text-xs text-muted-foreground">
                     #{selectedFriend?.profile.friend_code}
                   </span>
@@ -2281,183 +1455,71 @@ const Social = () => {
           </DialogHeader>
           
           <div className="space-y-4 pt-2">
-            {/* Stats principales - only show in demo mode */}
-            {demoMode && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="glass rounded-xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                        <Flame className="w-4 h-4 text-orange-500" />
-                      </div>
-                      <span className="text-xs text-muted-foreground">Série actuelle</span>
-                    </div>
-                    <p className="text-2xl font-bold text-orange-400">{selectedFriend?.streak || 0}</p>
-                    <p className="text-xs text-muted-foreground">jours consécutifs</p>
-                  </div>
-                  <div className="glass rounded-xl p-4 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-transparent">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                        <Award className="w-4 h-4 text-yellow-500" />
-                      </div>
-                      <span className="text-xs text-muted-foreground">Badges</span>
-                    </div>
-                    <p className="text-2xl font-bold text-yellow-400">{selectedFriend?.achievements || 0}</p>
-                    <p className="text-xs text-muted-foreground">débloqués</p>
-                  </div>
-                </div>
-
-                {/* Progression hebdomadaire */}
-                <div className="glass rounded-xl p-4 border border-primary/20">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Progression cette semaine</span>
-                    </div>
-                    <span className="text-lg font-bold text-primary">{selectedFriend?.weeklyProgress || 0}%</span>
-                  </div>
-                  <Progress value={selectedFriend?.weeklyProgress || 0} className="h-3" />
-                  <div className="flex justify-between mt-2">
-                    <span className="text-xs text-muted-foreground">Lun</span>
-                    <span className="text-xs text-muted-foreground">Mar</span>
-                    <span className="text-xs text-muted-foreground">Mer</span>
-                    <span className="text-xs text-muted-foreground">Jeu</span>
-                    <span className="text-xs text-muted-foreground">Ven</span>
-                    <span className="text-xs text-muted-foreground">Sam</span>
-                    <span className="text-xs text-muted-foreground">Dim</span>
-                  </div>
-                  {/* Visualisation des jours */}
-                  <div className="flex justify-between mt-1">
-                    {[true, true, true, false, true, false, false].map((completed, i) => (
-                      <div 
-                        key={i} 
-                        className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                          completed 
-                            ? 'bg-gradient-to-br from-primary to-accent' 
-                            : 'bg-muted/50'
-                        }`}
-                      >
-                        {completed && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Aujourd'hui */}
-                <div className="glass rounded-xl p-4 border border-white/5">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      Aujourd'hui
-                    </p>
-                    <span className="text-sm font-bold text-primary">
-                      {selectedFriend?.completedToday || 0}/{selectedFriend?.totalHabits || 0}
-                    </span>
-                  </div>
-                  <Progress value={(selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100} className="h-2" />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {((selectedFriend?.completedToday || 0) / (selectedFriend?.totalHabits || 1) * 100).toFixed(0)}% des habitudes complétées
-                  </p>
-                </div>
-              </>
-            )}
-
-            {/* Friend info for non-demo mode */}
-            {!demoMode && (
-              <div className="glass rounded-xl p-4 border border-primary/20">
+            {/* Duel stats */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="glass rounded-xl p-4 border border-yellow-500/20 bg-gradient-to-br from-yellow-500/10 to-transparent">
                 <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Informations</span>
+                  <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <Trophy className="w-4 h-4 text-yellow-500" />
+                  </div>
+                  <span className="text-xs text-muted-foreground">Victoires</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Code ami: #{selectedFriend?.profile.friend_code}</p>
-                <p className="text-xs text-muted-foreground mt-2">Les statistiques détaillées seront disponibles bientôt.</p>
+                <p className="text-2xl font-bold text-yellow-400">{(selectedFriend?.profile as any)?.duel_wins || 0}</p>
               </div>
-            )}
-
-            {/* Stats détaillées - only in demo mode */}
-            {demoMode && (
-              <>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="glass rounded-lg p-3 text-center border border-white/5">
-                    <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 50}</p>
-                    <p className="text-[10px] text-muted-foreground">Meilleure série</p>
+              <div className="glass rounded-xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <Flame className="w-4 h-4 text-orange-500" />
                   </div>
-                  <div className="glass rounded-lg p-3 text-center border border-white/5">
-                    <BarChart3 className="w-4 h-4 text-blue-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 200) + 100}</p>
-                    <p className="text-[10px] text-muted-foreground">Total complétés</p>
-                  </div>
-                  <div className="glass rounded-lg p-3 text-center border border-white/5">
-                    <Clock className="w-4 h-4 text-purple-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-foreground">{Math.floor(Math.random() * 50) + 10}h</p>
-                    <p className="text-[10px] text-muted-foreground">Temps focus</p>
-                  </div>
+                  <span className="text-xs text-muted-foreground">Série de victoires</span>
                 </div>
-
-                {/* Badges récents */}
-                <div className="glass rounded-xl p-4 border border-white/5">
-                  <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    Badges récents
-                  </p>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {['🔥', '⭐', '💪', '🏆', '🎯'].map((badge, i) => (
-                      <div 
-                        key={i}
-                        className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center text-lg shrink-0"
-                      >
-                        {badge}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Notifications */}
-            <div className="glass rounded-lg p-3 border border-white/5 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-foreground">Notifications</p>
-                <p className="text-xs text-muted-foreground">
-                  {mutedFriends.includes(selectedFriend?.profile.id || '') ? 'Désactivées' : 'Activées'}
-                </p>
+                <p className="text-2xl font-bold text-orange-400">{(selectedFriend?.profile as any)?.duel_streak || 0}</p>
               </div>
-              <Switch 
-                checked={!mutedFriends.includes(selectedFriend?.profile.id || '')}
-                onCheckedChange={() => toggleMuteFriend(selectedFriend?.profile.id || '')}
-              />
             </div>
 
             {/* Actions */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <Button 
-                onClick={() => setMessageDialogOpen(true)} 
-                className="bg-gradient-primary h-11"
+                onClick={() => {
+                  setSelectedOpponent(selectedFriend?.profile.id || null);
+                  setSelectedFriend(null);
+                  setChallengeDialogOpen(true);
+                }}
+                className="bg-gradient-to-r from-red-500 to-orange-500"
+              >
+                <Swords className="w-4 h-4 mr-2" />
+                Lancer un duel
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setMessageDialogOpen(true);
+                }}
               >
                 <Send className="w-4 h-4 mr-2" />
                 Encourager
               </Button>
-              <Button variant="outline" className="h-11" onClick={() => setChallengeDialogOpen(true)}>
-                <Zap className="w-4 h-4 mr-2" />
-                Défier
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleMuteFriend(selectedFriend?.profile.id || '')}
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                {mutedFriends.includes(selectedFriend?.profile.id || '') ? 'Activer notifs' : 'Muter'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => deleteFriend(selectedFriend?.id || '', selectedFriend?.profile.full_name || '')}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
               </Button>
             </div>
-            
-            {/* Supprimer ami */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="w-full text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              onClick={() => {
-                if (selectedFriend) {
-                  deleteFriend(selectedFriend.id, selectedFriend.profile.full_name || 'Cet ami');
-                }
-              }}
-            >
-              <UserMinus className="w-3 h-3 mr-1" />
-              Supprimer de mes amis
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -2470,33 +1532,30 @@ const Social = () => {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-2">
-              {['💪 Continue !', '🔥 Tu gères !', '⭐ Fier de toi !', '🚀 Go go go !'].map((msg) => (
+              {['💪 Continue !', '🔥 Tu gères !', '⭐ Bravo !', '🚀 Fonce !'].map((msg) => (
                 <Button
                   key={msg}
                   variant="outline"
-                  className="text-sm"
-                  onClick={() => setCustomMessage(msg)}
+                  size="sm"
+                  onClick={() => sendMotivation(selectedFriend?.profile.id || '', selectedFriend?.profile.full_name || '', msg)}
+                  className="h-10"
                 >
                   {msg}
                 </Button>
               ))}
             </div>
-            <Textarea
-              placeholder="Ou écris ton propre message..."
-              value={customMessage}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              rows={3}
-            />
+            <div className="relative">
+              <Textarea
+                placeholder="Ou écris ton propre message..."
+                value={customMessage}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                rows={2}
+              />
+            </div>
             <Button 
-              onClick={() => {
-                const message = customMessage || '💪 Continue comme ça !';
-                sendMotivation(
-                  selectedFriend?.profile.id || '', 
-                  selectedFriend?.profile.full_name || 'Ami',
-                  message
-                );
-              }} 
               className="w-full bg-gradient-primary"
+              onClick={() => sendMotivation(selectedFriend?.profile.id || '', selectedFriend?.profile.full_name || '', customMessage || '💪 Continue !')}
+              disabled={!selectedFriend}
             >
               Envoyer
             </Button>
@@ -2504,414 +1563,121 @@ const Social = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Détail groupe */}
-      <Dialog open={!!selectedGroup} onOpenChange={() => setSelectedGroup(null)}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <span>{selectedGroup?.name}</span>
-                <p className="text-xs text-muted-foreground font-normal">{selectedGroup?.member_count} membres • #{selectedGroup?.ranking}</p>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4 pt-4">
-            {/* Description */}
-            {selectedGroup?.description && (
-              <p className="text-sm text-muted-foreground">{selectedGroup.description}</p>
-            )}
-
-            {/* Stats du groupe - Real data */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="glass rounded-lg p-3 text-center border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-transparent">
-                <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
-                <p className="text-lg font-bold text-orange-400">{groupStats?.current_streak || 0}</p>
-                <p className="text-[10px] text-muted-foreground">Streak groupe</p>
-              </div>
-              <div className="glass rounded-lg p-3 text-center border border-primary/20">
-                <BarChart3 className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-lg font-bold text-foreground">{groupStats?.total_habits_completed || 0}</p>
-                <p className="text-[10px] text-muted-foreground">Habitudes</p>
-              </div>
-              <div className="glass rounded-lg p-3 text-center border border-green-500/20 bg-gradient-to-br from-green-500/10 to-transparent">
-                <Target className="w-4 h-4 text-green-500 mx-auto mb-1" />
-                <p className="text-lg font-bold text-green-400">{groupStats?.weekly_progress || 0}/{groupStats?.weekly_goal || 50}</p>
-                <p className="text-[10px] text-muted-foreground">Objectif semaine</p>
-              </div>
-            </div>
-
-            {/* Code */}
-            <div className="glass rounded-lg p-3 border border-primary/20 flex items-center justify-between">
-              <div>
-                <p className="text-xs text-muted-foreground">Code d'invitation</p>
-                <p className="font-mono font-bold text-primary tracking-widest">{selectedGroup?.invite_code}</p>
-              </div>
-              <Button variant="ghost" size="icon" onClick={() => {
-                navigator.clipboard.writeText(selectedGroup?.invite_code || '');
-                toast({ title: "Code copié !" });
-              }}>
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Objectif collectif */}
-            <div className="bg-gradient-to-br from-green-500/10 to-primary/5 rounded-xl p-4 border border-green-500/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-green-500" />
-                <span className="text-sm font-medium text-foreground">Objectif collectif de la semaine</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-2">
-                Complétez ensemble {groupStats?.weekly_goal || 50} habitudes cette semaine !
-              </p>
-              <Progress value={((groupStats?.weekly_progress || 0) / (groupStats?.weekly_goal || 50)) * 100} className="h-2" />
-              <p className="text-[10px] text-muted-foreground mt-1">
-                {groupStats?.weekly_progress || 0} / {groupStats?.weekly_goal || 50} ({Math.round(((groupStats?.weekly_progress || 0) / (groupStats?.weekly_goal || 50)) * 100)}%)
-              </p>
-            </div>
-
-            {/* Fil d'activité LIVE avec réactions */}
-            <div>
-              <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-green-500 animate-pulse" />
-                Activité en direct
-                <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full animate-pulse">LIVE</span>
-              </p>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {groupActivities.length > 0 ? groupActivities.slice(0, 5).map((activity) => {
-                  const timeAgo = getTimeAgo(activity.created_at);
-                  const icon = activity.activity_type === 'habit_completed' ? '✅' : 
-                              activity.activity_type === 'streak_milestone' ? '🔥' :
-                              activity.activity_type === 'joined' ? '👋' : '⭐';
-                  const text = activity.activity_type === 'habit_completed' 
-                    ? `${activity.user_name} a complété "${activity.habit_name || 'une habitude'}"`
-                    : activity.message || `${activity.user_name} - ${activity.activity_type}`;
-                  
-                  return (
-                    <div key={activity.id} className="p-2 rounded-lg bg-muted/30 animate-fade-in group">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{icon}</span>
-                        <span className="text-xs text-foreground flex-1">{text}</span>
-                        <span className="text-[10px] text-muted-foreground">{timeAgo}</span>
-                      </div>
-                      {/* Quick reactions */}
-                      <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {['👏', '🔥', '💪', '❤️'].map(emoji => (
-                          <button
-                            key={emoji}
-                            onClick={() => {
-                              toast({ title: `${emoji} envoyé !` });
-                              // Could add reaction to DB here
-                            }}
-                            className="text-sm p-0.5 rounded hover:bg-muted/50 hover:scale-125 transition-all duration-200"
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }) : (
-                  <div className="text-center py-4 text-muted-foreground text-xs">
-                    <Activity className="w-6 h-6 mx-auto mb-1 opacity-30" />
-                    <p>Aucune activité récente</p>
-                    <p className="text-[10px]">Complète des habitudes pour voir l'activité ici !</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Classement des membres */}
-            <div>
-              <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                Classement du groupe
-              </p>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {groupMemberStats.length > 0 ? groupMemberStats.map((member, index) => (
-                  <div key={member.user_id} className={`flex items-center justify-between p-2 rounded-lg ${
-                    index === 0 ? 'bg-gradient-to-r from-yellow-500/20 to-transparent border border-yellow-500/30' :
-                    index === 1 ? 'bg-gradient-to-r from-gray-400/20 to-transparent' :
-                    index === 2 ? 'bg-gradient-to-r from-amber-600/20 to-transparent' :
-                    'hover:bg-muted/50'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        index === 0 ? 'bg-yellow-500 text-yellow-950' : 
-                        index === 1 ? 'bg-gray-400 text-gray-900' : 
-                        index === 2 ? 'bg-amber-600 text-amber-950' : 
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                      </div>
-                      <Avatar className="w-7 h-7">
-                        <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                          {member.user_name[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm text-foreground">{member.user_name}</span>
-                      {member.user_id === user?.id && (
-                        <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">Toi</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="flex items-center gap-1 text-orange-500">
-                        <Flame className="w-3 h-3" />
-                        <span className="font-medium">{member.streak}j</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <span>{member.completions_week} cette semaine</span>
-                      </div>
-                    </div>
-                  </div>
-                )) : (
-                  <div className="text-center py-4 text-muted-foreground text-sm">
-                    <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p>Aucun membre</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Actions du groupe */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  onClick={() => sendGroupMotivation(selectedGroup?.id || '', selectedGroup?.name || '')} 
-                  className="bg-gradient-primary"
-                  size="sm"
-                >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Motiver tous
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setSelectedGroup(null);
-                    setChallengeType('group');
-                    setSelectedChallengeGroup(selectedGroup?.id || null);
-                    setChallengeDialogOpen(true);
-                  }}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Nouveau défi
-                </Button>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => {
-                    navigator.clipboard.writeText(selectedGroup?.invite_code || '');
-                    toast({ title: "Lien copié !", description: "Partage-le avec tes amis" });
-                  }}
-                >
-                  <Copy className="w-3 h-3 mr-1" />
-                  Inviter
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => setGroupSettingsOpen(true)}
-                >
-                  <Settings className="w-3 h-3 mr-1" />
-                  Paramètres
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-xs text-destructive hover:text-destructive"
-                  onClick={() => leaveGroup(selectedGroup?.id || '')}
-                >
-                  <UserMinus className="w-3 h-3 mr-1" />
-                  Quitter
-                </Button>
-              </div>
-
-              {/* Group settings */}
-              {groupSettingsOpen && (
-                <div className="glass rounded-xl p-4 border border-white/10 space-y-3 mt-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">Paramètres du groupe</p>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setGroupSettingsOpen(false)}>
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-foreground">Notifications</p>
-                      <p className="text-xs text-muted-foreground">Recevoir les notifications de ce groupe</p>
-                    </div>
-                    <Switch 
-                      checked={!mutedGroups.includes(selectedGroup?.id || '')}
-                      onCheckedChange={() => toggleMuteGroup(selectedGroup?.id || '')}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Créer défi */}
+      {/* Dialog: Créer duel */}
       <Dialog open={challengeDialogOpen} onOpenChange={(open) => {
         setChallengeDialogOpen(open);
         if (!open) {
-          setChallengeType(null);
           setChallengeTitle("");
           setChallengeDescription("");
           setChallengeDuration(7);
           setSelectedOpponent(null);
-          setSelectedChallengeGroup(null);
+          setSelectedHabitId(null);
         }
       }}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Créer un défi</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Swords className="w-5 h-5 text-red-500" />
+              Lancer un duel
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            {!challengeType ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Choisis le type de défi que tu veux créer.
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    onClick={() => setChallengeType('group')}
-                    className="glass rounded-xl p-4 text-center border border-white/5 hover:border-primary/30 transition-colors"
-                  >
-                    <Users className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium text-foreground">Défi groupe</p>
-                    <p className="text-xs text-muted-foreground">Tous ensemble</p>
-                  </button>
-                  <button 
-                    onClick={() => setChallengeType('duel')}
-                    className="glass rounded-xl p-4 text-center border border-white/5 hover:border-orange-500/30 transition-colors"
-                  >
-                    <Zap className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                    <p className="font-medium text-foreground">Duel</p>
-                    <p className="text-xs text-muted-foreground">1 contre 1</p>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <Input
-                  placeholder="Nom du défi"
-                  value={challengeTitle}
-                  onChange={(e) => setChallengeTitle(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Description (optionnel)"
-                  value={challengeDescription}
-                  onChange={(e) => setChallengeDescription(e.target.value)}
-                  rows={2}
-                />
-                
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 block">
-                    Durée : {challengeDuration} jours
-                  </label>
-                  <div className="flex gap-2">
-                    {[3, 7, 14, 30].map((days) => (
-                      <Button
-                        key={days}
-                        variant={challengeDuration === days ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setChallengeDuration(days)}
-                        className={challengeDuration === days ? "bg-gradient-primary" : ""}
-                      >
-                        {days}j
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+            <Input
+              placeholder="Nom du duel (ex: Challenge sport)"
+              value={challengeTitle}
+              onChange={(e) => setChallengeTitle(e.target.value)}
+            />
+            
+            <Textarea
+              placeholder="Description (optionnel)"
+              value={challengeDescription}
+              onChange={(e) => setChallengeDescription(e.target.value)}
+              rows={2}
+            />
 
-                {challengeType === 'duel' && (
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      Choisir un adversaire
-                    </label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {(displayedFriends as typeof mockFriends).map((friend) => (
-                        <button
-                          key={friend.id}
-                          onClick={() => setSelectedOpponent(friend.profile.id)}
-                          className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                            selectedOpponent === friend.profile.id 
-                              ? 'bg-primary/20 border border-primary/50' 
-                              : 'hover:bg-muted/50 border border-transparent'
-                          }`}
-                        >
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                              {(friend.profile.full_name || 'A')[0].toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm text-foreground">{friend.profile.full_name}</span>
-                          {selectedOpponent === friend.profile.id && (
-                            <Check className="w-4 h-4 text-primary ml-auto" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {challengeType === 'group' && (
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">
-                      Choisir un groupe
-                    </label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {(displayedGroups as typeof mockGroups).map((group) => (
-                        <button
-                          key={group.id}
-                          onClick={() => setSelectedChallengeGroup(group.id)}
-                          className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                            selectedChallengeGroup === group.id 
-                              ? 'bg-primary/20 border border-primary/50' 
-                              : 'hover:bg-muted/50 border border-transparent'
-                          }`}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                            <Users className="w-4 h-4 text-primary-foreground" />
-                          </div>
-                          <span className="text-sm text-foreground">{group.name}</span>
-                          {selectedChallengeGroup === group.id && (
-                            <Check className="w-4 h-4 text-primary ml-auto" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setChallengeType(null)}
-                    className="flex-1"
+            {/* Habit selection */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Habitude du duel (optionnel)
+              </label>
+              <Select value={selectedHabitId || ''} onValueChange={(v) => setSelectedHabitId(v || null)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Toutes les habitudes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Toutes les habitudes</SelectItem>
+                  {habits.map((habit) => (
+                    <SelectItem key={habit.id} value={habit.id}>
+                      {habit.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Choisis une habitude spécifique ou laisse vide pour compter toutes les habitudes
+              </p>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Durée : {challengeDuration} jours
+              </label>
+              <div className="flex gap-2">
+                {[3, 7, 14, 30].map((days) => (
+                  <Button
+                    key={days}
+                    variant={challengeDuration === days ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setChallengeDuration(days)}
+                    className={challengeDuration === days ? "bg-gradient-to-r from-red-500 to-orange-500" : ""}
                   >
-                    Retour
+                    {days}j
                   </Button>
-                  <Button 
-                    onClick={createChallenge}
-                    className="flex-1 bg-gradient-primary"
-                    disabled={!challengeTitle.trim() || (challengeType === 'duel' && !selectedOpponent) || (challengeType === 'group' && !selectedChallengeGroup)}
-                  >
-                    Créer le défi
-                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-2 block">
+                Choisir un adversaire
+              </label>
+              {friends.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Ajoute des amis pour lancer des duels</p>
+              ) : (
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {friends.map((friend) => (
+                    <button
+                      key={friend.id}
+                      onClick={() => setSelectedOpponent(friend.profile.id)}
+                      className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                        selectedOpponent === friend.profile.id 
+                          ? 'bg-red-500/20 border border-red-500/50' 
+                          : 'hover:bg-muted/50 border border-transparent'
+                      }`}
+                    >
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
+                          {(friend.profile.full_name || 'A')[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium text-foreground">{friend.profile.full_name}</span>
+                      {selectedOpponent === friend.profile.id && (
+                        <Check className="w-4 h-4 text-red-500 ml-auto" />
+                      )}
+                    </button>
+                  ))}
                 </div>
-              </>
-            )}
+              )}
+            </div>
+
+            <Button 
+              onClick={createDuel} 
+              className="w-full bg-gradient-to-r from-red-500 to-orange-500"
+              disabled={!challengeTitle.trim() || !selectedOpponent || friends.length === 0}
+            >
+              <Swords className="w-4 h-4 mr-2" />
+              Envoyer le duel
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
