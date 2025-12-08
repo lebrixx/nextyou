@@ -176,8 +176,8 @@ const Habits = () => {
           completed_at: new Date().toISOString().split('T')[0]
         });
       
-      // Update challenge progress
-      updateChallengeProgress();
+      // Update challenge progress (await to ensure completion is recorded first)
+      await updateChallengeProgress();
       
       // Post activity to groups
       postHabitActivityToGroups(habit.name);
