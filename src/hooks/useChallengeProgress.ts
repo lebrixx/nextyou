@@ -1,8 +1,79 @@
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+type DuelMode = 'regularity' | 'specific_habit' | 'sprint' | 'endurance' | 'streak';
+
 export const useChallengeProgress = (userId: string | undefined) => {
+  
+  // Calculate progress based on duel mode
+  const calculateProgress = async (
+    userId: string,
+    challenge: any,
+    mode: DuelMode
+  ): Promise<number> => {
+    const startDate = challenge.start_date;
+    const endDate = challenge.end_date;
+    
+    let query = supabase
+      .from('habit_completions')
+      .select('completed_at, habit_id')
+      .eq('user_id', userId)
+      .gte('completed_at', startDate)
+      .lte('completed_at', endDate);
+    
+    // For specific_habit and streak modes, filter by habit
+    if ((mode === 'specific_habit' || mode === 'streak') && challenge.habit_id) {
+      query = query.eq('habit_id', challenge.habit_id);
+    }
+    
+    const { data: completions } = await query;
+    
+    if (!completions?.length) return 0;
+    
+    switch (mode) {
+      case 'regularity':
+        // 1 point per day max (unique days with at least 1 completion)
+        const uniqueDays = new Set(completions.map(c => c.completed_at));
+        return uniqueDays.size;
+      
+      case 'specific_habit':
+        // Count all completions of the specific habit
+        return completions.length;
+      
+      case 'sprint':
+        // Count total completions in the sprint period
+        return completions.length;
+      
+      case 'endurance':
+        // Count total completions towards goal
+        return completions.length;
+      
+      case 'streak':
+        // Calculate longest consecutive streak
+        if (!completions.length) return 0;
+        const dates = [...new Set(completions.map(c => c.completed_at))].sort();
+        let maxStreak = 1;
+        let currentStreak = 1;
+        
+        for (let i = 1; i < dates.length; i++) {
+          const prevDate = new Date(dates[i - 1]);
+          const currDate = new Date(dates[i]);
+          const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays === 1) {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+          } else {
+            currentStreak = 1;
+          }
+        }
+        return maxStreak;
+      
+      default:
+        return 0;
+    }
+  };
   
   // Update challenge progress when habit is completed
   const updateChallengeProgress = useCallback(async () => {
@@ -18,8 +89,6 @@ export const useChallengeProgress = (userId: string | undefined) => {
       
       if (!participations?.length) return;
       
-      const today = new Date().toISOString().split('T')[0];
-      
       for (const participation of participations) {
         // Get the challenge details
         const { data: challenge } = await supabase
@@ -31,26 +100,8 @@ export const useChallengeProgress = (userId: string | undefined) => {
         
         if (!challenge) continue;
         
-        // Count UNIQUE DAYS with completions (1 point per day max)
-        let query = supabase
-          .from('habit_completions')
-          .select('completed_at')
-          .eq('user_id', userId)
-          .gte('completed_at', challenge.start_date)
-          .lte('completed_at', challenge.end_date);
-        
-        // If challenge has a specific habit, only count that habit
-        if (challenge.habit_id) {
-          query = query.eq('habit_id', challenge.habit_id);
-        }
-        
-        const { data: completions } = await query;
-        
-        // Count unique days (1 point per day)
-        const uniqueDays = new Set(
-          (completions || []).map(c => c.completed_at)
-        );
-        const newProgress = uniqueDays.size;
+        const mode = (challenge.duel_mode || 'regularity') as DuelMode;
+        const newProgress = await calculateProgress(userId, challenge, mode);
         
         // Update progress if changed
         if (newProgress !== participation.progress) {
@@ -58,6 +109,12 @@ export const useChallengeProgress = (userId: string | undefined) => {
             .from('challenge_participants')
             .update({ progress: newProgress })
             .eq('id', participation.id);
+          
+          // For endurance mode, check if user reached target
+          if (mode === 'endurance' && newProgress >= challenge.target_value) {
+            await finishChallenge(challenge.id, userId);
+            continue;
+          }
           
           // Check if opponent is falling behind (for notifications)
           if (challenge.type === 'duel') {
