@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-type DuelMode = 'regularity' | 'specific_habit' | 'sprint' | 'endurance' | 'streak';
+type DuelMode = 'regularity' | 'specific_habit' | 'streak';
 
 export const useChallengeProgress = (userId: string | undefined) => {
   
@@ -22,9 +22,22 @@ export const useChallengeProgress = (userId: string | undefined) => {
       .gte('completed_at', startDate)
       .lte('completed_at', endDate);
     
-    // For specific_habit and streak modes, filter by habit
-    if ((mode === 'specific_habit' || mode === 'streak') && challenge.habit_id) {
-      query = query.eq('habit_id', challenge.habit_id);
+    // For specific_habit and streak modes, we need to match by habit name
+    if ((mode === 'specific_habit' || mode === 'streak') && challenge.habit_name) {
+      // Get habit ids that match the habit name (case insensitive partial match)
+      const { data: matchingHabits } = await supabase
+        .from('habits')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('name', `%${challenge.habit_name}%`);
+      
+      if (matchingHabits && matchingHabits.length > 0) {
+        const habitIds = matchingHabits.map(h => h.id);
+        query = query.in('habit_id', habitIds);
+      } else {
+        // No matching habits found
+        return 0;
+      }
     }
     
     const { data: completions } = await query;
@@ -39,14 +52,6 @@ export const useChallengeProgress = (userId: string | undefined) => {
       
       case 'specific_habit':
         // Count all completions of the specific habit
-        return completions.length;
-      
-      case 'sprint':
-        // Count total completions in the sprint period
-        return completions.length;
-      
-      case 'endurance':
-        // Count total completions towards goal
         return completions.length;
       
       case 'streak':
@@ -109,12 +114,6 @@ export const useChallengeProgress = (userId: string | undefined) => {
             .from('challenge_participants')
             .update({ progress: newProgress })
             .eq('id', participation.id);
-          
-          // For endurance mode, check if user reached target
-          if (mode === 'endurance' && newProgress >= challenge.target_value) {
-            await finishChallenge(challenge.id, userId);
-            continue;
-          }
           
           // Check if opponent is falling behind (for notifications)
           if (challenge.type === 'duel') {
