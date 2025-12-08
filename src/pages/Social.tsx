@@ -37,6 +37,17 @@ interface Habit {
   color: string;
 }
 
+// Duel modes
+type DuelMode = 'regularity' | 'specific_habit' | 'sprint' | 'endurance' | 'streak';
+
+const DUEL_MODES: { value: DuelMode; label: string; description: string; icon: string }[] = [
+  { value: 'regularity', label: 'Régularité', description: '1 point/jour en complétant au moins 1 habitude', icon: '📅' },
+  { value: 'specific_habit', label: 'Habitude ciblée', description: 'Compter les complétion d\'une habitude précise', icon: '🎯' },
+  { value: 'sprint', label: 'Sprint', description: 'Maximum de complétion en temps limité', icon: '⚡' },
+  { value: 'endurance', label: 'Endurance', description: 'Premier à atteindre X complétion', icon: '🏃' },
+  { value: 'streak', label: 'Série', description: 'Plus longue série consécutive', icon: '🔥' },
+];
+
 interface Challenge {
   id: string;
   title: string;
@@ -44,6 +55,7 @@ interface Challenge {
   type: 'duel';
   target_type: string;
   target_value: number;
+  duel_mode: DuelMode;
   creator_id: string;
   opponent_id: string | null;
   habit_id: string | null;
@@ -112,6 +124,8 @@ const Social = () => {
   const [challengeDuration, setChallengeDuration] = useState(7);
   const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
+  const [selectedDuelMode, setSelectedDuelMode] = useState<DuelMode>('regularity');
+  const [enduranceTarget, setEnduranceTarget] = useState(10);
   
   // Form states
   const [friendCode, setFriendCode] = useState("");
@@ -406,6 +420,7 @@ const Social = () => {
         challengesWithNames.push({
           ...challenge,
           type: 'duel',
+          duel_mode: (challenge.duel_mode || 'regularity') as DuelMode,
           creator_name: creatorName,
           opponent_name: opponentName,
           my_progress: myParticipation?.progress || 0,
@@ -575,6 +590,20 @@ const Social = () => {
       
       const selectedHabit = habits.find(h => h.id === selectedHabitId);
       
+      // For specific_habit mode, require a habit selection
+      if (selectedDuelMode === 'specific_habit' && !selectedHabitId) {
+        toast({ title: "Erreur", description: "Sélectionne une habitude pour ce mode", variant: "destructive" });
+        return;
+      }
+      
+      // Determine target value based on mode
+      let targetValue = challengeDuration;
+      if (selectedDuelMode === 'endurance') {
+        targetValue = enduranceTarget;
+      } else if (selectedDuelMode === 'sprint') {
+        targetValue = challengeDuration; // Duration in hours for sprint
+      }
+      
       const { data: challenge, error } = await supabase
         .from('challenges')
         .insert({
@@ -583,7 +612,8 @@ const Social = () => {
           description: challengeDescription.trim() || null,
           type: 'duel',
           target_type: 'completions',
-          target_value: challengeDuration,
+          target_value: targetValue,
+          duel_mode: selectedDuelMode,
           opponent_id: selectedOpponent,
           habit_id: selectedHabitId || null,
           habit_name: selectedHabit?.name || null,
@@ -617,7 +647,7 @@ const Social = () => {
           accepted: false
         });
       
-      // Send notification to opponent
+      const modeInfo = DUEL_MODES.find(m => m.value === selectedDuelMode);
       const habitInfo = selectedHabit ? ` sur "${selectedHabit.name}"` : '';
       await supabase
         .from('social_notifications')
@@ -625,7 +655,7 @@ const Social = () => {
           sender_id: user.id,
           recipient_id: selectedOpponent,
           type: 'challenge',
-          message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel${habitInfo} : "${challengeTitle}" ! ⚔️`
+          message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel ${modeInfo?.icon || ''} ${modeInfo?.label || ''}${habitInfo} : "${challengeTitle}" ! ⚔️`
         });
       
       toast({ title: "⚔️ Duel envoyé !", description: "En attente de la réponse de ton adversaire" });
@@ -635,6 +665,8 @@ const Social = () => {
       setChallengeDuration(7);
       setSelectedOpponent(null);
       setSelectedHabitId(null);
+      setSelectedDuelMode('regularity');
+      setEnduranceTarget(10);
       
       await loadChallenges(user.id);
     } catch (err) {
@@ -1184,6 +1216,13 @@ const Social = () => {
                       De {challenge.creator_name} • {challenge.target_value} jours
                       {challenge.habit_name && <span className="text-primary"> • {challenge.habit_name}</span>}
                     </p>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-red-500/20 text-red-400 inline-block mt-1">
+                      {challenge.duel_mode === 'regularity' && '📅 Régularité'}
+                      {challenge.duel_mode === 'specific_habit' && '🎯 Ciblé'}
+                      {challenge.duel_mode === 'sprint' && '⚡ Sprint'}
+                      {challenge.duel_mode === 'endurance' && '🏃 Endurance'}
+                      {challenge.duel_mode === 'streak' && '🔥 Série'}
+                    </span>
                   </div>
                 </div>
                 {challenge.description && (
@@ -1254,6 +1293,14 @@ const Social = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          {/* Mode badge */}
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-red-500/20 text-red-400">
+                            {challenge.duel_mode === 'regularity' && '📅 Régularité'}
+                            {challenge.duel_mode === 'specific_habit' && '🎯 Ciblé'}
+                            {challenge.duel_mode === 'sprint' && '⚡ Sprint'}
+                            {challenge.duel_mode === 'endurance' && '🏃 Endurance'}
+                            {challenge.duel_mode === 'streak' && '🔥 Série'}
+                          </span>
                           {challenge.habit_name && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/20 text-primary">
                               {challenge.habit_name}
@@ -1367,10 +1414,24 @@ const Social = () => {
                                 : (isWinning ? "🔥 Continue, tu es en tête !" : isTie ? "⚡ Match serré ! Complète tes habitudes pour prendre l'avantage" : "💪 Rattrape ton retard, tu peux le faire !")}
                             </p>
                             
-                            {/* How to score explanation */}
+                            {/* How to score explanation - Mode specific */}
                             <div className="bg-primary/10 rounded-lg p-2 border border-primary/20">
                               <p className="text-[10px] text-primary font-medium">
-                                📊 1 point/jour max : Complète au moins 1 habitude{challenge.habit_name ? ` (${challenge.habit_name})` : ''} pour gagner ton point du jour !
+                                {challenge.duel_mode === 'regularity' && (
+                                  <>📅 Régularité : 1 point/jour max en complétant au moins 1 habitude{challenge.habit_name ? ` (${challenge.habit_name})` : ''}</>
+                                )}
+                                {challenge.duel_mode === 'specific_habit' && (
+                                  <>🎯 Habitude ciblée : Chaque complétion de "{challenge.habit_name}" compte !</>
+                                )}
+                                {challenge.duel_mode === 'sprint' && (
+                                  <>⚡ Sprint : Maximum de complétion en temps limité !</>
+                                )}
+                                {challenge.duel_mode === 'endurance' && (
+                                  <>🏃 Endurance : Premier à atteindre {challenge.target_value} complétion{challenge.target_value > 1 ? 's' : ''} gagne !</>
+                                )}
+                                {challenge.duel_mode === 'streak' && (
+                                  <>🔥 Série : Plus longue série consécutive de "{challenge.habit_name}" gagne !</>
+                                )}
                               </p>
                               <Button
                                 variant="ghost"
@@ -1835,6 +1896,8 @@ const Social = () => {
           setChallengeDuration(7);
           setSelectedOpponent(null);
           setSelectedHabitId(null);
+          setSelectedDuelMode('regularity');
+          setEnduranceTarget(10);
         }
       }}>
         <DialogContent className="max-h-[80vh] overflow-y-auto">
@@ -1858,47 +1921,124 @@ const Social = () => {
               rows={2}
             />
 
-            {/* Habit selection */}
+            {/* Duel mode selection */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
-                Habitude du duel (optionnel)
+                Mode de duel
               </label>
-              <Select value={selectedHabitId || 'all'} onValueChange={(v) => setSelectedHabitId(v === 'all' ? null : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les habitudes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Toutes les habitudes</SelectItem>
-                  {habits.map((habit) => (
-                    <SelectItem key={habit.id} value={habit.id}>
-                      {habit.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Choisis une habitude spécifique ou laisse vide pour compter toutes les habitudes
-              </p>
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
-                Durée : {challengeDuration} jours
-              </label>
-              <div className="flex gap-2">
-                {[3, 7, 14, 30].map((days) => (
-                  <Button
-                    key={days}
-                    variant={challengeDuration === days ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setChallengeDuration(days)}
-                    className={challengeDuration === days ? "bg-gradient-to-r from-red-500 to-orange-500" : ""}
+              <div className="grid grid-cols-1 gap-2">
+                {DUEL_MODES.map((mode) => (
+                  <button
+                    key={mode.value}
+                    onClick={() => setSelectedDuelMode(mode.value)}
+                    className={`w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left ${
+                      selectedDuelMode === mode.value 
+                        ? 'bg-red-500/20 border border-red-500/50' 
+                        : 'hover:bg-muted/50 border border-white/10'
+                    }`}
                   >
-                    {days}j
-                  </Button>
+                    <span className="text-xl">{mode.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground block">{mode.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{mode.description}</span>
+                    </div>
+                    {selectedDuelMode === mode.value && (
+                      <Check className="w-4 h-4 text-red-500 flex-shrink-0 mt-1" />
+                    )}
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Habit selection - Required for specific_habit mode */}
+            {(selectedDuelMode === 'specific_habit' || selectedDuelMode === 'streak') && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Habitude du duel {selectedDuelMode === 'specific_habit' && <span className="text-red-500">*</span>}
+                </label>
+                <Select value={selectedHabitId || ''} onValueChange={(v) => setSelectedHabitId(v || null)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une habitude" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {habits.map((habit) => (
+                      <SelectItem key={habit.id} value={habit.id}>
+                        {habit.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Endurance target */}
+            {selectedDuelMode === 'endurance' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Objectif à atteindre : {enduranceTarget} complétion{enduranceTarget > 1 ? 's' : ''}
+                </label>
+                <div className="flex gap-2">
+                  {[5, 10, 20, 30, 50].map((target) => (
+                    <Button
+                      key={target}
+                      variant={enduranceTarget === target ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setEnduranceTarget(target)}
+                      className={enduranceTarget === target ? "bg-gradient-to-r from-red-500 to-orange-500" : ""}
+                    >
+                      {target}
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Le premier à atteindre cet objectif gagne !
+                </p>
+              </div>
+            )}
+
+            {/* Sprint duration */}
+            {selectedDuelMode === 'sprint' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Durée du sprint : {challengeDuration === 1 ? '24h' : challengeDuration === 2 ? '48h' : '72h'}
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((days) => (
+                    <Button
+                      key={days}
+                      variant={challengeDuration === days ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setChallengeDuration(days)}
+                      className={challengeDuration === days ? "bg-gradient-to-r from-red-500 to-orange-500" : ""}
+                    >
+                      {days === 1 ? '24h' : days === 2 ? '48h' : '72h'}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Duration for non-sprint modes */}
+            {selectedDuelMode !== 'sprint' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Durée : {challengeDuration} jours
+                </label>
+                <div className="flex gap-2">
+                  {[3, 7, 14, 30].map((days) => (
+                    <Button
+                      key={days}
+                      variant={challengeDuration === days ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setChallengeDuration(days)}
+                      className={challengeDuration === days ? "bg-gradient-to-r from-red-500 to-orange-500" : ""}
+                    >
+                      {days}j
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
@@ -1936,7 +2076,7 @@ const Social = () => {
             <Button 
               onClick={createDuel} 
               className="w-full bg-gradient-to-r from-red-500 to-orange-500"
-              disabled={!challengeTitle.trim() || !selectedOpponent || friends.length === 0}
+              disabled={!challengeTitle.trim() || !selectedOpponent || friends.length === 0 || (selectedDuelMode === 'specific_habit' && !selectedHabitId)}
             >
               <Swords className="w-4 h-4 mr-2" />
               Envoyer le duel

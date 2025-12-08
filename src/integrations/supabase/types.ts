@@ -87,6 +87,7 @@ export type Database = {
           created_at: string
           creator_id: string
           description: string | null
+          duel_mode: string
           end_date: string
           group_id: string | null
           habit_id: string | null
@@ -106,6 +107,7 @@ export type Database = {
           created_at?: string
           creator_id: string
           description?: string | null
+          duel_mode?: string
           end_date: string
           group_id?: string | null
           habit_id?: string | null
@@ -125,6 +127,7 @@ export type Database = {
           created_at?: string
           creator_id?: string
           description?: string | null
+          duel_mode?: string
           end_date?: string
           group_id?: string | null
           habit_id?: string | null
