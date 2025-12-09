@@ -28,10 +28,7 @@ interface TimerData {
 
 const Timer = () => {
   const navigate = useNavigate();
-  const [timers, setTimers] = useState<TimerData[]>(() => {
-    const saved = localStorage.getItem("habitflow_timers");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [timers, setTimers] = useState<TimerData[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -42,13 +39,67 @@ const Timer = () => {
   const [user, setUser] = useState<any>(null);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusDuration, setFocusDuration] = useState(25);
+  const [timersLoaded, setTimersLoaded] = useState(false);
 
   useEffect(() => {
-    const loadUser = async () => {
+    const loadUserAndTimers = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      
+      if (user) {
+        // Load timers from Supabase
+        const { data: timersData } = await supabase
+          .from('timers')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+        
+        if (timersData && timersData.length > 0) {
+          const loadedTimers: TimerData[] = timersData.map(t => ({
+            id: t.id,
+            name: t.name,
+            startDate: new Date(t.created_at)
+          }));
+          setTimers(loadedTimers);
+        } else {
+          // Check localStorage as fallback and migrate
+          const saved = localStorage.getItem("habitflow_timers");
+          if (saved) {
+            const localTimers = JSON.parse(saved);
+            for (const timer of localTimers) {
+              await supabase.from('timers').insert({
+                user_id: user.id,
+                name: timer.name,
+                duration: 0,
+                created_at: timer.startDate
+              });
+            }
+            // Reload from Supabase
+            const { data: migratedTimers } = await supabase
+              .from('timers')
+              .select('*')
+              .eq('user_id', user.id);
+            
+            if (migratedTimers) {
+              const loaded: TimerData[] = migratedTimers.map(t => ({
+                id: t.id,
+                name: t.name,
+                startDate: new Date(t.created_at)
+              }));
+              setTimers(loaded);
+            }
+          }
+        }
+      } else {
+        // Not logged in, use localStorage
+        const saved = localStorage.getItem("habitflow_timers");
+        if (saved) setTimers(JSON.parse(saved));
+      }
+      
+      setTimersLoaded(true);
     };
-    loadUser();
+    
+    loadUserAndTimers();
   }, []);
 
   useEffect(() => {
@@ -58,9 +109,12 @@ const Timer = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Save to localStorage as cache
   useEffect(() => {
-    localStorage.setItem("habitflow_timers", JSON.stringify(timers));
-  }, [timers]);
+    if (timersLoaded && timers.length > 0) {
+      localStorage.setItem("habitflow_timers", JSON.stringify(timers));
+    }
+  }, [timers, timersLoaded]);
 
   const formatDuration = (startDate: Date) => {
     const startTime = typeof startDate === 'string' ? new Date(startDate).getTime() : startDate.getTime();
@@ -74,25 +128,61 @@ const Timer = () => {
     return { months, days, hours, minutes, seconds };
   };
 
-  const addTimer = (name: string) => {
-    const newTimer: TimerData = {
-      id: Date.now().toString(),
-      name,
-      startDate: new Date(),
-    };
-    setTimers((prev) => [...prev, newTimer]);
+  const addTimer = async (name: string) => {
+    const now = new Date();
+    
+    if (user) {
+      const { data, error } = await supabase
+        .from('timers')
+        .insert({
+          user_id: user.id,
+          name,
+          duration: 0,
+          created_at: now.toISOString()
+        })
+        .select()
+        .single();
+      
+      if (data && !error) {
+        const newTimer: TimerData = {
+          id: data.id,
+          name: data.name,
+          startDate: new Date(data.created_at),
+        };
+        setTimers((prev) => [...prev, newTimer]);
+      }
+    } else {
+      const newTimer: TimerData = {
+        id: Date.now().toString(),
+        name,
+        startDate: now,
+      };
+      setTimers((prev) => [...prev, newTimer]);
+    }
+    
     toast({
       title: "Compteur créé",
       description: `Le compteur "${name}" a commencé.`,
     });
   };
 
-  const resetTimer = (id: string) => {
+  const resetTimer = async (id: string) => {
+    const now = new Date();
+    
     setTimers((prev) =>
       prev.map((timer) =>
-        timer.id === id ? { ...timer, startDate: new Date() } : timer
+        timer.id === id ? { ...timer, startDate: now } : timer
       )
     );
+    
+    if (user) {
+      await supabase
+        .from('timers')
+        .update({ created_at: now.toISOString() })
+        .eq('id', id)
+        .eq('user_id', user.id);
+    }
+    
     toast({
       title: "Compteur réinitialisé",
       description: "Nouveau départ, nouvelle opportunité de réussir.",
@@ -106,8 +196,13 @@ const Timer = () => {
     setResetDialogOpen(true);
   };
 
-  const deleteTimer = (id: string) => {
+  const deleteTimer = async (id: string) => {
     setTimers((prev) => prev.filter((timer) => timer.id !== id));
+    
+    if (user) {
+      await supabase.from('timers').delete().eq('id', id).eq('user_id', user.id);
+    }
+    
     toast({
       title: "Compteur supprimé",
       description: "Le compteur a été supprimé avec succès.",

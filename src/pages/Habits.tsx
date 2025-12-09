@@ -48,18 +48,14 @@ const Habits = () => {
   useHabitReset(); // Reset habits at midnight
   useNotificationScheduler(); // Schedule all notifications
   
-  const [habits, setHabits] = useState<Habit[]>(() => {
-    const saved = localStorage.getItem("habitflow_habits");
-    return saved ? JSON.parse(saved) : [
-      { id: "1", name: "Boire deux litres d'eau", icon: "hydratation", streak: 0, completed: false }
-    ];
-  });
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [completions, setCompletions] = useState<any[]>([]);
+  const [habitsLoaded, setHabitsLoaded] = useState(false);
   
   // Goals state
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -84,12 +80,25 @@ const Habits = () => {
     setEditDialogOpen(true);
   };
 
-  const handleSaveHabit = (updated: { id: string; name: string; reminderEnabled: boolean; reminderTime: string }) => {
+  const handleSaveHabit = async (updated: { id: string; name: string; reminderEnabled: boolean; reminderTime: string }) => {
     setHabits(prev => prev.map(h => 
       h.id === updated.id 
         ? { ...h, name: updated.name, reminderEnabled: updated.reminderEnabled, reminderTime: updated.reminderTime }
         : h
     ));
+    
+    // Sync to Supabase if user is logged in
+    if (user) {
+      await supabase
+        .from('habits')
+        .update({ 
+          name: updated.name, 
+          reminder_time: updated.reminderEnabled ? updated.reminderTime : null 
+        })
+        .eq('id', updated.id)
+        .eq('user_id', user.id);
+    }
+    
     toast({ title: "Habitude modifiée", description: "Tes modifications ont été enregistrées" });
   };
 
@@ -99,17 +108,26 @@ const Habits = () => {
       open: true,
       title: "Supprimer cette habitude ?",
       description: `L'habitude "${habitToDelete?.name || 'cette habitude'}" sera définitivement supprimée avec tout son historique.`,
-      onConfirm: () => {
+      onConfirm: async () => {
         setHabits(prev => prev.filter(h => h.id !== id));
         setEditDialogOpen(false);
+        
+        // Delete from Supabase if user is logged in
+        if (user) {
+          await supabase.from('habits').delete().eq('id', id).eq('user_id', user.id);
+        }
+        
         toast({ title: "Habitude supprimée", description: "L'habitude a été retirée de ta liste" });
       }
     });
   };
 
+  // Save to localStorage as cache
   useEffect(() => {
-    localStorage.setItem("habitflow_habits", JSON.stringify(habits));
-  }, [habits]);
+    if (habitsLoaded && habits.length > 0) {
+      localStorage.setItem("habitflow_habits", JSON.stringify(habits));
+    }
+  }, [habits, habitsLoaded]);
 
   useEffect(() => {
     localStorage.setItem("habitflow_goals", JSON.stringify(goals));
@@ -123,6 +141,75 @@ const Habits = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setUser(user);
+
+      // Load habits from Supabase
+      const { data: habitsData } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .order('created_at', { ascending: true });
+      
+      if (habitsData && habitsData.length > 0) {
+        // Get today's completions to determine completion status
+        const today = new Date().toISOString().split('T')[0];
+        const { data: todayCompletions } = await supabase
+          .from('habit_completions')
+          .select('habit_id')
+          .eq('user_id', user.id)
+          .eq('completed_at', today);
+        
+        const completedHabitIds = new Set((todayCompletions || []).map(c => c.habit_id));
+        
+        const loadedHabits: Habit[] = habitsData.map(h => ({
+          id: h.id,
+          name: h.name,
+          icon: h.icon as HabitIconType,
+          streak: h.streak || 0,
+          completed: completedHabitIds.has(h.id),
+          reminderEnabled: !!h.reminder_time,
+          reminderTime: h.reminder_time || undefined
+        }));
+        
+        setHabits(loadedHabits);
+      } else {
+        // If no habits from Supabase, check localStorage as fallback
+        const saved = localStorage.getItem("habitflow_habits");
+        if (saved) {
+          const localHabits = JSON.parse(saved);
+          // Migrate local habits to Supabase
+          for (const habit of localHabits) {
+            await supabase.from('habits').insert({
+              user_id: user.id,
+              name: habit.name,
+              icon: habit.icon || 'target',
+              streak: habit.streak || 0,
+              reminder_time: habit.reminderTime || null
+            });
+          }
+          // Reload from Supabase to get proper IDs
+          const { data: migratedHabits } = await supabase
+            .from('habits')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('is_archived', false);
+          
+          if (migratedHabits) {
+            const loaded: Habit[] = migratedHabits.map(h => ({
+              id: h.id,
+              name: h.name,
+              icon: h.icon as HabitIconType,
+              streak: h.streak || 0,
+              completed: false,
+              reminderEnabled: !!h.reminder_time,
+              reminderTime: h.reminder_time || undefined
+            }));
+            setHabits(loaded);
+          }
+        }
+      }
+      
+      setHabitsLoaded(true);
 
       const { data: completionsData } = await supabase
         .from('habit_completions')
@@ -151,19 +238,19 @@ const Habits = () => {
     if (!habit) return;
     
     const newCompleted = !habit.completed;
+    const newStreak = newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1);
     
     const updatedHabits = habits.map((h) => {
       if (h.id === id) {
         return {
           ...h,
           completed: newCompleted,
-          streak: newCompleted ? h.streak + 1 : Math.max(0, h.streak - 1)
+          streak: newStreak
         };
       }
       return h;
     });
     setHabits(updatedHabits);
-    localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
     
     // If completing a habit, update challenge progress and post to groups
     if (newCompleted && user) {
@@ -175,6 +262,13 @@ const Habits = () => {
           habit_id: id,
           completed_at: new Date().toISOString().split('T')[0]
         });
+      
+      // Update streak in Supabase
+      await supabase
+        .from('habits')
+        .update({ streak: newStreak })
+        .eq('id', id)
+        .eq('user_id', user.id);
       
       // Update challenge progress (await to ensure completion is recorded first)
       await updateChallengeProgress();
@@ -190,15 +284,42 @@ const Habits = () => {
     return a.completed ? 1 : -1;
   });
 
-  const addHabit = (name: string, icon: HabitIconType) => {
-    const newHabit = {
-      id: Date.now().toString(),
-      name,
-      icon,
-      streak: 0,
-      completed: false,
-    };
-    setHabits((prev) => [...prev, newHabit]);
+  const addHabit = async (name: string, icon: HabitIconType) => {
+    if (user) {
+      // Add to Supabase
+      const { data, error } = await supabase
+        .from('habits')
+        .insert({
+          user_id: user.id,
+          name,
+          icon,
+          streak: 0
+        })
+        .select()
+        .single();
+      
+      if (data && !error) {
+        const newHabit: Habit = {
+          id: data.id,
+          name: data.name,
+          icon: data.icon as HabitIconType,
+          streak: 0,
+          completed: false,
+        };
+        setHabits((prev) => [...prev, newHabit]);
+      }
+    } else {
+      // Fallback to local only
+      const newHabit: Habit = {
+        id: Date.now().toString(),
+        name,
+        icon,
+        streak: 0,
+        completed: false,
+      };
+      setHabits((prev) => [...prev, newHabit]);
+    }
+    
     toast({
       title: "Habitude créée",
       description: `"${name}" a été ajoutée à tes habitudes.`,
