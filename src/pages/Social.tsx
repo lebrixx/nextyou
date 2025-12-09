@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useSocialNotifications } from "@/hooks/useSocialNotifications";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { FriendBadgesSection } from "@/components/FriendBadgesSection";
 interface Profile {
   id: string;
   full_name: string | null;
@@ -1779,6 +1780,9 @@ const Social = () => {
                 <p className="text-2xl font-bold text-orange-400">{(selectedFriend?.profile as any)?.duel_streak || 0}</p>
               </div>
             </div>
+
+            {/* Friend badges section */}
+            <FriendBadgesSection friendId={selectedFriend?.profile.id} />
 
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2">
