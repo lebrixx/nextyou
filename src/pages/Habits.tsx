@@ -254,27 +254,65 @@ const Habits = () => {
     
     // If completing a habit, update challenge progress and post to groups
     if (newCompleted && user) {
-      // Record completion in database
-      await supabase
-        .from('habit_completions')
-        .insert({
-          user_id: user.id,
-          habit_id: id,
-          completed_at: new Date().toISOString().split('T')[0]
-        });
+      const today = new Date().toISOString().split('T')[0];
       
-      // Update streak in Supabase
-      await supabase
-        .from('habits')
-        .update({ streak: newStreak })
-        .eq('id', id)
-        .eq('user_id', user.id);
+      // Check if this is a valid UUID (Supabase habit) vs local ID
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      if (isValidUUID) {
+        // Record completion in database
+        const { error: completionError } = await supabase
+          .from('habit_completions')
+          .insert({
+            user_id: user.id,
+            habit_id: id,
+            completed_at: today
+          });
+        
+        if (completionError) {
+          console.error('Error recording completion:', completionError);
+        }
+        
+        // Update streak in Supabase
+        await supabase
+          .from('habits')
+          .update({ streak: newStreak })
+          .eq('id', id)
+          .eq('user_id', user.id);
+      } else {
+        // For local habits, we need to migrate them first
+        // Record completion without habit_id for now (for duel progress calculation)
+        const { error: completionError } = await supabase
+          .from('habit_completions')
+          .insert({
+            user_id: user.id,
+            habit_id: null,
+            completed_at: today
+          });
+        
+        if (completionError) {
+          console.error('Error recording completion:', completionError);
+        }
+      }
       
       // Update challenge progress (await to ensure completion is recorded first)
       await updateChallengeProgress();
       
       // Post activity to groups
       postHabitActivityToGroups(habit.name);
+    } else if (!newCompleted && user) {
+      // If uncompleting, remove today's completion
+      const today = new Date().toISOString().split('T')[0];
+      const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      if (isValidUUID) {
+        await supabase
+          .from('habit_completions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('habit_id', id)
+          .eq('completed_at', today);
+      }
     }
   };
 
