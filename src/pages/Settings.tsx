@@ -107,6 +107,14 @@ const Settings = () => {
   };
 
   const handleSignOut = async () => {
+    // Clear all local data on sign out
+    localStorage.removeItem("habitflow_timers");
+    localStorage.removeItem("nextyou_habits");
+    localStorage.removeItem("nextyou_completions");
+    localStorage.removeItem("quotes_notification_settings");
+    localStorage.removeItem("muted_friends");
+    localStorage.removeItem("muted_groups");
+    
     await supabase.auth.signOut();
     toast({
       title: "Déconnexion",
