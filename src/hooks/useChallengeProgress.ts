@@ -8,19 +8,28 @@ export const useChallengeProgress = (userId: string | undefined) => {
   
   // Calculate progress based on duel mode
   const calculateProgress = async (
-    userId: string,
+    participantUserId: string,
     challenge: any,
     mode: DuelMode
   ): Promise<number> => {
     const startDate = challenge.start_date;
     const endDate = challenge.end_date;
     
-    let query = supabase
-      .from('habit_completions')
-      .select('completed_at, habit_id')
-      .eq('user_id', userId)
-      .gte('completed_at', startDate)
-      .lte('completed_at', endDate);
+    // For regularity mode, count unique days with at least one completion
+    if (mode === 'regularity') {
+      const { data: completions } = await supabase
+        .from('habit_completions')
+        .select('completed_at')
+        .eq('user_id', participantUserId)
+        .gte('completed_at', startDate)
+        .lte('completed_at', endDate);
+      
+      if (!completions?.length) return 0;
+      
+      // 1 point per day max (unique days with at least 1 completion)
+      const uniqueDays = new Set(completions.map(c => c.completed_at));
+      return uniqueDays.size;
+    }
     
     // For specific_habit and streak modes, we need to match by habit name
     if ((mode === 'specific_habit' || mode === 'streak') && challenge.habit_name) {
@@ -28,36 +37,35 @@ export const useChallengeProgress = (userId: string | undefined) => {
       const { data: matchingHabits } = await supabase
         .from('habits')
         .select('id')
-        .eq('user_id', userId)
+        .eq('user_id', participantUserId)
         .ilike('name', `%${challenge.habit_name}%`);
       
-      if (matchingHabits && matchingHabits.length > 0) {
-        const habitIds = matchingHabits.map(h => h.id);
-        query = query.in('habit_id', habitIds);
-      } else {
-        // No matching habits found
+      if (!matchingHabits || matchingHabits.length === 0) {
         return 0;
       }
-    }
-    
-    const { data: completions } = await query;
-    
-    if (!completions?.length) return 0;
-    
-    switch (mode) {
-      case 'regularity':
-        // 1 point per day max (unique days with at least 1 completion)
-        const uniqueDays = new Set(completions.map(c => c.completed_at));
-        return uniqueDays.size;
       
-      case 'specific_habit':
+      const habitIds = matchingHabits.map(h => h.id);
+      
+      const { data: completions } = await supabase
+        .from('habit_completions')
+        .select('completed_at, habit_id')
+        .eq('user_id', participantUserId)
+        .gte('completed_at', startDate)
+        .lte('completed_at', endDate)
+        .in('habit_id', habitIds);
+      
+      if (!completions?.length) return 0;
+      
+      if (mode === 'specific_habit') {
         // Count all completions of the specific habit
         return completions.length;
+      }
       
-      case 'streak':
+      if (mode === 'streak') {
         // Calculate longest consecutive streak
-        if (!completions.length) return 0;
         const dates = [...new Set(completions.map(c => c.completed_at))].sort();
+        if (dates.length === 0) return 0;
+        
         let maxStreak = 1;
         let currentStreak = 1;
         
@@ -74,10 +82,10 @@ export const useChallengeProgress = (userId: string | undefined) => {
           }
         }
         return maxStreak;
-      
-      default:
-        return 0;
+      }
     }
+    
+    return 0;
   };
   
   // Update challenge progress when habit is completed
