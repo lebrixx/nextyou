@@ -42,16 +42,13 @@ const Timer = () => {
   const [timersLoaded, setTimersLoaded] = useState(false);
 
   useEffect(() => {
-    const loadUserAndTimers = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      if (user) {
+    const loadUserAndTimers = async (currentUser: any) => {
+      if (currentUser) {
         // Load timers from Supabase
         const { data: timersData } = await supabase
           .from('timers')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', currentUser.id)
           .order('created_at', { ascending: true });
         
         if (timersData && timersData.length > 0) {
@@ -65,41 +62,69 @@ const Timer = () => {
           // Check localStorage as fallback and migrate
           const saved = localStorage.getItem("habitflow_timers");
           if (saved) {
-            const localTimers = JSON.parse(saved);
-            for (const timer of localTimers) {
-              await supabase.from('timers').insert({
-                user_id: user.id,
-                name: timer.name,
-                duration: 0,
-                created_at: timer.startDate
-              });
+            try {
+              const localTimers = JSON.parse(saved);
+              for (const timer of localTimers) {
+                await supabase.from('timers').insert({
+                  user_id: currentUser.id,
+                  name: timer.name,
+                  duration: 0,
+                  created_at: timer.startDate
+                });
+              }
+              // Clear localStorage after migration
+              localStorage.removeItem("habitflow_timers");
+              // Reload from Supabase
+              const { data: migratedTimers } = await supabase
+                .from('timers')
+                .select('*')
+                .eq('user_id', currentUser.id);
+              
+              if (migratedTimers) {
+                const loaded: TimerData[] = migratedTimers.map(t => ({
+                  id: t.id,
+                  name: t.name,
+                  startDate: new Date(t.created_at)
+                }));
+                setTimers(loaded);
+              }
+            } catch (e) {
+              console.error('Error migrating timers:', e);
             }
-            // Reload from Supabase
-            const { data: migratedTimers } = await supabase
-              .from('timers')
-              .select('*')
-              .eq('user_id', user.id);
-            
-            if (migratedTimers) {
-              const loaded: TimerData[] = migratedTimers.map(t => ({
-                id: t.id,
-                name: t.name,
-                startDate: new Date(t.created_at)
-              }));
-              setTimers(loaded);
-            }
+          } else {
+            setTimers([]);
           }
         }
       } else {
-        // Not logged in, use localStorage
-        const saved = localStorage.getItem("habitflow_timers");
-        if (saved) setTimers(JSON.parse(saved));
+        // Not logged in, clear timers
+        setTimers([]);
       }
       
       setTimersLoaded(true);
     };
     
-    loadUserAndTimers();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(() => loadUserAndTimers(session.user), 0);
+        } else {
+          // User logged out, clear timers
+          setTimers([]);
+          setTimersLoaded(true);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      loadUserAndTimers(session?.user);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -109,12 +134,7 @@ const Timer = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Save to localStorage as cache
-  useEffect(() => {
-    if (timersLoaded && timers.length > 0) {
-      localStorage.setItem("habitflow_timers", JSON.stringify(timers));
-    }
-  }, [timers, timersLoaded]);
+  // No localStorage caching for timers - they are only stored in Supabase
 
   const formatDuration = (startDate: Date) => {
     const startTime = typeof startDate === 'string' ? new Date(startDate).getTime() : startDate.getTime();
