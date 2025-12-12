@@ -9,6 +9,7 @@ import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
+import { ProgressiveHabitsGame } from "@/components/ProgressiveHabitsGame";
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
@@ -243,6 +244,9 @@ const Index = () => {
     <main className="px-6 space-y-6 max-w-2xl mx-auto">
       {/* Agenda Widget */}
       <AgendaWidget />
+
+      {/* Progressive Habits Game */}
+      <ProgressiveHabitsGame />
 
       {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
