@@ -351,11 +351,12 @@ export const ProgressiveHabitsGame = () => {
                     
                     {/* Expandable explanation */}
                     <details className="mt-4 group">
-                      <summary className="flex items-center justify-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors py-2 border-t border-violet-500/10">
-                        <span className="flex items-center gap-1">
-                          💡 <span className="underline underline-offset-2">Pourquoi ce jeu est si efficace ?</span>
+                      <summary className="flex items-center justify-center gap-2 cursor-pointer text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 transition-colors py-3 border-t border-violet-500/20 bg-violet-500/5 rounded-b-lg -mx-4 -mb-4 px-4">
+                        <span className="flex items-center gap-2">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-500/20 text-xs">💡</span>
+                          <span>Pourquoi ce jeu est si efficace ?</span>
                         </span>
-                        <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+                        <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
                       </summary>
                       
                       <motion.div
