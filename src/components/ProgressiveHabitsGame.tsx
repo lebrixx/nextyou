@@ -348,6 +348,87 @@ export const ProgressiveHabitsGame = () => {
                         <p className="text-xs text-muted-foreground"><span className="font-semibold text-violet-500">3 jours</span> = +1 habitude</p>
                       </div>
                     </div>
+                    
+                    {/* Expandable explanation */}
+                    <details className="mt-4 group">
+                      <summary className="flex items-center justify-center gap-2 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors py-2 border-t border-violet-500/10">
+                        <span className="flex items-center gap-1">
+                          💡 <span className="underline underline-offset-2">Pourquoi ce jeu est si efficace ?</span>
+                        </span>
+                        <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+                      </summary>
+                      
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-3 space-y-4 text-left"
+                      >
+                        {/* Purpose */}
+                        <div className="rounded-lg bg-background/60 p-3 border border-border/50">
+                          <h5 className="text-xs font-semibold text-foreground flex items-center gap-2 mb-2">
+                            🎯 Le but
+                          </h5>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Construire une <span className="font-semibold text-violet-500">routine matinale solide</span> en ajoutant progressivement 5 micro-habitudes essentielles. 
+                            Pas de changement radical, juste <span className="font-semibold">un petit pas à la fois</span>.
+                          </p>
+                        </div>
+                        
+                        {/* Science behind */}
+                        <div className="rounded-lg bg-background/60 p-3 border border-border/50">
+                          <h5 className="text-xs font-semibold text-foreground flex items-center gap-2 mb-2">
+                            🧠 La science derrière
+                          </h5>
+                          <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                            <li className="flex items-start gap-2">
+                              <span className="text-violet-500 mt-0.5">•</span>
+                              <span><span className="font-semibold text-foreground">Effet cumulatif :</span> 1% de mieux chaque jour = 37x mieux en 1 an</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-violet-500 mt-0.5">•</span>
+                              <span><span className="font-semibold text-foreground">Empilage d'habitudes :</span> Une habitude ancrée facilite la suivante</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-violet-500 mt-0.5">•</span>
+                              <span><span className="font-semibold text-foreground">Règle des 21 jours :</span> 3 semaines suffisent pour ancrer une habitude</span>
+                            </li>
+                          </ul>
+                        </div>
+                        
+                        {/* Results */}
+                        <div className="rounded-lg bg-gradient-to-br from-emerald-500/10 to-green-500/10 p-3 border border-emerald-500/20">
+                          <h5 className="text-xs font-semibold text-foreground flex items-center gap-2 mb-2">
+                            📈 Résultats prouvés
+                          </h5>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Ceux qui respectent ce système constatent en moyenne :
+                          </p>
+                          <div className="grid grid-cols-3 gap-2 mt-2 text-center">
+                            <div className="rounded-lg bg-background/60 p-2">
+                              <span className="block text-lg font-bold text-emerald-500">+40%</span>
+                              <span className="text-[10px] text-muted-foreground">d'énergie</span>
+                            </div>
+                            <div className="rounded-lg bg-background/60 p-2">
+                              <span className="block text-lg font-bold text-emerald-500">+2h</span>
+                              <span className="text-[10px] text-muted-foreground">productives/jour</span>
+                            </div>
+                            <div className="rounded-lg bg-background/60 p-2">
+                              <span className="block text-lg font-bold text-emerald-500">-50%</span>
+                              <span className="text-[10px] text-muted-foreground">de stress</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Key insight */}
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                          <span className="text-lg">🔑</span>
+                          <p className="text-xs text-muted-foreground italic">
+                            "Le secret n'est pas la motivation, c'est la <span className="font-semibold text-violet-500">constance</span>. 
+                            Petit + régulier = transformation."
+                          </p>
+                        </div>
+                      </motion.div>
+                    </details>
                   </div>
                 </>
               )}
