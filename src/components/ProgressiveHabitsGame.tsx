@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Trophy, Flame, ChevronDown, ChevronUp, RotateCcw, Sparkles } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Check, X, Trophy, Flame, ChevronDown, ChevronUp, RotateCcw, Lock, Unlock, Star } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useProgressiveHabits } from '@/hooks/useProgressiveHabits';
-import { useTranslation } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import {
   AlertDialog,
@@ -21,7 +19,6 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export const ProgressiveHabitsGame = () => {
-  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   
@@ -32,7 +29,6 @@ export const ProgressiveHabitsGame = () => {
     completeToday,
     skipToday,
     resetGame,
-    getProgress,
     hasWon,
     maxPosition,
   } = useProgressiveHabits();
@@ -43,40 +39,68 @@ export const ProgressiveHabitsGame = () => {
     setTimeout(() => setShowCelebration(false), 2000);
   };
 
-  const boardSquares = Array.from({ length: maxPosition + 1 }, (_, i) => i);
+  // Calculate days until next habit unlock
+  const currentHabitIndex = state.unlockedHabits - 1;
+  const currentHabit = habits[currentHabitIndex];
+  const daysUntilNextHabit = currentHabit ? Math.max(0, currentHabit.daysToUnlock - state.streak) : 0;
 
   return (
-    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/10">
+    <Card className="overflow-hidden border-0 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-fuchsia-500/10 shadow-lg">
+      {/* Header - Always visible */}
       <CardHeader 
-        className="cursor-pointer pb-2"
+        className="cursor-pointer p-4"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60 text-lg">
-              🎮
+            <div className="relative">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl shadow-lg shadow-violet-500/30">
+                🎯
+              </div>
+              {state.streak > 0 && (
+                <div className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-md">
+                  {state.streak}
+                </div>
+              )}
             </div>
             <div>
-              <CardTitle className="text-base font-semibold">
+              <h3 className="text-lg font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-violet-400 dark:to-fuchsia-400">
                 Petit à Petit
-              </CardTitle>
+              </h3>
               <p className="text-xs text-muted-foreground">
-                {state.unlockedHabits}/5 habitudes • Case {state.position}/{maxPosition}
+                Construis ta routine en {maxPosition} jours
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {state.streak > 0 && (
-              <Badge variant="secondary" className="gap-1 bg-orange-500/20 text-orange-500">
-                <Flame className="h-3 w-3" />
-                {state.streak}
-              </Badge>
-            )}
-            {isExpanded ? (
-              <ChevronUp className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-            )}
+          
+          <div className="flex items-center gap-3">
+            {/* Mini progress indicator */}
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((num) => (
+                  <div
+                    key={num}
+                    className={cn(
+                      "h-2 w-2 rounded-full transition-all",
+                      num <= state.unlockedHabits 
+                        ? "bg-gradient-to-r from-violet-500 to-fuchsia-500" 
+                        : "bg-muted"
+                    )}
+                  />
+                ))}
+              </div>
+              <span className="text-xs font-medium text-muted-foreground">
+                {state.unlockedHabits}/5
+              </span>
+            </div>
+            
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50"
+            >
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
           </div>
         </div>
       </CardHeader>
@@ -87,94 +111,144 @@ export const ProgressiveHabitsGame = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <CardContent className="space-y-4 pt-2">
+            <CardContent className="space-y-5 px-4 pb-5 pt-0">
               {/* Victory state */}
-              {hasWon && (
+              {hasWon ? (
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className="flex flex-col items-center gap-2 rounded-xl bg-gradient-to-r from-yellow-500/20 to-orange-500/20 p-4 text-center"
+                  className="flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-br from-amber-500/20 via-yellow-500/20 to-orange-500/20 p-6 text-center border border-yellow-500/30"
                 >
-                  <Trophy className="h-12 w-12 text-yellow-500" />
-                  <h3 className="text-lg font-bold text-yellow-500">Félicitations !</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Tu as maîtrisé les 5 habitudes fondamentales !
+                  <div className="relative">
+                    <Trophy className="h-16 w-16 text-yellow-500" />
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      className="absolute -top-2 -right-2"
+                    >
+                      <Star className="h-6 w-6 text-yellow-400 fill-yellow-400" />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
+                    Champion ! 🏆
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-xs">
+                    Tu as maîtrisé les 5 habitudes fondamentales. Ta routine matinale est maintenant solide !
                   </p>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="mt-2">
-                        <RotateCcw className="mr-2 h-4 w-4" />
-                        Recommencer
+                      <Button variant="outline" size="sm" className="mt-2 gap-2">
+                        <RotateCcw className="h-4 w-4" />
+                        Recommencer l'aventure
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Recommencer le jeu ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Cela réinitialisera ta progression. Tu devras recommencer depuis le début.
+                          Ta progression sera réinitialisée. Tu recommenceras depuis le début avec la première habitude.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={resetGame}>
-                          Recommencer
-                        </AlertDialogAction>
+                        <AlertDialogAction onClick={resetGame}>Recommencer</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </motion.div>
-              )}
-
-              {/* Game board */}
-              {!hasWon && (
+              ) : (
                 <>
-                  {/* Progress bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Départ</span>
-                      <span>Arrivée 🏆</span>
+                  {/* Game Board - Path Style */}
+                  <div className="relative rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 p-4 border border-border/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-medium text-muted-foreground">🚀 Départ</span>
+                      <span className="text-xs font-medium text-muted-foreground">Victoire 🏆</span>
                     </div>
-                    <div className="relative">
-                      <Progress value={getProgress()} className="h-3" />
+                    
+                    {/* Path visualization */}
+                    <div className="relative h-12 bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-fuchsia-500/20 rounded-full overflow-hidden border border-violet-500/30">
+                      {/* Completed portion */}
                       <motion.div
-                        className="absolute top-1/2 -translate-y-1/2 text-lg"
-                        style={{ left: `calc(${getProgress()}% - 10px)` }}
-                        animate={{ scale: showCelebration ? [1, 1.3, 1] : 1 }}
+                        className="absolute left-0 top-0 h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full"
+                        initial={false}
+                        animate={{ width: `${(state.position / maxPosition) * 100}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                      
+                      {/* Milestone markers */}
+                      {[5, 10, 15].map((milestone) => (
+                        <div
+                          key={milestone}
+                          className="absolute top-1/2 -translate-y-1/2 w-0.5 h-6 bg-white/30"
+                          style={{ left: `${(milestone / maxPosition) * 100}%` }}
+                        />
+                      ))}
+                      
+                      {/* Player position */}
+                      <motion.div
+                        className="absolute top-1/2 -translate-y-1/2 z-10"
+                        initial={false}
+                        animate={{ 
+                          left: `calc(${(state.position / maxPosition) * 100}% - 16px)`,
+                          scale: showCelebration ? [1, 1.3, 1] : 1
+                        }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
                       >
-                        🏃
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-lg text-lg border-2 border-violet-500">
+                          {state.todayCompleted ? '😊' : '🏃'}
+                        </div>
                       </motion.div>
+                      
+                      {/* Trophy at end */}
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 text-xl">
+                        🏆
+                      </div>
+                    </div>
+                    
+                    {/* Position counter */}
+                    <div className="flex items-center justify-center mt-3">
+                      <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-background/80 border border-border/50">
+                        <span className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-violet-400 dark:to-fuchsia-400">
+                          {state.position}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/ {maxPosition} cases</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Board visualization */}
-                  <div className="flex flex-wrap gap-1 justify-center py-2">
-                    {boardSquares.map((square) => (
-                      <motion.div
-                        key={square}
-                        className={cn(
-                          "w-5 h-5 rounded-sm flex items-center justify-center text-[10px] font-medium transition-colors",
-                          square === state.position 
-                            ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                            : square < state.position 
-                              ? "bg-primary/40" 
-                              : "bg-muted"
-                        )}
-                        animate={square === state.position ? { scale: [1, 1.1, 1] } : {}}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                      >
-                        {square === maxPosition ? '🏆' : square === state.position ? '●' : ''}
-                      </motion.div>
-                    ))}
-                  </div>
+                  {/* Today's Status */}
+                  {state.todayCompleted && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 mx-auto w-fit"
+                    >
+                      <Check className="h-4 w-4 text-emerald-500" />
+                      <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                        Journée validée ! Reviens demain
+                      </span>
+                    </motion.div>
+                  )}
 
                   {/* Active habits */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      Tes habitudes du jour ({activeHabits.length})
-                    </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold flex items-center gap-2">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/10 text-violet-500">
+                          <Unlock className="h-3.5 w-3.5" />
+                        </span>
+                        Tes habitudes actives
+                      </h4>
+                      {state.streak > 0 && (
+                        <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 gap-1">
+                          <Flame className="h-3 w-3" />
+                          {state.streak} jours
+                        </Badge>
+                      )}
+                    </div>
+                    
                     <div className="space-y-2">
                       {activeHabits.map((habit, index) => (
                         <motion.div
@@ -182,88 +256,124 @@ export const ProgressiveHabitsGame = () => {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="flex items-center gap-3 rounded-lg bg-background/50 p-3 border border-border/50"
+                          className={cn(
+                            "flex items-center gap-3 rounded-xl p-3 border transition-all",
+                            state.todayCompleted 
+                              ? "bg-emerald-500/5 border-emerald-500/30" 
+                              : "bg-background/60 border-border/50 hover:border-violet-500/30"
+                          )}
                         >
-                          <span className="text-xl">{habit.icon}</span>
+                          <div className={cn(
+                            "flex h-10 w-10 items-center justify-center rounded-xl text-xl",
+                            state.todayCompleted 
+                              ? "bg-emerald-500/10" 
+                              : "bg-violet-500/10"
+                          )}>
+                            {habit.icon}
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{habit.name}</p>
+                            <p className="text-sm font-medium">{habit.name}</p>
                             <p className="text-xs text-muted-foreground truncate">{habit.description}</p>
                           </div>
                           {state.todayCompleted && (
-                            <Check className="h-5 w-5 text-green-500 shrink-0" />
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500"
+                            >
+                              <Check className="h-3.5 w-3.5 text-white" />
+                            </motion.div>
                           )}
                         </motion.div>
                       ))}
                     </div>
 
-                    {/* Locked habits preview */}
+                    {/* Next habit preview */}
                     {state.unlockedHabits < 5 && (
-                      <div className="mt-3 space-y-1">
-                        <p className="text-xs text-muted-foreground">
-                          Prochaine habitude dans {habits[state.unlockedHabits - 1]?.daysToUnlock - state.streak} jours
-                        </p>
-                        {habits.slice(state.unlockedHabits).map((habit) => (
-                          <div
-                            key={habit.id}
-                            className="flex items-center gap-3 rounded-lg bg-muted/30 p-2 opacity-50"
-                          >
-                            <span className="text-lg grayscale">🔒</span>
-                            <p className="text-xs text-muted-foreground">???</p>
+                      <div className="mt-4 rounded-xl bg-muted/30 p-3 border border-dashed border-muted-foreground/30">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                            <Lock className="h-4 w-4" />
                           </div>
-                        ))}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Prochaine habitude
+                            </p>
+                            <p className="text-xs text-muted-foreground/70">
+                              Débloquée dans <span className="font-semibold text-violet-500">{daysUntilNextHabit} jour{daysUntilNextHabit > 1 ? 's' : ''}</span> de série
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            +1 habitude
+                          </Badge>
+                        </div>
                       </div>
                     )}
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="default"
-                      className="flex-1 gap-2"
-                      onClick={handleComplete}
-                      disabled={state.todayCompleted}
-                    >
-                      <Check className="h-4 w-4" />
-                      {state.todayCompleted ? 'Complété !' : 'Valider (+1)'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="gap-2 text-destructive hover:text-destructive"
-                      onClick={skipToday}
-                      disabled={state.todayCompleted}
-                    >
-                      <X className="h-4 w-4" />
-                      Raté (-2)
-                    </Button>
-                  </div>
-
-                  {/* Celebration animation */}
-                  <AnimatePresence>
-                    {showCelebration && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        className="fixed inset-0 pointer-events-none flex items-center justify-center z-50"
+                  {!state.todayCompleted && (
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <Button
+                        onClick={handleComplete}
+                        className="h-12 gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/25"
                       >
-                        <div className="text-6xl">🎉</div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">C'est fait !</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={skipToday}
+                        className="h-12 gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <X className="h-5 w-5" />
+                        <span>J'ai raté</span>
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Rules - collapsible summary */}
+                  <div className="rounded-xl bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 p-4 border border-violet-500/10">
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <div className="text-xl mb-1">✅</div>
+                        <p className="text-xs text-muted-foreground">Réussi = <span className="font-semibold text-emerald-500">+1 case</span></p>
+                      </div>
+                      <div>
+                        <div className="text-xl mb-1">❌</div>
+                        <p className="text-xs text-muted-foreground">Raté = <span className="font-semibold text-destructive">-2 cases</span></p>
+                      </div>
+                      <div>
+                        <div className="text-xl mb-1">🔓</div>
+                        <p className="text-xs text-muted-foreground"><span className="font-semibold text-violet-500">3 jours</span> = +1 habitude</p>
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
-
-              {/* Rules reminder */}
-              <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-                <p className="font-medium mb-1">📋 Règles du jeu</p>
-                <ul className="space-y-0.5 list-disc list-inside">
-                  <li>Complète tes habitudes chaque jour pour avancer d'une case</li>
-                  <li>Si tu oublies, tu recules de 2 cases</li>
-                  <li>Une nouvelle habitude se débloque tous les 3 jours</li>
-                  <li>Atteins la case 20 avec 5 habitudes pour gagner !</li>
-                </ul>
-              </div>
             </CardContent>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Celebration overlay */}
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: "spring", damping: 10 }}
+              className="text-8xl"
+            >
+              🎉
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
