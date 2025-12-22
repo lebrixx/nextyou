@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -42,12 +43,15 @@ export const useReminders = () => {
     if (!user) return;
 
     try {
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
       const { data, error } = await supabase
         .from('reminders')
         .select('*')
         .eq('user_id', user.id)
         .eq('completed', false)
-        .gte('reminder_date', new Date().toISOString().split('T')[0])
+        .gte('reminder_date', todayStr)
         .order('reminder_date', { ascending: true });
 
       if (error) throw error;
@@ -60,8 +64,16 @@ export const useReminders = () => {
   const scheduleNotificationForReminder = async (reminder: Reminder) => {
     try {
       if (!reminder.notification_enabled) return;
+      
+      // Only schedule on native platforms
+      if (!Capacitor.isNativePlatform()) {
+        console.log('Notifications only work on native platforms');
+        return;
+      }
 
-      const date = new Date(reminder.reminder_date);
+      // Parse the date properly (YYYY-MM-DD format)
+      const [year, month, day] = reminder.reminder_date.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-indexed
       
       if (reminder.reminder_time) {
         const [hours, minutes] = reminder.reminder_time.split(':').map(Number);
@@ -74,7 +86,12 @@ export const useReminders = () => {
       date.setMinutes(date.getMinutes() - delayMinutes);
 
       if (date.getTime() > Date.now()) {
-        const notificationId = parseInt(reminder.id.replace(/-/g, '').substring(0, 8), 16);
+        // Generate a stable notification ID from the reminder ID (use hash of first 8 chars)
+        const notificationId = Math.abs(
+          reminder.id.split('').reduce((acc, char) => {
+            return ((acc << 5) - acc) + char.charCodeAt(0);
+          }, 0)
+        ) % 100000 + 3000; // Keep in range 3000-103000
         
         await LocalNotifications.schedule({
           notifications: [{
@@ -84,6 +101,8 @@ export const useReminders = () => {
             schedule: { at: date },
           }]
         });
+        
+        console.log(`Scheduled notification for reminder "${reminder.title}" at ${date.toLocaleString()}`);
       }
     } catch (error) {
       console.error('Error scheduling reminder notification:', error);
@@ -143,11 +162,17 @@ export const useReminders = () => {
       if (error) throw error;
 
       // Cancel notification for completed reminder
-      try {
-        const notificationId = parseInt(id.replace(/-/g, '').substring(0, 8), 16);
-        await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
-      } catch (e) {
-        console.log('Could not cancel notification:', e);
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const notificationId = Math.abs(
+            id.split('').reduce((acc, char) => {
+              return ((acc << 5) - acc) + char.charCodeAt(0);
+            }, 0)
+          ) % 100000 + 3000;
+          await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+        } catch (e) {
+          console.log('Could not cancel notification:', e);
+        }
       }
 
       toast({
@@ -175,11 +200,17 @@ export const useReminders = () => {
       if (error) throw error;
 
       // Cancel notification for deleted reminder
-      try {
-        const notificationId = parseInt(id.replace(/-/g, '').substring(0, 8), 16);
-        await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
-      } catch (e) {
-        console.log('Could not cancel notification:', e);
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const notificationId = Math.abs(
+            id.split('').reduce((acc, char) => {
+              return ((acc << 5) - acc) + char.charCodeAt(0);
+            }, 0)
+          ) % 100000 + 3000;
+          await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+        } catch (e) {
+          console.log('Could not cancel notification:', e);
+        }
       }
 
       toast({
