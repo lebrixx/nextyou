@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { PushNotifications } from '@capacitor/push-notifications';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { getRandomQuotes } from '@/data/quotes';
 
@@ -27,20 +27,25 @@ export const useNotificationScheduler = () => {
 
   const checkNotificationPermissions = async (): Promise<boolean> => {
     try {
+      // On web, we can't really check push notifications properly
+      if (!Capacitor.isNativePlatform()) {
+        // Try to check if browser notifications are available
+        if ('Notification' in window) {
+          return Notification.permission === 'granted';
+        }
+        return false;
+      }
+
       // Check Local Notifications
       const localStatus = await LocalNotifications.checkPermissions();
       if (localStatus.display === 'granted') {
         return true;
       }
 
-      // Check Push Notifications (iOS)
-      try {
-        const pushStatus = await PushNotifications.checkPermissions();
-        if (pushStatus.receive === 'granted') {
-          return true;
-        }
-      } catch (e) {
-        // Push notifications not available on web
+      // Request permissions if not granted
+      if (localStatus.display === 'prompt' || localStatus.display === 'prompt-with-rationale') {
+        const result = await LocalNotifications.requestPermissions();
+        return result.display === 'granted';
       }
 
       return false;
@@ -51,6 +56,12 @@ export const useNotificationScheduler = () => {
   };
 
   const scheduleAllNotifications = async () => {
+    // Only run on native platforms
+    if (!Capacitor.isNativePlatform()) {
+      console.log('Notifications only work on native platforms');
+      return;
+    }
+
     // Clear all existing notifications first
     try {
       const pending = await LocalNotifications.getPending();
@@ -142,9 +153,10 @@ export const useNotificationScheduler = () => {
       for (const habit of habits) {
         if (!habit.reminder_time) continue;
 
+        const [hours, minutes] = habit.reminder_time.split(':').map(Number);
+        
         // Schedule for the next 7 days
         for (let day = 0; day < 7; day++) {
-          const [hours, minutes] = habit.reminder_time.split(':').map(Number);
           const date = new Date();
           date.setDate(date.getDate() + day);
           date.setHours(hours, minutes, 0, 0);
@@ -178,13 +190,16 @@ export const useNotificationScheduler = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
       const { data: reminders } = await supabase
         .from('reminders')
         .select('*')
         .eq('user_id', user.id)
         .eq('completed', false)
         .eq('notification_enabled', true)
-        .gte('reminder_date', new Date().toISOString().split('T')[0]);
+        .gte('reminder_date', todayStr);
 
       if (!reminders || reminders.length === 0) return;
 
@@ -192,7 +207,9 @@ export const useNotificationScheduler = () => {
       let notificationId = 3000; // Start from 3000 for agenda
 
       for (const reminder of reminders) {
-        const date = new Date(reminder.reminder_date);
+        // Parse the date properly (YYYY-MM-DD format)
+        const [year, month, day] = reminder.reminder_date.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // month is 0-indexed
         
         if (reminder.reminder_time) {
           const [hours, minutes] = reminder.reminder_time.split(':').map(Number);
@@ -202,14 +219,17 @@ export const useNotificationScheduler = () => {
           date.setHours(9, 0, 0, 0);
         }
 
-        // Apply notification delay (in minutes)
+        // Apply notification delay (in minutes before)
         const delayMinutes = reminder.notification_delay || 0;
         date.setMinutes(date.getMinutes() - delayMinutes);
 
         // Only schedule future notifications
         if (date.getTime() > Date.now()) {
+          // Generate a stable notification ID from the reminder ID
+          const notifId = notificationId++;
+          
           notifications.push({
-            id: notificationId++,
+            id: notifId,
             title: `📅 Rappel: ${reminder.title}`,
             body: reminder.description || 'Tu as un rappel',
             schedule: { at: date },
@@ -231,6 +251,11 @@ export const useNotificationScheduler = () => {
 
   // Function to manually refresh all notifications
   const refreshNotifications = async () => {
+    const hasPermission = await checkNotificationPermissions();
+    if (!hasPermission) {
+      console.log('No notification permissions');
+      return;
+    }
     await scheduleAllNotifications();
   };
 

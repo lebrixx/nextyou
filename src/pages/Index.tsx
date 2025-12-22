@@ -9,7 +9,7 @@ import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
-import { ProgressiveHabitsGame } from "@/components/ProgressiveHabitsGame";
+
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
@@ -245,8 +245,6 @@ const Index = () => {
       {/* Agenda Widget */}
       <AgendaWidget />
 
-      {/* Progressive Habits Game */}
-      <ProgressiveHabitsGame />
 
       {/* Performance Quotidienne */}
         <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
