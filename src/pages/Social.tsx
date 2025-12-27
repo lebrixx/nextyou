@@ -1056,32 +1056,33 @@ const Social = () => {
               <h2 className="text-lg font-bold text-foreground">Mes amis ({friends.length})</h2>
             </div>
             
-            {/* Pending requests */}
+            {/* Demandes section */}
             {pendingRequests.filter(r => r.type === 'incoming').length > 0 && (
               <div className="space-y-2 mb-4">
-                <p className="text-sm text-muted-foreground">Demandes en attente</p>
-                {pendingRequests.filter(r => r.type === 'incoming').map((request) => (
-                  <div key={request.id} className="glass rounded-xl p-3 border border-primary/20 bg-primary/5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
-                            {(request.profile.full_name || 'A')[0].toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium">{request.profile.full_name}</span>
+                <button 
+                  className="w-full glass rounded-xl p-3 border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors"
+                  onClick={() => setActiveTab('notifications')}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <UserPlus className="w-4 h-4 text-primary" />
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => acceptFriendRequest(request.id)} className="h-7 bg-green-500 hover:bg-green-600">
-                          <Check className="w-3 h-3" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => declineFriendRequest(request.id)} className="h-7">
-                          <X className="w-3 h-3" />
-                        </Button>
+                      <div className="text-left">
+                        <span className="text-sm font-medium text-foreground">Demandes</span>
+                        <p className="text-xs text-muted-foreground">
+                          {pendingRequests.filter(r => r.type === 'incoming').length} demande(s) en attente
+                        </p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex items-center justify-center">
+                        {pendingRequests.filter(r => r.type === 'incoming').length}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
                   </div>
-                ))}
+                </button>
               </div>
             )}
             
@@ -1709,41 +1710,66 @@ const Social = () => {
                 <p className="text-sm">Aucune notification</p>
               </div>
             ) : (
-              notifications.map((notif, index) => (
-                <div 
-                  key={notif.id}
-                  className={`glass rounded-xl p-3 border transition-all duration-300 animate-fade-in ${
-                    !notif.isRead ? 'border-primary/30 bg-primary/5' : 'border-white/5'
-                  }`}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
-                        {notif.senderName[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm">
-                        <span className="font-medium text-foreground">{notif.senderName}</span>
-                        <span className="text-muted-foreground"> {notif.message}</span>
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{notif.timestamp}</p>
+              notifications.map((notif, index) => {
+                // Find pending request for friend_request notifications
+                const pendingRequest = notif.type === 'friend_request' && notif.senderId
+                  ? pendingRequests.find(r => r.type === 'incoming' && r.profile.id === notif.senderId)
+                  : null;
+                
+                return (
+                  <div 
+                    key={notif.id}
+                    className={`glass rounded-xl p-3 border transition-all duration-300 animate-fade-in ${
+                      !notif.isRead ? 'border-primary/30 bg-primary/5' : 'border-white/5'
+                    }`}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs">
+                          {notif.senderName[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm">
+                          <span className="font-medium text-foreground">{notif.senderName}</span>
+                          <span className="text-muted-foreground"> {notif.message}</span>
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{notif.timestamp}</p>
+                        
+                        {/* Accept/Decline buttons for friend requests */}
+                        {notif.type === 'friend_request' && pendingRequest && (
+                          <div className="flex gap-2 mt-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => acceptFriendRequest(pendingRequest.id)} 
+                              className="h-7 bg-green-500 hover:bg-green-600 text-xs"
+                            >
+                              <Check className="w-3 h-3 mr-1" />
+                              Accepter
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => declineFriendRequest(pendingRequest.id)} 
+                              className="h-7 text-xs"
+                            >
+                              <X className="w-3 h-3 mr-1" />
+                              Refuser
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-lg">
+                        {notif.type === 'motivation' ? '💪' : 
+                         notif.type === 'challenge' ? '⚔️' : 
+                         notif.type === 'achievement' ? '🏆' : 
+                         notif.type === 'friend_request' ? '👋' : '🔔'}
+                      </span>
                     </div>
-                    <span className={`text-lg ${
-                      notif.type === 'motivation' ? '' : 
-                      notif.type === 'challenge' ? '' : 
-                      notif.type === 'achievement' ? '' : 
-                      notif.type === 'friend_request' ? '' : ''
-                    }`}>
-                      {notif.type === 'motivation' ? '💪' : 
-                       notif.type === 'challenge' ? '⚔️' : 
-                       notif.type === 'achievement' ? '🏆' : 
-                       notif.type === 'friend_request' ? '👋' : '🔔'}
-                    </span>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </TabsContent>
         </Tabs>
