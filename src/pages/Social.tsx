@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords, RefreshCw } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords, RefreshCw, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { toast } from "@/hooks/use-toast";
 import { useSocialNotifications } from "@/hooks/useSocialNotifications";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { FriendBadgesSection } from "@/components/FriendBadgesSection";
+import { FriendActivityFeed } from "@/components/FriendActivityFeed";
 interface Profile {
   id: string;
   full_name: string | null;
@@ -110,7 +111,7 @@ const Social = () => {
   const [loading, setLoading] = useState(true);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("friends");
+  const [activeTab, setActiveTab] = useState("feed");
   
   // Dialog states
   const [addFriendOpen, setAddFriendOpen] = useState(false);
@@ -1014,22 +1015,25 @@ const Social = () => {
             markNotificationsAsRead();
           }
         }} className="w-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-xl">
+            <TabsTrigger value="feed" className="rounded-lg data-[state=active]:bg-background">
+              <Activity className="w-4 h-4 mr-1" />
+              <span className="text-xs">Feed</span>
+            </TabsTrigger>
             <TabsTrigger value="friends" className="rounded-lg data-[state=active]:bg-background">
-              <Users className="w-4 h-4 mr-1.5" />
+              <Users className="w-4 h-4 mr-1" />
               <span className="text-xs">Amis</span>
             </TabsTrigger>
             <TabsTrigger value="duels" className="rounded-lg data-[state=active]:bg-background">
-              <Swords className="w-4 h-4 mr-1.5" />
+              <Swords className="w-4 h-4 mr-1" />
               <span className="text-xs">Duels</span>
             </TabsTrigger>
             <TabsTrigger value="ranking" className="rounded-lg data-[state=active]:bg-background">
-              <Trophy className="w-4 h-4 mr-1.5" />
-              <span className="text-xs">Palmarès</span>
+              <Trophy className="w-4 h-4 mr-1" />
+              <span className="text-xs">Top</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-background relative">
-              <Bell className="w-4 h-4 mr-1.5" />
-              <span className="text-xs">Notifs</span>
+              <Bell className="w-4 h-4" />
               {notifications.filter(n => !n.isRead).length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
                   {notifications.filter(n => !n.isRead).length}
@@ -1037,6 +1041,14 @@ const Social = () => {
               )}
             </TabsTrigger>
           </TabsList>
+
+          {/* Tab: Feed */}
+          <TabsContent value="feed" className="mt-4">
+            <FriendActivityFeed 
+              userId={user.id} 
+              friendIds={friends.map(f => f.profile.id)} 
+            />
+          </TabsContent>
 
           {/* Tab: Amis */}
           <TabsContent value="friends" className="space-y-3 mt-4">
