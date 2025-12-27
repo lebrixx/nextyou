@@ -12,6 +12,8 @@ import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/expor
 import { useTranslation, Language } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -290,78 +292,77 @@ const Settings = () => {
 
         {/* Notifications */}
         <section className="space-y-3">
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Bell className="w-4 h-4 text-primary-foreground" />
-            </div>
-            {t('notifications')}
-          </h2>
-          <div className="glass rounded-xl p-5 space-y-4 border border-primary/20">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <Bell className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-1">Active les notifications</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Les notifications sont <span className="text-primary font-medium">indispensables</span> pour Next Me. 
-                  Elles te rappellent tes habitudes et t'envoient des citations motivantes.
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="glass border-primary/30 text-foreground hover:bg-primary/10 h-auto py-3"
-                onClick={() => {
-                  toast({
-                    title: "📱 iOS",
-                    description: "Réglages → Next Me → Notifications → Autoriser",
-                    duration: 8000,
-                  });
-                }}
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-lg">🍎</span>
-                  <span className="text-xs">iOS</span>
-                </div>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="glass border-primary/30 text-foreground hover:bg-primary/10 h-auto py-3"
-                onClick={() => {
-                  toast({
-                    title: "📱 Android",
-                    description: "Paramètres → Applications → Next Me → Notifications → Activer",
-                    duration: 8000,
-                  });
-                }}
-              >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-lg">🤖</span>
-                  <span className="text-xs">Android</span>
-                </div>
-              </Button>
-            </div>
-
-            <Button
-              onClick={async () => {
-                await refreshNotifications();
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Les notifications sont <span className="text-primary font-medium">indispensables</span> pour Next Me. 
+            Elles te rappellent tes habitudes et t'envoient des citations motivantes.
+          </p>
+          <Button
+            onClick={async () => {
+              try {
+                if (Capacitor.isNativePlatform()) {
+                  const permStatus = await LocalNotifications.checkPermissions();
+                  
+                  if (permStatus.display === 'granted') {
+                    await refreshNotifications();
+                    toast({
+                      title: "✅ Notifications déjà activées",
+                      description: "Tu recevras tes rappels et citations motivantes !",
+                    });
+                  } else {
+                    const result = await LocalNotifications.requestPermissions();
+                    if (result.display === 'granted') {
+                      await refreshNotifications();
+                      toast({
+                        title: "🎉 Notifications activées",
+                        description: "Tu recevras maintenant tes rappels d'habitudes !",
+                      });
+                    } else {
+                      toast({
+                        title: "Notifications refusées",
+                        description: "Va dans les réglages de ton téléphone pour les activer",
+                        variant: "destructive",
+                      });
+                    }
+                  }
+                } else {
+                  // Web browser
+                  if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                      await refreshNotifications();
+                      toast({
+                        title: "🎉 Notifications activées",
+                        description: "Tu recevras maintenant tes rappels d'habitudes !",
+                      });
+                    } else if (permission === 'denied') {
+                      toast({
+                        title: "Notifications refusées",
+                        description: "Active-les dans les paramètres de ton navigateur",
+                        variant: "destructive",
+                      });
+                    }
+                  } else {
+                    toast({
+                      title: "Non supporté",
+                      description: "Ton navigateur ne supporte pas les notifications",
+                      variant: "destructive",
+                    });
+                  }
+                }
+              } catch (error) {
+                console.error('Notification permission error:', error);
                 toast({
-                  title: "Notifications actualisées",
-                  description: "Toutes les notifications ont été reprogrammées",
+                  title: "Erreur",
+                  description: "Impossible de demander les permissions",
+                  variant: "destructive",
                 });
-              }}
-              variant="outline"
-              className="w-full glass border-primary/30 text-foreground hover:bg-primary/10"
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Actualiser les notifications
-            </Button>
-          </div>
+              }
+            }}
+            className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+          >
+            <Bell className="w-4 h-4 mr-2" />
+            Activer les notifications
+          </Button>
         </section>
 
         {/* Premium Section */}
