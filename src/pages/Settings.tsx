@@ -290,6 +290,48 @@ const Settings = () => {
           )}
         </section>
 
+        {/* Premium Section */}
+        <section className="space-y-3">
+          <div className="glass rounded-xl p-6 relative overflow-hidden border border-primary/30 shadow-glow">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center animate-pulse-glow">
+                    <Crown className="w-6 h-6 text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      Passer Pro
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Débloque toutes les fonctionnalités</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Statistiques avancées illimitées</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Synchronisation multi-appareils</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-foreground">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <span>Thèmes premium exclusifs</span>
+                </div>
+              </div>
+              <Button
+                disabled
+                className="w-full bg-gradient-primary text-primary-foreground shadow-glow cursor-not-allowed opacity-70"
+              >
+                Bientôt disponible ✨
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Notifications */}
         <section className="space-y-3">
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -365,74 +407,6 @@ const Settings = () => {
           </Button>
         </section>
 
-        {/* Premium Section */}
-        <section className="space-y-3">
-          <div className="glass rounded-xl p-6 relative overflow-hidden border border-primary/30 shadow-glow">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 pointer-events-none" />
-            <div className="relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center animate-pulse-glow">
-                    <Crown className="w-6 h-6 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
-                      Passer Pro
-                    </h3>
-                    <p className="text-xs text-muted-foreground">Débloque toutes les fonctionnalités</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>Statistiques avancées illimitées</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>Synchronisation multi-appareils</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-foreground">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  <span>Thèmes premium exclusifs</span>
-                </div>
-              </div>
-              <Button
-                disabled
-                className="w-full bg-gradient-primary text-primary-foreground shadow-glow cursor-not-allowed opacity-70"
-              >
-                Bientôt disponible ✨
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Export Data */}
-        {user && (
-          <section className="space-y-3">
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow">
-                <Download className="w-4 h-4 text-primary-foreground" />
-              </div>
-              Données
-            </h2>
-            <div className="glass rounded-xl p-4 space-y-3">
-              <div>
-                <p className="font-semibold text-foreground text-sm mb-1">Exporter toutes mes données</p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Télécharge une copie complète de tes habitudes, badges, et statistiques
-                </p>
-              </div>
-              <Button
-                onClick={handleExportAll}
-                className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Exporter en JSON
-              </Button>
-            </div>
-          </section>
-        )}
 
         {/* Language */}
         <section className="space-y-3">
