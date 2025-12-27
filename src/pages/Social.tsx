@@ -345,25 +345,35 @@ const Social = () => {
       .select(`id, status, friend_id, user_id`)
       .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
       .eq('status', 'pending');
-    
+
     if (data) {
       const requests: PendingFriendRequest[] = [];
+
       for (const friendship of data) {
         const isIncoming = friendship.friend_id === userId;
         const otherUserId = isIncoming ? friendship.user_id : friendship.friend_id;
-        const { data: profile } = await supabase
+
+        const { data: otherProfile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', otherUserId)
-          .single();
-        if (profile) {
-          requests.push({
-            id: friendship.id,
-            profile: profile as Profile,
-            type: isIncoming ? 'incoming' : 'outgoing'
-          });
-        }
+          .maybeSingle();
+
+        // Always push the request, even if the profile isn't readable yet (RLS) or missing
+        const safeProfile: Profile = (otherProfile as Profile) || {
+          id: otherUserId,
+          full_name: null,
+          avatar_url: null,
+          friend_code: null,
+        };
+
+        requests.push({
+          id: friendship.id,
+          profile: safeProfile,
+          type: isIncoming ? 'incoming' : 'outgoing',
+        });
       }
+
       setPendingRequests(requests);
     }
   };
@@ -439,16 +449,17 @@ const Social = () => {
       .eq('recipient_id', userId)
       .order('created_at', { ascending: false })
       .limit(20);
-    
+
     if (data && data.length > 0) {
       const notifs: Notification[] = [];
+
       for (const notif of data) {
         const { data: senderProfile } = await supabase
           .from('profiles')
           .select('full_name, avatar_url')
           .eq('id', notif.sender_id)
-          .single();
-        
+          .maybeSingle();
+
         notifs.push({
           id: notif.id,
           type: notif.type as any,
@@ -457,44 +468,64 @@ const Social = () => {
           senderAvatar: senderProfile?.avatar_url,
           timestamp: getTimeAgo(notif.created_at),
           isRead: notif.is_read,
-          senderId: notif.sender_id
+          senderId: notif.sender_id,
         });
       }
+
       setNotifications(notifs);
+    } else {
+      setNotifications([]);
     }
   };
 
-  const acceptFriendRequest = async (friendshipId: string) => {
+  const acceptFriendRequest = async (friendshipId: string, notificationId?: string) => {
     const { error } = await supabase
       .from('friendships')
       .update({ status: 'accepted' })
       .eq('id', friendshipId);
-    
+
     if (error) {
       toast({ title: "Erreur", description: "Impossible d'accepter la demande", variant: "destructive" });
       return;
     }
-    
+
+    if (notificationId) {
+      await supabase.from('social_notifications').update({ is_read: true }).eq('id', notificationId);
+    }
+
     toast({ title: "Demande acceptée !" });
+
     if (user) {
-      await Promise.all([loadFriends(user.id), loadPendingRequests(user.id)]);
+      await Promise.all([
+        loadFriends(user.id),
+        loadPendingRequests(user.id),
+        loadNotifications(user.id),
+      ]);
     }
   };
 
-  const declineFriendRequest = async (friendshipId: string) => {
+  const declineFriendRequest = async (friendshipId: string, notificationId?: string) => {
     const { error } = await supabase
       .from('friendships')
       .delete()
       .eq('id', friendshipId);
-    
+
     if (error) {
       toast({ title: "Erreur", description: "Impossible de refuser la demande", variant: "destructive" });
       return;
     }
-    
+
+    if (notificationId) {
+      await supabase.from('social_notifications').update({ is_read: true }).eq('id', notificationId);
+    }
+
     toast({ title: "Demande refusée" });
+
     if (user) {
-      await loadPendingRequests(user.id);
+      await Promise.all([
+        loadPendingRequests(user.id),
+        loadNotifications(user.id),
+      ]);
     }
   };
 
@@ -1740,18 +1771,18 @@ const Social = () => {
                         {/* Accept/Decline buttons for friend requests */}
                         {notif.type === 'friend_request' && pendingRequest && (
                           <div className="flex gap-2 mt-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => acceptFriendRequest(pendingRequest.id)} 
-                              className="h-7 bg-green-500 hover:bg-green-600 text-xs"
+                            <Button
+                              size="sm"
+                              onClick={() => acceptFriendRequest(pendingRequest.id, notif.id)}
+                              className="h-7 text-xs"
                             >
                               <Check className="w-3 h-3 mr-1" />
                               Accepter
                             </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => declineFriendRequest(pendingRequest.id)} 
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => declineFriendRequest(pendingRequest.id, notif.id)}
                               className="h-7 text-xs"
                             >
                               <X className="w-3 h-3 mr-1" />
