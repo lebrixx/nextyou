@@ -9,6 +9,7 @@ import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
+import { supabase } from "@/integrations/supabase/client";
 
 import { quotes } from "@/data/quotes";
 import { useHabitReset } from "@/hooks/useHabitReset";
@@ -148,11 +149,29 @@ const Index = () => {
     const allQuotes = Object.values(quotes).flat();
     return allQuotes[Math.floor(Math.random() * allQuotes.length)];
   });
+  
+  // Load timers from Supabase
   useEffect(() => {
-    const saved = localStorage.getItem("habitflow_timers");
-    if (saved) {
-      setTimers(JSON.parse(saved));
-    }
+    const loadTimers = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: timersData } = await supabase
+          .from('timers')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+        
+        if (timersData && timersData.length > 0) {
+          const loadedTimers: TimerData[] = timersData.map(t => ({
+            id: t.id,
+            name: t.name,
+            startDate: new Date(t.created_at)
+          }));
+          setTimers(loadedTimers);
+        }
+      }
+    };
+    loadTimers();
   }, []);
   useEffect(() => {
     const loadGoals = () => {
