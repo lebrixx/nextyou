@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.02242e9ba7334244a277ad7efa295676',
-  appName: 'Next Me',
+  appName: 'Time Ritual',
   webDir: 'dist',
   // IMPORTANT: Commente la section "server" pour tester l'app native avec toutes les fonctionnalités
   // Décommente uniquement pour le développement avec hot-reload
