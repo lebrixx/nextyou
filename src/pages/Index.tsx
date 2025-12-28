@@ -239,9 +239,9 @@ const Index = () => {
       <header className="px-6 pt-safe-offset-32 pb-8">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-7xl md:text-8xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px]">
-            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Next</span>
+            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
             <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
-              Me
+              Ritual
               <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
             </span>
           </h1>
@@ -387,7 +387,7 @@ const Index = () => {
           {philosophyOpen && <div className="glass rounded-xl p-5 space-y-3 text-sm text-muted-foreground leading-relaxed border border-primary/20 animate-accordion-down">
               <p>
                 Chaque grande réussite commence par une simple décision : celle de devenir meilleur, 
-                jour après jour. Next Me n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
+                jour après jour. Time Ritual n&apos;est pas qu&apos;une application, c&apos;est ton partenaire 
                 dans cette quête vers l&apos;excellence personnelle.
               </p>
               <p>
