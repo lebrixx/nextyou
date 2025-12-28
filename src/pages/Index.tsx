@@ -238,7 +238,7 @@ const Index = () => {
       {/* Header with Daily Quote */}
       <header className="px-6 pt-safe-offset-32 pb-8">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-7xl md:text-8xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px]">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px] whitespace-nowrap">
             <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
             <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
               Ritual
