@@ -26,10 +26,10 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty("--primary-glow", colors["primary-glow"]);
   root.style.setProperty("--gradient-primary", colors["gradient-primary"]);
   
-  localStorage.setItem("nextyou_theme", theme);
+  localStorage.setItem("timeritual_theme", theme);
 };
 
 export const getTheme = (): Theme => {
-  const saved = localStorage.getItem("nextyou_theme");
+  const saved = localStorage.getItem("timeritual_theme");
   return (saved as Theme) || "purple";
 };

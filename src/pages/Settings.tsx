@@ -111,8 +111,8 @@ const Settings = () => {
   const handleSignOut = async () => {
     // Clear all local data on sign out
     localStorage.removeItem("habitflow_timers");
-    localStorage.removeItem("nextyou_habits");
-    localStorage.removeItem("nextyou_completions");
+    localStorage.removeItem("timeritual_habits");
+    localStorage.removeItem("timeritual_completions");
     localStorage.removeItem("quotes_notification_settings");
     localStorage.removeItem("muted_friends");
     localStorage.removeItem("muted_groups");
@@ -120,7 +120,7 @@ const Settings = () => {
     await supabase.auth.signOut();
     toast({
       title: "Déconnexion",
-      description: "À bientôt sur Next Me !",
+      description: "À bientôt sur Time Ritual !",
     });
     navigate("/");
   };
@@ -157,7 +157,7 @@ const Settings = () => {
         profile,
         exported_at: new Date().toISOString(),
       },
-      generateExportFilename('nextyou_complete', 'json')
+      generateExportFilename('timeritual_complete', 'json')
     );
 
     toast({
@@ -335,7 +335,7 @@ const Settings = () => {
         {/* Notifications */}
         <section className="space-y-3">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Les notifications sont <span className="text-primary font-medium">indispensables</span> pour Next Me. 
+            Les notifications sont <span className="text-primary font-medium">indispensables</span> pour Time Ritual. 
             Elles te rappellent tes habitudes et t'envoient des citations motivantes.
           </p>
           <Button
@@ -486,7 +486,7 @@ const Settings = () => {
           </h2>
           <div className="glass rounded-xl divide-y divide-white/5">
             <button 
-              onClick={() => toast({ title: "Support", description: "Contactez-nous à support@nextyou.app" })}
+              onClick={() => toast({ title: "Support", description: "Contactez-nous à support@timeritual.app" })}
               className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
             >
               <p className="font-semibold text-foreground text-sm">Aide & Support</p>

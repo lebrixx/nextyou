@@ -94,7 +94,7 @@ const Plan = () => {
         badges,
         exported_at: new Date().toISOString(),
       },
-      generateExportFilename('nextyou_data', 'json')
+      generateExportFilename('timeritual_data', 'json')
     );
     toast({
       title: "Export réussi",
@@ -113,7 +113,7 @@ const Plan = () => {
       console.error('Erreur activation notifications:', error);
       toast({
         title: "Erreur d'activation",
-        description: error.message || "Vérifie que les notifications sont autorisées dans Réglages > Next Me > Notifications",
+        description: error.message || "Vérifie que les notifications sont autorisées dans Réglages > Time Ritual > Notifications",
         variant: "destructive",
       });
     }
@@ -306,7 +306,7 @@ const Plan = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur le <span className="text-primary font-semibold">+</span> en haut à gauche</li>
-                    <li>Cherche <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
+                    <li>Cherche <span className="text-primary font-semibold">&quot;Time Ritual&quot;</span></li>
                     <li>Choisis le widget et place-le</li>
                   </ol>
                 </div>
@@ -318,7 +318,7 @@ const Plan = () => {
                   <ol className="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
                     <li>Maintiens ton doigt sur l&apos;écran d&apos;accueil</li>
                     <li>Appuie sur <span className="text-primary font-semibold">&quot;Widgets&quot;</span></li>
-                    <li>Trouve <span className="text-primary font-semibold">&quot;Next Me&quot;</span></li>
+                    <li>Trouve <span className="text-primary font-semibold">&quot;Time Ritual&quot;</span></li>
                     <li>Fais glisser le widget à l&apos;endroit voulu</li>
                   </ol>
                 </div>

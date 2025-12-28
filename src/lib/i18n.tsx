@@ -346,14 +346,14 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('nextyou_language');
+    const saved = localStorage.getItem('timeritual_language');
     return (saved as Language) || 'fr';
   });
   const [key, setKey] = useState(0);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('nextyou_language', lang);
+    localStorage.setItem('timeritual_language', lang);
     // Force full re-render of the app
     setKey(prev => prev + 1);
     // Show confirmation toast
