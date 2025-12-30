@@ -13,7 +13,7 @@ import { useTranslation, Language } from "@/lib/i18n";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import { Capacitor } from "@capacitor/core";
-import { LocalNotifications } from "@capacitor/local-notifications";
+import { NativeSettings, AndroidSettings, IOSSettings } from "capacitor-native-settings";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -342,60 +342,23 @@ const Settings = () => {
             onClick={async () => {
               try {
                 if (Capacitor.isNativePlatform()) {
-                  const permStatus = await LocalNotifications.checkPermissions();
-                  
-                  if (permStatus.display === 'granted') {
-                    await refreshNotifications();
-                    toast({
-                      title: "✅ Notifications déjà activées",
-                      description: "Tu recevras tes rappels et citations motivantes !",
-                    });
-                  } else {
-                    const result = await LocalNotifications.requestPermissions();
-                    if (result.display === 'granted') {
-                      await refreshNotifications();
-                      toast({
-                        title: "🎉 Notifications activées",
-                        description: "Tu recevras maintenant tes rappels d'habitudes !",
-                      });
-                    } else {
-                      toast({
-                        title: "Notifications refusées",
-                        description: "Va dans les réglages de ton téléphone pour les activer",
-                        variant: "destructive",
-                      });
-                    }
-                  }
+                  // Open app notification settings directly
+                  await NativeSettings.open({
+                    optionAndroid: AndroidSettings.AppNotification,
+                    optionIOS: IOSSettings.App,
+                  });
                 } else {
-                  // Web browser
-                  if ('Notification' in window) {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                      await refreshNotifications();
-                      toast({
-                        title: "🎉 Notifications activées",
-                        description: "Tu recevras maintenant tes rappels d'habitudes !",
-                      });
-                    } else if (permission === 'denied') {
-                      toast({
-                        title: "Notifications refusées",
-                        description: "Active-les dans les paramètres de ton navigateur",
-                        variant: "destructive",
-                      });
-                    }
-                  } else {
-                    toast({
-                      title: "Non supporté",
-                      description: "Ton navigateur ne supporte pas les notifications",
-                      variant: "destructive",
-                    });
-                  }
+                  // Web: show instructions
+                  toast({
+                    title: "💡 Paramètres du navigateur",
+                    description: "Clique sur l'icône de cadenas dans la barre d'adresse pour gérer les notifications",
+                  });
                 }
               } catch (error) {
-                console.error('Notification permission error:', error);
+                console.error('Error opening app settings:', error);
                 toast({
                   title: "Erreur",
-                  description: "Impossible de demander les permissions",
+                  description: "Impossible d'ouvrir les paramètres",
                   variant: "destructive",
                 });
               }
@@ -403,7 +366,7 @@ const Settings = () => {
             className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Activer les notifications
+            Paramètres de notifications
           </Button>
         </section>
 
