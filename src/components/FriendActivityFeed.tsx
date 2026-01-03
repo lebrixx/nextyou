@@ -1,18 +1,16 @@
 import { useState, useEffect } from "react";
-import { Activity, Target, Flame, Clock, RefreshCw } from "lucide-react";
+import { Activity, Clock, RefreshCw } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
-interface FriendActivity {
+interface DailyFriendActivity {
   id: string;
   friendName: string;
   friendAvatar: string | null;
   friendId: string;
-  habitName: string;
-  habitIcon: string;
-  habitColor: string;
-  completedAt: string;
+  habitCount: number;
+  date: string;
   timeAgo: string;
 }
 
@@ -22,40 +20,16 @@ interface FriendActivityFeedProps {
 }
 
 const getTimeAgo = (dateString: string): string => {
-  const now = new Date();
-  const date = new Date(dateString);
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const today = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   
-  if (seconds < 60) return "À l'instant";
-  if (seconds < 3600) return `Il y a ${Math.floor(seconds / 60)} min`;
-  if (seconds < 86400) return `Il y a ${Math.floor(seconds / 3600)}h`;
-  if (seconds < 604800) return `Il y a ${Math.floor(seconds / 86400)}j`;
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-};
-
-const habitIcons: Record<string, string> = {
-  target: '🎯',
-  heart: '❤️',
-  book: '📚',
-  dumbbell: '💪',
-  moon: '🌙',
-  sun: '☀️',
-  coffee: '☕',
-  music: '🎵',
-  palette: '🎨',
-  briefcase: '💼',
-  home: '🏠',
-  star: '⭐',
-  zap: '⚡',
-  smile: '😊',
-  brain: '🧠',
-  flame: '🔥',
-  leaf: '🌿',
-  water: '💧',
+  if (dateString === today) return "Aujourd'hui";
+  if (dateString === yesterday) return "Hier";
+  return new Date(dateString).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
 };
 
 export const FriendActivityFeed = ({ userId, friendIds }: FriendActivityFeedProps) => {
-  const [activities, setActivities] = useState<FriendActivity[]>([]);
+  const [activities, setActivities] = useState<DailyFriendActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -73,11 +47,10 @@ export const FriendActivityFeed = ({ userId, friendIds }: FriendActivityFeedProp
       
       const { data: completions, error } = await supabase
         .from('habit_completions')
-        .select('id, habit_id, user_id, completed_at, created_at')
+        .select('id, user_id, completed_at')
         .in('user_id', friendIds)
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(30);
+        .gte('completed_at', sevenDaysAgo.toISOString().split('T')[0])
+        .order('completed_at', { ascending: false });
 
       if (error) {
         console.error('Error loading activities:', error);
@@ -91,39 +64,51 @@ export const FriendActivityFeed = ({ userId, friendIds }: FriendActivityFeedProp
         return;
       }
 
-      // Get unique habit IDs and user IDs
-      const habitIds = [...new Set(completions.map(c => c.habit_id).filter(Boolean))] as string[];
+      // Get unique user IDs
       const userIds = [...new Set(completions.map(c => c.user_id))];
 
-      // Fetch habits and profiles in parallel
-      const [habitsResult, profilesResult] = await Promise.all([
-        habitIds.length > 0 
-          ? supabase.from('habits').select('id, name, icon, color').in('id', habitIds)
-          : Promise.resolve({ data: [] }),
-        supabase.from('profiles').select('id, full_name, avatar_url').in('id', userIds)
-      ]);
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
 
-      const habitsMap = new Map((habitsResult.data || []).map(h => [h.id, h]));
-      const profilesMap = new Map((profilesResult.data || []).map(p => [p.id, p]));
+      const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
 
-      const formattedActivities: FriendActivity[] = completions
-        .filter(c => c.habit_id && habitsMap.has(c.habit_id) && profilesMap.has(c.user_id))
-        .map(completion => {
-          const habit = habitsMap.get(completion.habit_id!);
-          const profile = profilesMap.get(completion.user_id);
+      // Group completions by friend and date
+      const groupedByFriendAndDate = new Map<string, { count: number; date: string; userId: string }>();
+      
+      completions.forEach(completion => {
+        const key = `${completion.user_id}-${completion.completed_at}`;
+        const existing = groupedByFriendAndDate.get(key);
+        
+        if (existing) {
+          existing.count++;
+        } else {
+          groupedByFriendAndDate.set(key, {
+            count: 1,
+            date: completion.completed_at,
+            userId: completion.user_id
+          });
+        }
+      });
+
+      // Convert to array and format
+      const formattedActivities: DailyFriendActivity[] = Array.from(groupedByFriendAndDate.entries())
+        .map(([key, data]) => {
+          const profile = profilesMap.get(data.userId);
           
           return {
-            id: completion.id,
+            id: key,
             friendName: profile?.full_name || 'Ami',
             friendAvatar: profile?.avatar_url || null,
-            friendId: completion.user_id,
-            habitName: habit?.name || 'Habitude',
-            habitIcon: habit?.icon || 'target',
-            habitColor: habit?.color || '#8B5CF6',
-            completedAt: completion.completed_at,
-            timeAgo: getTimeAgo(completion.created_at || completion.completed_at)
+            friendId: data.userId,
+            habitCount: data.count,
+            date: data.date,
+            timeAgo: getTimeAgo(data.date)
           };
-        });
+        })
+        .sort((a, b) => b.date.localeCompare(a.date));
 
       setActivities(formattedActivities);
     } catch (error) {
@@ -199,27 +184,16 @@ export const FriendActivityFeed = ({ userId, friendIds }: FriendActivityFeedProp
     );
   }
 
-  // Group activities by date
+  // Group activities by date label
   const groupedActivities = activities.reduce((groups, activity) => {
-    const date = activity.completedAt;
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    
-    let label: string;
-    if (date === today) {
-      label = "Aujourd'hui";
-    } else if (date === yesterday) {
-      label = "Hier";
-    } else {
-      label = new Date(date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' });
-    }
+    const label = activity.timeAgo;
     
     if (!groups[label]) {
       groups[label] = [];
     }
     groups[label].push(activity);
     return groups;
-  }, {} as Record<string, FriendActivity[]>);
+  }, {} as Record<string, DailyFriendActivity[]>);
 
   return (
     <div className="space-y-4">
@@ -253,33 +227,20 @@ export const FriendActivityFeed = ({ userId, friendIds }: FriendActivityFeedProp
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10 ring-2 ring-white/10">
                   <AvatarImage src={activity.friendAvatar || undefined} />
-                  <AvatarFallback 
-                    className="text-primary-foreground font-bold"
-                    style={{ background: `linear-gradient(135deg, ${activity.habitColor}, ${activity.habitColor}99)` }}
-                  >
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground font-bold">
                     {activity.friendName[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
+                  <p className="text-sm text-foreground">
                     <span className="font-semibold">{activity.friendName}</span>
-                    <span className="text-muted-foreground"> a complété</span>
+                    <span className="text-muted-foreground"> a complété </span>
+                    <span className="font-semibold text-primary">
+                      {activity.habitCount} habitude{activity.habitCount > 1 ? 's' : ''}
+                    </span>
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-base">
-                      {habitIcons[activity.habitIcon] || '🎯'}
-                    </span>
-                    <span 
-                      className="text-sm font-medium truncate"
-                      style={{ color: activity.habitColor }}
-                    >
-                      {activity.habitName}
-                    </span>
-                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {activity.timeAgo}
-                </span>
+                <span className="text-2xl">🔥</span>
               </div>
             </div>
           ))}
