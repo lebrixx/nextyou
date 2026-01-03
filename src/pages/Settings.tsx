@@ -366,7 +366,7 @@ const Settings = () => {
             className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Autorisations de notifications
+            Accéder aux paramètres de notifications
           </Button>
         </section>
 
