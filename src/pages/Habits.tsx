@@ -29,6 +29,8 @@ interface Habit {
   completed: boolean;
   reminderEnabled?: boolean;
   reminderTime?: string;
+  category?: string;
+  description?: string;
 }
 
 interface Action {
@@ -168,7 +170,9 @@ const Habits = () => {
           streak: h.streak || 0,
           completed: completedHabitIds.has(h.id),
           reminderEnabled: !!h.reminder_time,
-          reminderTime: h.reminder_time || undefined
+          reminderTime: h.reminder_time || undefined,
+          category: h.category || undefined,
+          description: h.description || undefined
         }));
         
         setHabits(loadedHabits);
@@ -202,7 +206,9 @@ const Habits = () => {
               streak: h.streak || 0,
               completed: false,
               reminderEnabled: !!h.reminder_time,
-              reminderTime: h.reminder_time || undefined
+              reminderTime: h.reminder_time || undefined,
+              category: h.category || undefined,
+              description: h.description || undefined
             }));
             setHabits(loaded);
           }
@@ -514,14 +520,21 @@ const Habits = () => {
               💡 Clique sur une habitude pour la modifier
             </p>
 
-            {sortedHabits.map((habit) => (
-              <HabitCard 
-                key={habit.id} 
-                {...habit} 
-                onToggle={toggleHabit} 
-                onClick={() => handleEditHabit(habit)}
-              />
-            ))}
+            {sortedHabits.map((habit) => {
+              const isDuelHabit = habit.category === 'duel';
+              const duelTitle = isDuelHabit && habit.description ? habit.description.replace('⚔️ Duel: ', '') : undefined;
+              
+              return (
+                <HabitCard 
+                  key={habit.id} 
+                  {...habit} 
+                  onToggle={toggleHabit} 
+                  onClick={() => handleEditHabit(habit)}
+                  isDuelHabit={isDuelHabit}
+                  duelTitle={duelTitle}
+                />
+              );
+            })}
           </>
         )}
       </main>
