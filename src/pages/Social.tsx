@@ -626,9 +626,24 @@ const Social = () => {
   };
 
   const createDuel = async () => {
-    if (!user || !challengeTitle.trim()) {
-      toast({ title: "Erreur", description: "Donne un nom au duel", variant: "destructive" });
-      return;
+    // For specific_habit mode, use habit name as title
+    const duelTitle = selectedDuelMode === 'specific_habit' 
+      ? selectedHabitName.trim() 
+      : challengeTitle.trim();
+    
+    if (!user) return;
+    
+    // Validation based on mode
+    if (selectedDuelMode === 'specific_habit') {
+      if (!selectedHabitName.trim()) {
+        toast({ title: "Erreur", description: "Écris le nom de l'habitude", variant: "destructive" });
+        return;
+      }
+    } else {
+      if (!challengeTitle.trim()) {
+        toast({ title: "Erreur", description: "Donne un nom au duel", variant: "destructive" });
+        return;
+      }
     }
     
     if (!selectedOpponent) {
@@ -640,12 +655,6 @@ const Social = () => {
       const endDate = new Date();
       endDate.setDate(endDate.getDate() + challengeDuration);
       
-      // For specific_habit mode, require a habit name
-      if (selectedDuelMode === 'specific_habit' && !selectedHabitName.trim()) {
-        toast({ title: "Erreur", description: "Écris le nom de l'habitude pour ce mode", variant: "destructive" });
-        return;
-      }
-      
       // Determine target value based on mode
       const targetValue = challengeDuration;
       
@@ -653,8 +662,8 @@ const Social = () => {
         .from('challenges')
         .insert({
           creator_id: user.id,
-          title: challengeTitle.trim(),
-          description: challengeDescription.trim() || null,
+          title: duelTitle,
+          description: selectedDuelMode === 'regularity' ? (challengeDescription.trim() || null) : null,
           type: 'duel',
           target_type: 'completions',
           target_value: targetValue,
@@ -683,7 +692,7 @@ const Social = () => {
             name: selectedHabitName.trim(),
             icon: 'swords',
             color: '#EF4444',
-            description: `⚔️ Duel: ${challengeTitle.trim()}`,
+            description: `⚔️ Duel: ${duelTitle}`,
             category: 'duel'
           });
       }
@@ -714,7 +723,7 @@ const Social = () => {
           sender_id: user.id,
           recipient_id: selectedOpponent,
           type: 'challenge',
-          message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel ${modeInfo?.icon || ''} ${modeInfo?.label || ''}${habitInfo} : "${challengeTitle}" ! ⚔️`
+          message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel ${modeInfo?.icon || ''} ${modeInfo?.label || ''}${habitInfo} : "${duelTitle}" ! ⚔️`
         });
       
       toast({ title: "⚔️ Duel envoyé !", description: selectedDuelMode === 'specific_habit' ? `L'habitude "${selectedHabitName.trim()}" a été ajoutée à tes habitudes` : "En attente de la réponse de ton adversaire" });
@@ -2030,20 +2039,7 @@ const Social = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
-            <Input
-              placeholder="Nom du duel (ex: Challenge sport)"
-              value={challengeTitle}
-              onChange={(e) => setChallengeTitle(e.target.value)}
-            />
-            
-            <Textarea
-              placeholder="Description (optionnel)"
-              value={challengeDescription}
-              onChange={(e) => setChallengeDescription(e.target.value)}
-              rows={2}
-            />
-
-            {/* Duel mode selection */}
+            {/* Duel mode selection - at the top */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Mode de duel
@@ -2052,7 +2048,13 @@ const Social = () => {
                 {DUEL_MODES.map((mode) => (
                   <button
                     key={mode.value}
-                    onClick={() => setSelectedDuelMode(mode.value)}
+                    onClick={() => {
+                      setSelectedDuelMode(mode.value);
+                      // Reset habit name when switching modes
+                      if (mode.value !== 'specific_habit') {
+                        setSelectedHabitName("");
+                      }
+                    }}
                     className={`w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left ${
                       selectedDuelMode === mode.value 
                         ? 'bg-red-500/20 border border-red-500/50' 
@@ -2072,7 +2074,25 @@ const Social = () => {
               </div>
             </div>
 
-            {/* Habit name input - Required for specific_habit mode */}
+            {/* Show title/description only for regularity mode */}
+            {selectedDuelMode === 'regularity' && (
+              <>
+                <Input
+                  placeholder="Nom du duel (ex: Challenge sport)"
+                  value={challengeTitle}
+                  onChange={(e) => setChallengeTitle(e.target.value)}
+                />
+                
+                <Textarea
+                  placeholder="Description (optionnel)"
+                  value={challengeDescription}
+                  onChange={(e) => setChallengeDescription(e.target.value)}
+                  rows={2}
+                />
+              </>
+            )}
+
+            {/* Habit name input - Required for specific_habit mode, becomes the duel title */}
             {selectedDuelMode === 'specific_habit' && (
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
@@ -2084,7 +2104,7 @@ const Social = () => {
                   onChange={(e) => setSelectedHabitName(e.target.value)}
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  ⚡ Cette habitude sera créée automatiquement pour toi et ton adversaire
+                  ⚡ Ce nom sera utilisé pour le duel et l'habitude sera créée pour toi et ton adversaire
                 </p>
               </div>
             )}
@@ -2145,7 +2165,12 @@ const Social = () => {
             <Button 
               onClick={createDuel} 
               className="w-full bg-gradient-to-r from-red-500 to-orange-500"
-              disabled={!challengeTitle.trim() || !selectedOpponent || friends.length === 0 || (selectedDuelMode === 'specific_habit' && !selectedHabitName.trim())}
+              disabled={
+                !selectedOpponent || 
+                friends.length === 0 || 
+                (selectedDuelMode === 'specific_habit' && !selectedHabitName.trim()) ||
+                (selectedDuelMode === 'regularity' && !challengeTitle.trim())
+              }
             >
               <Swords className="w-4 h-4 mr-2" />
               Envoyer le duel
