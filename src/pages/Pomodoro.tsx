@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock, Crown } from "lucide-react";
+import { Clock, Crown, Timer as TimerIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Navigation from "@/components/Navigation";
 import PomodoroTimer from "@/components/PomodoroTimer";
 import { FocusMode } from "@/components/FocusMode";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 
 const Pomodoro = () => {
   const navigate = useNavigate();
@@ -32,16 +32,7 @@ const Pomodoro = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6 relative">
-        <Button
-          onClick={() => navigate("/timer")}
-          variant="ghost"
-          size="sm"
-          className="absolute top-8 left-6 w-10 h-10 p-0 rounded-full glass hover:bg-white/10"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </Button>
-        
+      <header className="px-6 pt-8 pb-6 text-center relative">
         <Button
           onClick={() => navigate("/premium")}
           variant="ghost"
@@ -51,20 +42,31 @@ const Pomodoro = () => {
           <Crown className="w-5 h-5 text-primary-foreground" />
         </Button>
         
-        <div className="text-center pt-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
-            <Clock className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-            <span className="bg-gradient-primary bg-clip-text text-transparent">Pomodoro</span>
-          </h1>
-          <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto">
-            Concentre-toi intensément, repose-toi efficacement
-          </p>
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
+          <TimerIcon className="w-8 h-8 text-primary-foreground" />
         </div>
+        <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
+          Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Compteurs</span>
+        </h1>
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto">
+          Mesure tes progrès, célèbre chaque seconde de transformation
+        </p>
       </header>
 
       <main className="px-6 pt-4 max-w-2xl mx-auto">
+        {/* Tabs Navigation */}
+        <div className="grid w-full grid-cols-2 glass rounded-lg p-1 mb-6">
+          <button
+            onClick={() => navigate("/timer")}
+            className="flex items-center justify-center py-2 px-4 rounded-md text-muted-foreground hover:text-foreground font-medium text-sm transition-colors"
+          >
+            Compteurs
+          </button>
+          <div className="flex items-center justify-center py-2 px-4 rounded-md bg-primary text-primary-foreground font-medium text-sm">
+            Pomodoro
+          </div>
+        </div>
+
         <PomodoroTimer 
           userId={user?.id}
           onOpenFocusMode={(duration) => {
@@ -73,6 +75,8 @@ const Pomodoro = () => {
           }}
         />
       </main>
+
+      <Navigation />
 
       <FocusMode 
         open={focusModeOpen} 
@@ -87,3 +91,4 @@ const Pomodoro = () => {
 };
 
 export default Pomodoro;
+

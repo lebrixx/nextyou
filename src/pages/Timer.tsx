@@ -262,28 +262,20 @@ const Timer = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
-        {/* Pomodoro Link Card */}
-        <button
-          onClick={() => navigate("/pomodoro")}
-          className="w-full glass rounded-xl p-4 border border-primary/30 hover:border-primary/50 transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Clock className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div className="text-left">
-                <h2 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
-                  Pomodoro
-                </h2>
-                <p className="text-xs text-muted-foreground">Technique de concentration</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-primary" />
+        {/* Tabs Navigation */}
+        <div className="grid w-full grid-cols-2 glass rounded-lg p-1 mb-6">
+          <div className="flex items-center justify-center py-2 px-4 rounded-md bg-primary text-primary-foreground font-medium text-sm">
+            Compteurs
           </div>
-        </button>
+          <button
+            onClick={() => navigate("/pomodoro")}
+            className="flex items-center justify-center py-2 px-4 rounded-md text-muted-foreground hover:text-foreground font-medium text-sm transition-colors"
+          >
+            Pomodoro
+          </button>
+        </div>
 
-        {/* Counters Section */}
+        {/* Counters Content */}
         <div className="space-y-4">
         {timers.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center space-y-4 border border-primary/20">
