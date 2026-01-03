@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-type DuelMode = 'regularity' | 'specific_habit' | 'streak';
+type DuelMode = 'regularity' | 'specific_habit';
 
 export const useChallengeProgress = (userId: string | undefined) => {
   
@@ -31,9 +31,9 @@ export const useChallengeProgress = (userId: string | undefined) => {
       return uniqueDays.size;
     }
     
-    // For specific_habit and streak modes, we need to match by habit name
-    if ((mode === 'specific_habit' || mode === 'streak') && challenge.habit_name) {
-      // Get habit ids that match the habit name (case insensitive partial match)
+    // For specific_habit mode, we need to match by habit name (duel habit)
+    if (mode === 'specific_habit' && challenge.habit_name) {
+      // Get habit ids that match the habit name exactly (duel habit has specific naming)
       const { data: matchingHabits } = await supabase
         .from('habits')
         .select('id')
@@ -56,33 +56,8 @@ export const useChallengeProgress = (userId: string | undefined) => {
       
       if (!completions?.length) return 0;
       
-      if (mode === 'specific_habit') {
-        // Count all completions of the specific habit
-        return completions.length;
-      }
-      
-      if (mode === 'streak') {
-        // Calculate longest consecutive streak
-        const dates = [...new Set(completions.map(c => c.completed_at))].sort();
-        if (dates.length === 0) return 0;
-        
-        let maxStreak = 1;
-        let currentStreak = 1;
-        
-        for (let i = 1; i < dates.length; i++) {
-          const prevDate = new Date(dates[i - 1]);
-          const currDate = new Date(dates[i]);
-          const diffDays = Math.floor((currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (diffDays === 1) {
-            currentStreak++;
-            maxStreak = Math.max(maxStreak, currentStreak);
-          } else {
-            currentStreak = 1;
-          }
-        }
-        return maxStreak;
-      }
+      // Count all completions of the specific habit
+      return completions.length;
     }
     
     return 0;
@@ -206,6 +181,18 @@ export const useChallengeProgress = (userId: string | undefined) => {
         .update({ status: 'completed', winner_id: winnerId })
         .eq('id', challengeId);
       
+      // For specific_habit mode, delete the duel habits for both participants
+      if (challenge.duel_mode === 'specific_habit' && challenge.habit_name) {
+        for (const participant of participants) {
+          await supabase
+            .from('habits')
+            .delete()
+            .eq('user_id', participant.user_id)
+            .eq('category', 'duel')
+            .ilike('name', challenge.habit_name);
+        }
+      }
+      
       // Record duel result
       if (challenge.type === 'duel') {
         await supabase
@@ -282,14 +269,14 @@ export const useChallengeProgress = (userId: string | undefined) => {
           const marginBonus = Math.min(winnerScore - loserScore, 5) * 10;
           const xpEarned = 100 + marginBonus;
           
-          // Notify winner with XP info
+          // Notify winner with XP info and result
           await supabase
             .from('social_notifications')
             .insert({
               sender_id: currentUserId,
               recipient_id: winnerId,
               type: 'achievement',
-              message: `🏆 Victoire ! Tu as gagné le duel "${challenge.title}" ! Score: ${winnerScore} - ${loserScore}. +${xpEarned} XP gagnés !`
+              message: `🏆 Victoire ! Tu as gagné le duel "${challenge.title}" ! Score: ${winnerScore} - ${loserScore}. +${xpEarned} XP gagnés !${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
             });
           
           // Notify loser and reset their streak
@@ -302,7 +289,19 @@ export const useChallengeProgress = (userId: string | undefined) => {
                 sender_id: currentUserId,
                 recipient_id: loserId,
                 type: 'challenge',
-                message: `Le duel "${challenge.title}" est terminé. Score: ${loserScore} - ${winnerScore}. Prêt pour une revanche ? 💪`
+                message: `Le duel "${challenge.title}" est terminé. Score: ${loserScore} - ${winnerScore}. Prêt pour une revanche ? 💪${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
+              });
+          }
+        } else {
+          // Tie or no winner - notify both participants
+          for (const participant of participants) {
+            await supabase
+              .from('social_notifications')
+              .insert({
+                sender_id: currentUserId,
+                recipient_id: participant.user_id,
+                type: 'challenge',
+                message: `Le duel "${challenge.title}" est terminé en égalité ! Score: ${winnerScore} - ${loserScore}.${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
               });
           }
         }

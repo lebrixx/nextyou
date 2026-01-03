@@ -15,6 +15,7 @@ import {
   PiggyBank,
   Zap,
   Target,
+  Swords,
   LucideIcon
 } from "lucide-react";
 
@@ -34,6 +35,7 @@ export type HabitIconType =
   | "sucre"
   | "finance"
   | "energie"
+  | "swords"
   | "autre";
 
 interface HabitIconProps {
@@ -57,6 +59,7 @@ const iconMap: Record<HabitIconType, LucideIcon> = {
   sucre: Cake,
   finance: PiggyBank,
   energie: Zap,
+  swords: Swords,
   autre: Target,
 };
 

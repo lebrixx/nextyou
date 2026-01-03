@@ -41,12 +41,11 @@ interface Habit {
 }
 
 // Duel modes
-type DuelMode = 'regularity' | 'specific_habit' | 'streak';
+type DuelMode = 'regularity' | 'specific_habit';
 
 const DUEL_MODES: { value: DuelMode; label: string; description: string; icon: string }[] = [
   { value: 'regularity', label: 'Régularité', description: '1 point/jour en complétant au moins 1 habitude', icon: '📅' },
-  { value: 'specific_habit', label: 'Habitude ciblée', description: 'Compter les complétion d\'une habitude précise', icon: '🎯' },
-  { value: 'streak', label: 'Série', description: 'Plus longue série consécutive', icon: '🔥' },
+  { value: 'specific_habit', label: 'Habitude ciblée', description: 'L\'habitude est créée automatiquement pour vous deux', icon: '🎯' },
 ];
 
 interface Challenge {
@@ -675,6 +674,20 @@ const Social = () => {
         return;
       }
       
+      // For specific_habit mode, create the duel habit for the creator
+      if (selectedDuelMode === 'specific_habit' && selectedHabitName.trim()) {
+        await supabase
+          .from('habits')
+          .insert({
+            user_id: user.id,
+            name: selectedHabitName.trim(),
+            icon: 'swords',
+            color: '#EF4444',
+            description: `⚔️ Duel: ${challengeTitle.trim()}`,
+            category: 'duel'
+          });
+      }
+      
       // Add creator as participant
       await supabase
         .from('challenge_participants')
@@ -704,7 +717,7 @@ const Social = () => {
           message: `${profile?.full_name || 'Quelqu\'un'} te défie en duel ${modeInfo?.icon || ''} ${modeInfo?.label || ''}${habitInfo} : "${challengeTitle}" ! ⚔️`
         });
       
-      toast({ title: "⚔️ Duel envoyé !", description: "En attente de la réponse de ton adversaire" });
+      toast({ title: "⚔️ Duel envoyé !", description: selectedDuelMode === 'specific_habit' ? `L'habitude "${selectedHabitName.trim()}" a été ajoutée à tes habitudes` : "En attente de la réponse de ton adversaire" });
       setChallengeDialogOpen(false);
       setChallengeTitle("");
       setChallengeDescription("");
@@ -761,6 +774,24 @@ const Social = () => {
     // Notify creator that duel was accepted
     const challenge = challenges.find(c => c.id === challengeId);
     if (challenge) {
+      // For specific_habit mode, create the duel habit for the accepting user
+      if (challenge.duel_mode === 'specific_habit' && challenge.habit_name) {
+        await supabase
+          .from('habits')
+          .insert({
+            user_id: user.id,
+            name: challenge.habit_name,
+            icon: 'swords',
+            color: '#EF4444',
+            description: `⚔️ Duel: ${challenge.title}`,
+            category: 'duel'
+          });
+        
+        toast({ title: "⚔️ Duel accepté !", description: `L'habitude "${challenge.habit_name}" a été ajoutée à tes habitudes` });
+      } else {
+        toast({ title: "⚔️ Duel accepté ! Que le meilleur gagne !" });
+      }
+      
       await supabase
         .from('social_notifications')
         .insert({
@@ -771,7 +802,6 @@ const Social = () => {
         });
     }
     
-    toast({ title: "⚔️ Duel accepté ! Que le meilleur gagne !" });
     await loadChallenges(user.id);
   };
 
@@ -1299,7 +1329,6 @@ const Social = () => {
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-red-500/20 text-red-400 inline-block mt-1">
                       {challenge.duel_mode === 'regularity' && '📅 Régularité'}
                       {challenge.duel_mode === 'specific_habit' && '🎯 Ciblé'}
-                      {challenge.duel_mode === 'streak' && '🔥 Série'}
                     </span>
                   </div>
                 </div>
@@ -1375,7 +1404,6 @@ const Social = () => {
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-red-500/20 text-red-400">
                             {challenge.duel_mode === 'regularity' && '📅 Régularité'}
                             {challenge.duel_mode === 'specific_habit' && '🎯 Ciblé'}
-                            {challenge.duel_mode === 'streak' && '🔥 Série'}
                           </span>
                           {challenge.habit_name && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-primary/20 text-primary">
@@ -1498,9 +1526,6 @@ const Social = () => {
                                 )}
                                 {challenge.duel_mode === 'specific_habit' && (
                                   <>🎯 Habitude ciblée : Chaque complétion de "{challenge.habit_name}" compte !</>
-                                )}
-                                {challenge.duel_mode === 'streak' && (
-                                  <>🔥 Série : Plus longue série consécutive de "{challenge.habit_name}" gagne !</>
                                 )}
                               </p>
                               <Button
@@ -2047,11 +2072,11 @@ const Social = () => {
               </div>
             </div>
 
-            {/* Habit name input - Required for specific_habit and streak modes */}
-            {(selectedDuelMode === 'specific_habit' || selectedDuelMode === 'streak') && (
+            {/* Habit name input - Required for specific_habit mode */}
+            {selectedDuelMode === 'specific_habit' && (
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
-                  Nom de l'habitude {selectedDuelMode === 'specific_habit' && <span className="text-red-500">*</span>}
+                  Nom de l'habitude <span className="text-red-500">*</span>
                 </label>
                 <Input
                   placeholder="Ex: Faire du sport, Méditer, Lire..."
@@ -2059,7 +2084,7 @@ const Social = () => {
                   onChange={(e) => setSelectedHabitName(e.target.value)}
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Écris le nom de l'habitude que vous allez suivre ensemble
+                  ⚡ Cette habitude sera créée automatiquement pour toi et ton adversaire
                 </p>
               </div>
             )}
