@@ -342,10 +342,10 @@ const Settings = () => {
             onClick={async () => {
               try {
                 if (Capacitor.isNativePlatform()) {
-                  // Open app notification settings directly
+                  // Open app notification settings directly in system settings
                   await NativeSettings.open({
                     optionAndroid: AndroidSettings.AppNotification,
-                    optionIOS: IOSSettings.App,
+                    optionIOS: IOSSettings.Notifications,
                   });
                 } else {
                   // Web: show instructions
@@ -355,10 +355,10 @@ const Settings = () => {
                   });
                 }
               } catch (error) {
-                console.error('Error opening app settings:', error);
+                console.error('Error opening notification settings:', error);
                 toast({
                   title: "Erreur",
-                  description: "Impossible d'ouvrir les paramètres",
+                  description: "Impossible d'ouvrir les paramètres de notifications",
                   variant: "destructive",
                 });
               }
@@ -366,7 +366,7 @@ const Settings = () => {
             className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
           >
             <Bell className="w-4 h-4 mr-2" />
-            Paramètres de notifications
+            Autorisations de notifications
           </Button>
         </section>
 
