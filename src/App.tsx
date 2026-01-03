@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Plan from "./pages/Plan";
 import Timer from "./pages/Timer";
+import Pomodoro from "./pages/Pomodoro";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import Premium from "./pages/Premium";
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/analytics" element={<Plan />} />
             <Route path="/quotes" element={<Quotes />} />
             <Route path="/timer" element={<Timer />} />
+            <Route path="/pomodoro" element={<Pomodoro />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/assistant" element={<Assistant />} />

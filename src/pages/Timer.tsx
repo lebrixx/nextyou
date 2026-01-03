@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown, Crown } from "lucide-react";
+import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown, Crown, Clock, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import AddTimerDialog from "@/components/AddTimerDialog";
-import PomodoroTimer from "@/components/PomodoroTimer";
-import { FocusMode } from "@/components/FocusMode";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -37,8 +34,6 @@ const Timer = () => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [focusModeOpen, setFocusModeOpen] = useState(false);
-  const [focusDuration, setFocusDuration] = useState(25);
   const [timersLoaded, setTimersLoaded] = useState(false);
 
   useEffect(() => {
@@ -267,13 +262,29 @@ const Timer = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-4 max-w-2xl mx-auto">
-        <Tabs defaultValue="counters" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 glass mb-6">
-            <TabsTrigger value="counters">Compteurs</TabsTrigger>
-            <TabsTrigger value="pomodoro">Pomodoro</TabsTrigger>
-          </TabsList>
+        {/* Pomodoro Link Card */}
+        <button
+          onClick={() => navigate("/pomodoro")}
+          className="w-full glass rounded-xl p-4 border border-primary/30 hover:border-primary/50 transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-primary shadow-glow flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Clock className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div className="text-left">
+                <h2 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                  Pomodoro
+                </h2>
+                <p className="text-xs text-muted-foreground">Technique de concentration</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-primary" />
+          </div>
+        </button>
 
-          <TabsContent value="counters" className="space-y-4">
+        {/* Counters Section */}
+        <div className="space-y-4">
         {timers.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center space-y-4 border border-primary/20">
             <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-primary shadow-glow flex items-center justify-center">
@@ -469,30 +480,11 @@ const Timer = () => {
             </div>
           )}
         </section>
-          </TabsContent>
-
-          <TabsContent value="pomodoro">
-            <PomodoroTimer 
-              userId={user?.id}
-              onOpenFocusMode={(duration) => {
-                setFocusDuration(duration);
-                setFocusModeOpen(true);
-              }}
-            />
-          </TabsContent>
-        </Tabs>
+        </div>
       </main>
 
       <Navigation />
       <AddTimerDialog open={dialogOpen} onOpenChange={setDialogOpen} onAdd={addTimer} />
-      <FocusMode 
-        open={focusModeOpen} 
-        onOpenChange={setFocusModeOpen}
-        duration={focusDuration}
-        onComplete={() => {
-          toast({ title: "Session terminée", description: `Tu as complété ${focusDuration} minutes de focus total!` });
-        }}
-      />
       
       {/* Reset Confirmation Dialog */}
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
