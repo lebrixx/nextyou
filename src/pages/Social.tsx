@@ -30,6 +30,7 @@ interface Friend {
   id: string;
   profile: Profile;
   status: string;
+  regularity?: number; // Nombre de jours avec au moins 1 habitude sur les 7 derniers jours
 }
 
 interface Habit {
@@ -320,6 +321,15 @@ const Social = () => {
     
     if (data) {
       const friendProfiles: Friend[] = [];
+      
+      // Get dates for last 7 days
+      const last7Days: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        last7Days.push(date.toISOString().split('T')[0]);
+      }
+      
       for (const friendship of data) {
         const friendUserId = friendship.user_id === userId ? friendship.friend_id : friendship.user_id;
         const { data: profile } = await supabase
@@ -327,11 +337,24 @@ const Social = () => {
           .select('*')
           .eq('id', friendUserId)
           .single();
+        
+        // Get friend's completions for last 7 days to calculate regularity
+        const { data: completions } = await supabase
+          .from('habit_completions')
+          .select('completed_at')
+          .eq('user_id', friendUserId)
+          .in('completed_at', last7Days);
+        
+        // Count unique days with completions
+        const uniqueDays = new Set(completions?.map(c => c.completed_at) || []);
+        const regularity = uniqueDays.size;
+        
         if (profile) {
           friendProfiles.push({
             id: friendship.id,
             profile: profile as Profile,
-            status: friendship.status
+            status: friendship.status,
+            regularity
           });
         }
       }
@@ -1133,29 +1156,53 @@ const Social = () => {
                 >
                   <div className="flex items-center justify-between relative z-10">
                     <div className="flex items-center gap-3">
-                      <Avatar className="ring-2 ring-white/10 group-hover:ring-primary/30 transition-all duration-300">
-                        <AvatarImage src={friend.profile.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                          {(friend.profile.full_name || 'A')[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="relative">
+                        <Avatar className="ring-2 ring-white/10 group-hover:ring-primary/30 transition-all duration-300">
+                          <AvatarImage src={friend.profile.avatar_url || undefined} />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                            {(friend.profile.full_name || 'A')[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Regularity badge */}
+                        {friend.regularity !== undefined && (
+                          <div 
+                            className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-background ${
+                              friend.regularity >= 6 ? 'bg-green-500 text-white' :
+                              friend.regularity >= 4 ? 'bg-yellow-500 text-black' :
+                              friend.regularity >= 2 ? 'bg-orange-500 text-white' :
+                              'bg-muted text-muted-foreground'
+                            }`}
+                            title={`${friend.regularity}/7 jours actifs cette semaine`}
+                          >
+                            {friend.regularity}
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">{friend.profile.full_name || 'Ami'}</h3>
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                            {friend.profile.full_name || 'Ami'}
+                          </h3>
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-300" />
+                        </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>#{friend.profile.friend_code}</span>
+                          <span className="flex items-center gap-1">
+                            <Flame className={`w-3 h-3 ${friend.regularity && friend.regularity >= 4 ? 'text-orange-500' : ''}`} />
+                            {friend.regularity || 0}/7j
+                          </span>
                           {(friend.profile as any).duel_wins > 0 && (
                             <>
                               <span className="text-muted-foreground/50">•</span>
                               <span className="flex items-center gap-1 text-yellow-500">
                                 <Trophy className="w-3 h-3" />
-                                {(friend.profile as any).duel_wins} victoires
+                                {(friend.profile as any).duel_wins}
                               </span>
                             </>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -1165,7 +1212,7 @@ const Social = () => {
                           setSelectedOpponent(friend.profile.id);
                           setChallengeDialogOpen(true);
                         }}
-                        className="text-red-500 hover:bg-red-500/20 hover:scale-110 transition-all duration-300"
+                        className="text-red-500 hover:bg-red-500/20 hover:scale-110 transition-all duration-300 h-8 w-8"
                       >
                         <Swords className="w-4 h-4" />
                       </Button>
@@ -1177,11 +1224,10 @@ const Social = () => {
                           setSelectedFriend(friend);
                           setMessageDialogOpen(true);
                         }}
-                        className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300"
+                        className="text-primary hover:bg-primary/20 hover:scale-110 transition-all duration-300 h-8 w-8"
                       >
                         <Send className="w-4 h-4" />
                       </Button>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
                     </div>
                   </div>
                 </div>
