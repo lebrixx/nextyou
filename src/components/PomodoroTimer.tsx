@@ -279,77 +279,11 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
 
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
-      {/* Do Not Disturb Quick Access */}
-      <Button
-        onClick={openDoNotDisturbSettings}
-        variant="outline"
-        className="w-full glass border-orange-500/30 hover:bg-orange-500/10 text-orange-400"
-      >
-        <BellOff className="w-4 h-4 mr-2" />
-        Activer "Ne pas déranger"
-        <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
-      </Button>
-
-      {/* Extended Stats Overview */}
-      <div className="grid grid-cols-4 gap-2">
-        <Card className="glass p-3 border-primary/20">
-          <div className="text-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary/20 flex items-center justify-center mx-auto mb-1">
-              <Target className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-lg font-bold text-foreground">{todaySessions}/{dailyGoal}</p>
-            <p className="text-[10px] text-muted-foreground">Objectif</p>
-          </div>
-        </Card>
-        <Card className="glass p-3 border-primary/20">
-          <div className="text-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary/20 flex items-center justify-center mx-auto mb-1">
-              <Flame className="w-4 h-4 text-orange-500" />
-            </div>
-            <p className="text-lg font-bold text-foreground">{currentStreak}</p>
-            <p className="text-[10px] text-muted-foreground">Série</p>
-          </div>
-        </Card>
-        <Card className="glass p-3 border-primary/20">
-          <div className="text-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary/20 flex items-center justify-center mx-auto mb-1">
-              <Clock className="w-4 h-4 text-primary" />
-            </div>
-            <p className="text-lg font-bold text-foreground">{todayMinutes}</p>
-            <p className="text-[10px] text-muted-foreground">Min</p>
-          </div>
-        </Card>
-        <Card className="glass p-3 border-primary/20">
-          <div className="text-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary/20 flex items-center justify-center mx-auto mb-1">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-            </div>
-            <p className="text-lg font-bold text-foreground">{Math.round(weeklyMinutes / 60)}h</p>
-            <p className="text-[10px] text-muted-foreground">Semaine</p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Daily Goal Progress */}
-      <Card className="glass p-4 border-primary/20">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-foreground">Objectif du jour</span>
-          <span className="text-xs text-primary font-semibold">{todaySessions}/{dailyGoal} sessions</span>
-        </div>
-        <Progress value={Math.min((todaySessions / dailyGoal) * 100, 100)} className="h-2" />
-        {todaySessions >= dailyGoal && (
-          <p className="text-xs text-green-500 mt-2 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
-            Objectif atteint ! Continue comme ça 🎉
-          </p>
-        )}
-      </Card>
-
-      {/* Main Timer */}
-      <div className="glass rounded-xl p-6 border border-primary/20">
-        <div className="flex items-center justify-between mb-6">
+      {/* Main Timer - FIRST for immediate visibility */}
+      <div className="glass rounded-xl p-5 border border-primary/20">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-xl font-bold text-foreground">
+            <h3 className="text-lg font-bold text-foreground">
               {isBreak ? "☕ Pause" : "🎯 Focus"}
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -361,13 +295,13 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
               size="icon"
               variant="ghost"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="h-9 w-9"
+              className="h-8 w-8"
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </Button>
             <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
               <DialogTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-9 w-9">
+                <Button size="icon" variant="ghost" className="h-8 w-8">
                   <Settings className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
@@ -376,7 +310,6 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
                   <DialogTitle>Paramètres Pomodoro</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
-                  {/* Duration Presets */}
                   <div>
                     <Label className="mb-2 block">Durée rapide</Label>
                     <div className="flex flex-wrap gap-2">
@@ -393,7 +326,6 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
                       ))}
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="work">Durée personnalisée (minutes)</Label>
                     <Input
@@ -436,28 +368,28 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
           </div>
         </div>
 
-        {/* Progress Ring */}
-        <div className="relative mb-6 mx-auto w-48 h-48">
-          <svg className="w-48 h-48 transform -rotate-90">
+        {/* Progress Ring - Compact */}
+        <div className="relative mb-4 mx-auto w-40 h-40">
+          <svg className="w-40 h-40 transform -rotate-90">
             <circle
-              cx="96"
-              cy="96"
-              r="88"
+              cx="80"
+              cy="80"
+              r="72"
               stroke="currentColor"
-              strokeWidth="8"
+              strokeWidth="6"
               fill="none"
               className="text-primary/10"
             />
             <circle
-              cx="96"
-              cy="96"
-              r="88"
+              cx="80"
+              cy="80"
+              r="72"
               stroke="url(#gradient)"
-              strokeWidth="8"
+              strokeWidth="6"
               fill="none"
               strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 88}`}
-              strokeDashoffset={`${2 * Math.PI * 88 * (1 - progress / 100)}`}
+              strokeDasharray={`${2 * Math.PI * 72}`}
+              strokeDashoffset={`${2 * Math.PI * 72 * (1 - progress / 100)}`}
               className="transition-all duration-1000"
             />
             <defs>
@@ -468,7 +400,7 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
             </defs>
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className={`text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent ${isActive ? 'animate-pulse' : ''}`}>
+            <div className={`text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent ${isActive ? 'animate-pulse' : ''}`}>
               {String(minutes).padStart(2, '0')}:{String(remainingSeconds).padStart(2, '0')}
             </div>
           </div>
@@ -476,7 +408,7 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
 
         {/* Quick Duration Selection when not active */}
         {!isActive && !isBreak && (
-          <div className="flex justify-center gap-2 mb-4">
+          <div className="flex justify-center gap-2 mb-3">
             {DURATION_PRESETS.slice(0, 4).map((preset) => (
               <Button
                 key={preset.value}
@@ -486,7 +418,7 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
                   setWorkDuration(preset.value);
                   setSeconds(preset.value * 60);
                 }}
-                className={`text-xs px-3 ${workDuration === preset.value ? "bg-gradient-primary" : "text-muted-foreground"}`}
+                className={`text-xs px-2 h-7 ${workDuration === preset.value ? "bg-gradient-primary" : "text-muted-foreground"}`}
               >
                 {preset.label}min
               </Button>
@@ -499,7 +431,7 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
           <Button
             onClick={toggleTimer}
             size="lg"
-            className="bg-gradient-primary hover:opacity-90 col-span-2"
+            className="bg-gradient-primary hover:opacity-90 col-span-2 h-11"
           >
             {isActive ? (
               <>
@@ -514,21 +446,12 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
             )}
           </Button>
           
-          <Button
-            onClick={resetTimer}
-            size="sm"
-            variant="outline"
-          >
+          <Button onClick={resetTimer} size="sm" variant="outline" className="h-9">
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset
           </Button>
 
-          <Button
-            onClick={startBreak}
-            size="sm"
-            variant="outline"
-            disabled={isBreak}
-          >
+          <Button onClick={startBreak} size="sm" variant="outline" disabled={isBreak} className="h-9">
             <Coffee className="w-4 h-4 mr-2" />
             Pause
           </Button>
@@ -539,7 +462,7 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
           <Button
             onClick={() => onOpenFocusMode(workDuration)}
             variant="outline"
-            className="w-full mt-3 border-primary/50 text-primary hover:bg-primary/10"
+            className="w-full mt-2 h-9 border-primary/50 text-primary hover:bg-primary/10"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Mode Focus Total
@@ -547,21 +470,65 @@ const PomodoroTimer = ({ userId, onOpenFocusMode }: PomodoroTimerProps) => {
         )}
       </div>
 
-      {/* Total Sessions Info */}
-      <Card className="glass p-4 border-primary/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-primary/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Sessions totales</p>
-              <p className="text-xs text-muted-foreground">Toutes tes sessions complétées</p>
-            </div>
+      {/* Compact Stats Row */}
+      <div className="grid grid-cols-4 gap-2">
+        <Card className="glass p-2 border-primary/20 text-center">
+          <Target className="w-4 h-4 text-primary mx-auto mb-1" />
+          <p className="text-sm font-bold text-foreground">{todaySessions}/{dailyGoal}</p>
+          <p className="text-[9px] text-muted-foreground">Objectif</p>
+        </Card>
+        <Card className="glass p-2 border-primary/20 text-center">
+          <Flame className="w-4 h-4 text-orange-500 mx-auto mb-1" />
+          <p className="text-sm font-bold text-foreground">{currentStreak}</p>
+          <p className="text-[9px] text-muted-foreground">Série</p>
+        </Card>
+        <Card className="glass p-2 border-primary/20 text-center">
+          <Clock className="w-4 h-4 text-primary mx-auto mb-1" />
+          <p className="text-sm font-bold text-foreground">{todayMinutes}m</p>
+          <p className="text-[9px] text-muted-foreground">Aujourd'hui</p>
+        </Card>
+        <Card className="glass p-2 border-primary/20 text-center">
+          <TrendingUp className="w-4 h-4 text-green-500 mx-auto mb-1" />
+          <p className="text-sm font-bold text-foreground">{Math.round(weeklyMinutes / 60)}h</p>
+          <p className="text-[9px] text-muted-foreground">Semaine</p>
+        </Card>
+      </div>
+
+      {/* Daily Goal Progress - Compact */}
+      {todaySessions > 0 && (
+        <Card className="glass p-3 border-primary/20">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs font-medium text-foreground">Objectif du jour</span>
+            <span className="text-xs text-primary font-semibold">{todaySessions}/{dailyGoal}</span>
           </div>
-          <p className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">{completedSessions}</p>
-        </div>
-      </Card>
+          <Progress value={Math.min((todaySessions / dailyGoal) * 100, 100)} className="h-1.5" />
+          {todaySessions >= dailyGoal && (
+            <p className="text-[10px] text-green-500 mt-1.5 flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              Objectif atteint ! 🎉
+            </p>
+          )}
+        </Card>
+      )}
+
+      {/* Do Not Disturb & Total Sessions */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          onClick={openDoNotDisturbSettings}
+          variant="outline"
+          className="glass border-orange-500/30 hover:bg-orange-500/10 text-orange-400 h-12"
+        >
+          <BellOff className="w-4 h-4 mr-2" />
+          Ne pas déranger
+        </Button>
+        <Card className="glass p-2 border-primary/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Total</span>
+          </div>
+          <span className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">{completedSessions}</span>
+        </Card>
+      </div>
     </div>
   );
 };
