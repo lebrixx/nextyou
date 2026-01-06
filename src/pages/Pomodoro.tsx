@@ -32,7 +32,7 @@ const Pomodoro = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-6 text-center relative">
+      <header className="px-6 pt-8 pb-4">
         <Button
           onClick={() => navigate("/premium")}
           variant="ghost"
@@ -41,21 +41,11 @@ const Pomodoro = () => {
         >
           <Crown className="w-5 h-5 text-primary-foreground" />
         </Button>
-        
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
-          <TimerIcon className="w-8 h-8 text-primary-foreground" />
-        </div>
-        <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-          Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Compteurs</span>
-        </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed max-w-md mx-auto">
-          Mesure tes progrès, célèbre chaque seconde de transformation
-        </p>
       </header>
 
-      <main className="px-6 pt-4 max-w-2xl mx-auto">
+      <main className="px-6 max-w-2xl mx-auto">
         {/* Tabs Navigation */}
-        <div className="grid w-full grid-cols-2 glass rounded-lg p-1 mb-6">
+        <div className="grid w-full grid-cols-2 glass rounded-lg p-1 mb-4">
           <button
             onClick={() => navigate("/timer")}
             className="flex items-center justify-center py-2 px-4 rounded-md text-muted-foreground hover:text-foreground font-medium text-sm transition-colors"

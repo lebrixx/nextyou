@@ -236,7 +236,7 @@ const Index = () => {
   };
   return <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
-      <header className="px-6 pt-safe-offset-32 pb-8">
+      <header className="px-6 pt-12 pb-8">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px] whitespace-nowrap">
             <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
