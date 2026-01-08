@@ -217,31 +217,25 @@ const Quotes = () => {
 
       <main className="px-6 space-y-5 max-w-2xl mx-auto">
         {/* Info Banner */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/10 to-accent/10 border border-primary/20 p-5">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <h3 className="text-lg font-bold text-foreground">Pourquoi les citations ?</h3>
+        <section className="glass rounded-xl p-4 border border-white/10">
+          <div className="flex gap-3">
+            <div className="shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-              Reçois chaque jour des pensées inspirantes pour nourrir ton esprit et booster ta motivation. 
-              Scientifiquement prouvé : quelques mots positifs peuvent transformer ta journée !
-            </p>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
-                <Heart className="w-4 h-4 text-pink-400" />
-                <span className="text-[10px] text-muted-foreground text-center">Bien-être mental</span>
-              </div>
-              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
-                <Brain className="w-4 h-4 text-violet-400" />
-                <span className="text-[10px] text-muted-foreground text-center">Clarté d'esprit</span>
-              </div>
-              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
-                <Sun className="w-4 h-4 text-amber-400" />
-                <span className="text-[10px] text-muted-foreground text-center">Énergie positive</span>
+            <div className="space-y-2">
+              <p className="text-sm text-foreground leading-relaxed">
+                Reçois des <span className="font-medium text-primary">citations inspirantes</span> tout au long de ta journée pour cultiver un état d'esprit positif.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Heart className="w-3 h-3 text-pink-400" /> Bien-être
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Brain className="w-3 h-3 text-violet-400" /> Clarté
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Sun className="w-3 h-3 text-amber-400" /> Motivation
+                </span>
               </div>
             </div>
           </div>
