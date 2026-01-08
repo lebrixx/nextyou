@@ -17,6 +17,7 @@ import { useSocialNotifications } from "@/hooks/useSocialNotifications";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { FriendBadgesSection } from "@/components/FriendBadgesSection";
 import { FriendActivityFeed } from "@/components/FriendActivityFeed";
+import { useFriendStreaks } from "@/hooks/useFriendStreaks";
 interface Profile {
   id: string;
   full_name: string | null;
@@ -151,6 +152,9 @@ const Social = () => {
   
   // Social notifications hook for realtime
   const { preferences: notifPreferences, updatePreferences: updateNotifPreferences } = useSocialNotifications(user?.id);
+  
+  // Friend streaks hook
+  const { streaks: friendStreaks, loading: streaksLoading } = useFriendStreaks(user?.id, friends.map(f => f.profile.id));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -1121,9 +1125,9 @@ const Social = () => {
               <Swords className="w-4 h-4 mr-1" />
               <span className="text-xs">Duels</span>
             </TabsTrigger>
-            <TabsTrigger value="ranking" className="rounded-lg data-[state=active]:bg-background">
-              <Trophy className="w-4 h-4 mr-1" />
-              <span className="text-xs">Top</span>
+            <TabsTrigger value="streaks" className="rounded-lg data-[state=active]:bg-background">
+              <Flame className="w-4 h-4 mr-1 text-orange-500" />
+              <span className="text-xs">Streaks</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-background relative">
               <Bell className="w-4 h-4" />
@@ -1659,123 +1663,119 @@ const Social = () => {
             </Button>
           </TabsContent>
 
-          {/* Tab: Palmarès */}
-          <TabsContent value="ranking" className="space-y-3 mt-4">
+          {/* Tab: Streaks amis */}
+          <TabsContent value="streaks" className="space-y-3 mt-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                Palmarès des duels
+                <Flame className="w-5 h-5 text-orange-500" />
+                Streaks amis
               </h2>
             </div>
 
-            {/* My stats - Enhanced */}
-            <div className="glass rounded-2xl p-5 border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/5 mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-14 h-14 ring-2 ring-primary/50">
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold text-xl">
-                      {(profile?.full_name || 'T')[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-bold text-foreground text-lg">Toi</h3>
-                    <p className="text-xs text-primary">Champion en devenir</p>
-                  </div>
+            {/* Explication */}
+            <div className="glass rounded-xl p-4 border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-red-500/5 mb-4">
+              <div className="flex gap-3">
+                <div className="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                  <span className="text-xl">🔥</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground text-sm mb-1">Comment ça marche ?</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Quand toi et un ami complétez au moins <span className="text-orange-400 font-medium">1 habitude</span> le même jour, 
+                    votre streak augmente ! Enchaîne les jours pour des flammes toujours plus grandes 🔥
+                  </p>
                 </div>
               </div>
-              
-              {/* Stats grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-yellow-500/10 rounded-xl p-3 text-center border border-yellow-500/20">
-                  <div className="flex items-center justify-center gap-1 text-yellow-500 mb-1">
-                    <Trophy className="w-5 h-5" />
-                  </div>
-                  <span className="font-black text-2xl text-foreground">{(profile as any)?.duel_wins || 0}</span>
-                  <p className="text-[10px] text-muted-foreground">victoires</p>
-                </div>
-                <div className="bg-orange-500/10 rounded-xl p-3 text-center border border-orange-500/20">
-                  <div className="flex items-center justify-center gap-1 text-orange-500 mb-1">
-                    <Flame className="w-5 h-5" />
-                  </div>
-                  <span className="font-black text-2xl text-foreground">{(profile as any)?.duel_streak || 0}</span>
-                  <p className="text-[10px] text-muted-foreground">série</p>
-                </div>
-                <div className="bg-green-500/10 rounded-xl p-3 text-center border border-green-500/20">
-                  <div className="flex items-center justify-center gap-1 text-green-500 mb-1">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <span className="font-black text-2xl text-foreground">{((profile as any)?.duel_wins || 0) * 100}</span>
-                  <p className="text-[10px] text-muted-foreground">XP gagnés</p>
-                </div>
-              </div>
-              
-              {/* Progress to next badge */}
-              {((profile as any)?.duel_wins || 0) < 5 && (
-                <div className="mt-4 pt-3 border-t border-white/10">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Prochain badge : Maître des duels</span>
-                    <span className="text-yellow-500 font-medium">{(profile as any)?.duel_wins || 0}/5</span>
-                  </div>
-                  <Progress value={((profile as any)?.duel_wins || 0) / 5 * 100} className="h-2" />
-                </div>
-              )}
             </div>
 
-            {rankedFriends.length === 0 ? (
+            {streaksLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : friendStreaks.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Trophy className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Ajoute des amis pour voir le classement</p>
-                <p className="text-xs mt-1">Tes amis apparaîtront ici avec leurs victoires</p>
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mx-auto mb-4">
+                  <Flame className="w-10 h-10 text-orange-500/50" />
+                </div>
+                <h3 className="font-bold text-foreground text-lg mb-2">Pas encore de streaks</h3>
+                <p className="text-sm mb-2">Ajoute des amis et complétez des habitudes le même jour !</p>
+                <p className="text-xs">Les streaks apparaîtront ici automatiquement</p>
               </div>
             ) : (
-              rankedFriends.map((friend, index) => (
-                <div 
-                  key={friend.id} 
-                  className={`glass rounded-2xl p-4 border transition-all duration-300 hover:scale-[1.02] cursor-pointer animate-fade-in relative overflow-hidden group ${
-                    index === 0 ? 'border-yellow-500/50 bg-gradient-to-br from-yellow-500/10 to-transparent shadow-lg shadow-yellow-500/20' : 
-                    index === 1 ? 'border-gray-400/50 bg-gradient-to-br from-gray-400/10 to-transparent' : 
-                    index === 2 ? 'border-amber-600/50 bg-gradient-to-br from-amber-600/10 to-transparent' : 
-                    'border-white/5 hover:border-primary/30'
-                  }`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  {index < 3 && (
-                    <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
-                      <Trophy className={`w-full h-full ${
-                        index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-amber-600'
-                      }`} />
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg ${
-                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-yellow-950 shadow-yellow-500/50' : 
-                        index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-gray-900 shadow-gray-500/50' : 
-                        index === 2 ? 'bg-gradient-to-br from-amber-500 to-amber-700 text-amber-950 shadow-amber-500/50' : 
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+              <div className="space-y-3">
+                {friendStreaks.map((streak, index) => {
+                  // Determine flame size and color based on streak
+                  const getFlameDisplay = (count: number) => {
+                    if (count >= 30) return { emoji: '🔥🔥🔥', color: 'from-red-500 to-orange-500', bg: 'bg-red-500/20', border: 'border-red-500/40' };
+                    if (count >= 14) return { emoji: '🔥🔥', color: 'from-orange-500 to-yellow-500', bg: 'bg-orange-500/20', border: 'border-orange-500/40' };
+                    if (count >= 7) return { emoji: '🔥', color: 'from-orange-400 to-amber-400', bg: 'bg-orange-500/15', border: 'border-orange-500/30' };
+                    if (count >= 1) return { emoji: '🔥', color: 'from-amber-400 to-yellow-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' };
+                    return { emoji: '❄️', color: 'from-blue-400 to-cyan-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' };
+                  };
+
+                  const flameDisplay = getFlameDisplay(streak.currentStreak);
+                  const isActive = streak.currentStreak > 0;
+
+                  return (
+                    <div 
+                      key={streak.id}
+                      className={`glass rounded-2xl p-4 border transition-all duration-300 hover:scale-[1.02] animate-fade-in relative overflow-hidden ${flameDisplay.border}`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      {/* Background glow for high streaks */}
+                      {streak.currentStreak >= 7 && (
+                        <div className="absolute inset-0 bg-gradient-to-r opacity-10" style={{
+                          background: `linear-gradient(135deg, ${streak.currentStreak >= 30 ? 'rgba(239, 68, 68, 0.3)' : streak.currentStreak >= 14 ? 'rgba(249, 115, 22, 0.3)' : 'rgba(251, 146, 60, 0.2)'}, transparent)`
+                        }} />
+                      )}
+                      
+                      <div className="flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-3">
+                          <Avatar className={`w-12 h-12 ring-2 ${isActive ? 'ring-orange-500/50' : 'ring-white/10'}`}>
+                            <AvatarFallback className={`bg-gradient-to-br ${isActive ? flameDisplay.color : 'from-muted to-muted-foreground'} text-white font-bold`}>
+                              {streak.friendName[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold text-foreground">{streak.friendName}</h3>
+                            {streak.bestStreak > 0 && (
+                              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Trophy className="w-3 h-3 text-yellow-500" />
+                                Record : {streak.bestStreak} jours
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${flameDisplay.bg}`}>
+                            <span className="text-xl">{flameDisplay.emoji}</span>
+                            <span className={`font-black text-2xl bg-gradient-to-r ${flameDisplay.color} bg-clip-text text-transparent`}>
+                              {streak.currentStreak}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <Avatar className="w-10 h-10 ring-2 ring-white/10">
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                          {(friend.profile.full_name || 'A')[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{friend.profile.full_name}</h3>
-                        <p className="text-xs text-muted-foreground">#{friend.profile.friend_code}</p>
+                      
+                      {/* Streak status message */}
+                      <div className="mt-3 pt-3 border-t border-white/5">
+                        <p className="text-xs text-center text-muted-foreground">
+                          {streak.currentStreak === 0 
+                            ? "❄️ Complétez une habitude le même jour pour démarrer !"
+                            : streak.currentStreak >= 30
+                            ? "🏆 Incroyable ! Vous êtes des légendes !"
+                            : streak.currentStreak >= 14
+                            ? "💪 Super équipe ! Continuez comme ça !"
+                            : streak.currentStreak >= 7
+                            ? "🎯 Une semaine ! Vous êtes en feu !"
+                            : `✨ Encore ${7 - streak.currentStreak} jour${7 - streak.currentStreak > 1 ? 's' : ''} pour atteindre la semaine !`
+                          }
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1.5 bg-yellow-500/10 px-3 py-1.5 rounded-full">
-                        <Trophy className="w-4 h-4 text-yellow-500" />
-                        <span className="font-bold text-yellow-400">{(friend.profile as any).duel_wins || 0}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">victoires</p>
-                    </div>
-                  </div>
-                </div>
-              ))
+                  );
+                })}
+              </div>
             )}
           </TabsContent>
 
