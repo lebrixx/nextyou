@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Clock, Bell, Settings2, Shuffle, Crown, Send } from "lucide-react";
+import { Clock, Bell, Settings2, Shuffle, Crown, Send, Sparkles, Heart, Brain, Sun } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -216,6 +216,37 @@ const Quotes = () => {
       </header>
 
       <main className="px-6 space-y-5 max-w-2xl mx-auto">
+        {/* Info Banner */}
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/10 to-accent/10 border border-primary/20 p-5">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">Pourquoi les citations ?</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+              Reçois chaque jour des pensées inspirantes pour nourrir ton esprit et booster ta motivation. 
+              Scientifiquement prouvé : quelques mots positifs peuvent transformer ta journée !
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
+                <Heart className="w-4 h-4 text-pink-400" />
+                <span className="text-[10px] text-muted-foreground text-center">Bien-être mental</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
+                <Brain className="w-4 h-4 text-violet-400" />
+                <span className="text-[10px] text-muted-foreground text-center">Clarté d'esprit</span>
+              </div>
+              <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-background/50 border border-white/5">
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="text-[10px] text-muted-foreground text-center">Énergie positive</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Notification Settings */}
         <section className="space-y-3">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
