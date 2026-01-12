@@ -13,6 +13,7 @@ import Timer from "./pages/Timer";
 import Pomodoro from "./pages/Pomodoro";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Premium from "./pages/Premium";
 import Assistant from "./pages/Assistant";
 import Badges from "./pages/Badges";
@@ -38,6 +39,7 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/" element={<Index />} />
             <Route path="/habits" element={<Habits />} />
             <Route path="/analytics" element={<Plan />} />
