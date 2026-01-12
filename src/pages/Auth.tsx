@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Mail, LogIn, UserPlus } from "lucide-react";
+import { Mail, LogIn, UserPlus, AlertTriangle, KeyRound } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -172,6 +174,45 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!email.trim()) {
+        toast({
+          title: "Erreur",
+          description: "Entre ton adresse email",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      toast({
+        title: "Email envoyé !",
+        description: "Vérifie ta boîte mail pour réinitialiser ton mot de passe",
+      });
+    } catch (error: any) {
+      console.error("Error resetting password:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'envoyer l'email",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Email sent after signup
   if (emailSent) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-6">
@@ -193,6 +234,16 @@ const Auth = () => {
               Clique sur le lien dans l'email pour activer ton compte et te connecter.
             </p>
 
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-500 mb-1">Vérifie tes spams !</p>
+                <p className="text-muted-foreground text-xs">
+                  L'email peut parfois arriver dans tes courriers indésirables. Pense à vérifier ce dossier.
+                </p>
+              </div>
+            </div>
+
             <Button
               onClick={handleResendEmail}
               disabled={loading}
@@ -213,6 +264,113 @@ const Auth = () => {
               Retour à la connexion
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Password reset email sent
+  if (resetEmailSent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
+              <KeyRound className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Email envoyé
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Un email de réinitialisation a été envoyé à <strong>{email}</strong>
+            </p>
+          </div>
+
+          <div className="glass rounded-2xl p-8 space-y-6 border border-white/10 text-center">
+            <p className="text-muted-foreground text-sm">
+              Clique sur le lien dans l'email pour créer un nouveau mot de passe.
+            </p>
+
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-500 mb-1">Vérifie tes spams !</p>
+                <p className="text-muted-foreground text-xs">
+                  L'email peut parfois arriver dans tes courriers indésirables. Pense à vérifier ce dossier.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setResetEmailSent(false);
+                setIsForgotPassword(false);
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Retour à la connexion
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Forgot password form
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary shadow-glow mb-4">
+              <KeyRound className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Mot de passe oublié
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Entre ton email pour réinitialiser ton mot de passe
+            </p>
+          </div>
+
+          <form 
+            onSubmit={handleForgotPassword} 
+            className="glass rounded-2xl p-8 space-y-6 border border-white/10"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-foreground">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ton@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="glass border-white/10 focus:border-primary/50"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-primary text-primary-foreground shadow-glow font-bold h-11"
+            >
+              {loading ? "Envoi..." : "Envoyer le lien"}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(false)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Retour à la connexion
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     );
@@ -293,6 +451,18 @@ const Auth = () => {
               <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
             )}
           </div>
+
+          {!isSignUp && (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(true)}
+                className="text-sm text-primary hover:text-primary/80 transition-colors"
+              >
+                Mot de passe oublié ?
+              </button>
+            </div>
+          )}
 
           <Button
             type="submit"
