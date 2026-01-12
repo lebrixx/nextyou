@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Mail, LogIn, UserPlus, AlertTriangle, KeyRound } from "lucide-react";
+import { Mail, LogIn, UserPlus, AlertTriangle, KeyRound, Shield } from "lucide-react";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -279,14 +279,14 @@ const Auth = () => {
               <KeyRound className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">
-              Email envoyé
+              Vérifie ta boîte mail
             </h1>
             <p className="text-muted-foreground text-sm">
-              Un email de réinitialisation a été envoyé à <strong>{email}</strong>
+              Si un compte existe avec cette adresse, un email a été envoyé.
             </p>
           </div>
 
-          <div className="glass rounded-2xl p-8 space-y-6 border border-white/10 text-center">
+          <div className="glass rounded-2xl p-8 space-y-4 border border-white/10 text-center">
             <p className="text-muted-foreground text-sm">
               Clique sur le lien dans l'email pour créer un nouveau mot de passe.
             </p>
@@ -297,6 +297,16 @@ const Auth = () => {
                 <p className="font-medium text-amber-500 mb-1">Vérifie tes spams !</p>
                 <p className="text-muted-foreground text-xs">
                   L'email peut parfois arriver dans tes courriers indésirables. Pense à vérifier ce dossier.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20 text-left">
+              <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-primary mb-1">Sécurité</p>
+                <p className="text-muted-foreground text-xs">
+                  Seul le propriétaire de l'adresse email peut réinitialiser le mot de passe. Le lien est unique et expire après utilisation.
                 </p>
               </div>
             </div>
