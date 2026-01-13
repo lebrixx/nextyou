@@ -2,3 +2,12 @@ project_id = "mlkaaheqivkyneprvuvd"
 
 [functions.habit-assistant]
 verify_jwt = true
+
+[functions.habit-difficulty-analyzer]
+verify_jwt = false
+
+[functions.send-confirmation-email]
+verify_jwt = false
+
+[functions.send-password-reset-email]
+verify_jwt = false
