@@ -869,6 +869,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_duel: { Args: { _challenge_id: string }; Returns: undefined }
       get_group_by_invite_code: {
         Args: { _invite_code: string }
         Returns: {
