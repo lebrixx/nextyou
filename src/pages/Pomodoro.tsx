@@ -32,16 +32,7 @@ const Pomodoro = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 pt-8 pb-4">
-        <Button
-          onClick={() => navigate("/premium")}
-          variant="ghost"
-          size="sm"
-          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
-        >
-          <Crown className="w-5 h-5 text-primary-foreground" />
-        </Button>
-      </header>
+      <header className="px-6 pt-8 pb-4" />
 
       <main className="px-6 max-w-2xl mx-auto">
         {/* Tabs Navigation */}
