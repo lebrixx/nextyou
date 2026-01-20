@@ -883,48 +883,17 @@ const Social = () => {
       variant: 'destructive',
       onConfirm: async () => {
         try {
-          // Get all participants to delete their duel habits
-          const { data: participants } = await supabase
-            .from('challenge_participants')
-            .select('user_id')
-            .eq('challenge_id', challengeId);
+          // Call the server-side SECURITY DEFINER function that handles everything
+          const { error } = await supabase.rpc('cancel_duel', { _challenge_id: challengeId });
           
-          // For specific_habit mode, delete the duel habits for ALL participants
-          if (challenge.duel_mode === 'specific_habit' && challenge.habit_name) {
-            const allParticipantIds = [
-              ...(participants?.map(p => p.user_id) || []),
-              challenge.creator_id,
-              challenge.opponent_id
-            ].filter((id, index, self) => id && self.indexOf(id) === index);
-            
-            for (const participantId of allParticipantIds) {
-              await supabase
-                .from('habits')
-                .delete()
-                .eq('user_id', participantId)
-                .eq('category', 'duel')
-                .ilike('name', challenge.habit_name || '');
-            }
+          if (error) {
+            console.error('Error cancelling duel:', error);
+            throw error;
           }
           
-          // Notify opponent that user quit
-          const opponentId = challenge.creator_id === user.id ? challenge.opponent_id : challenge.creator_id;
-          if (opponentId) {
-            await supabase
-              .from('social_notifications')
-              .insert({
-                sender_id: user.id,
-                recipient_id: opponentId,
-                type: 'duel_update',
-                message: `${profile?.full_name || 'Ton adversaire'} a abandonné le duel "${challenge.title}". Le défi est annulé.${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
-              });
-          }
+          // Remove from local state immediately
+          setChallenges(prev => prev.filter(c => c.id !== challengeId));
           
-          // Delete challenge data
-          await supabase.from('challenge_participants').delete().eq('challenge_id', challengeId);
-          await supabase.from('challenges').delete().eq('id', challengeId);
-          
-          setChallenges(challenges.filter(c => c.id !== challengeId));
           toast({ 
             title: "Duel abandonné",
             description: challenge.duel_mode === 'specific_habit' ? `L'habitude "${challenge.habit_name}" a été supprimée.` : undefined
