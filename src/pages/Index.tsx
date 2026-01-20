@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -145,6 +145,7 @@ const Index = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [tourOpen, setTourOpen] = useState(false);
   const [philosophyOpen, setPhilosophyOpen] = useState(false);
+  const philosophyRef = useRef<HTMLDivElement>(null);
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
     return allQuotes[Math.floor(Math.random() * allQuotes.length)];
@@ -364,8 +365,16 @@ const Index = () => {
 
 
         {/* Inspirational Message */}
-        <section className="space-y-3">
-          <button onClick={() => setPhilosophyOpen(!philosophyOpen)} className="w-full group">
+        <section className="space-y-3" ref={philosophyRef}>
+          <button onClick={() => {
+            const willOpen = !philosophyOpen;
+            setPhilosophyOpen(willOpen);
+            if (willOpen) {
+              setTimeout(() => {
+                philosophyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+          }} className="w-full group">
             <div className="glass rounded-xl p-4 shadow-elevation border border-primary/30 hover:border-primary/50 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
