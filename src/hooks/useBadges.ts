@@ -321,6 +321,32 @@ export const badgeRules: BadgeRule[] = [
     description: 'Retour après 14+ jours d\'absence',
     condition: (stats) => stats.longAbsenceReturn === true,
   },
+
+  // ========== BADGES STREAK MUTUEL (4) ==========
+  {
+    type: 'friend_streak_7',
+    name: 'Duo en Feu',
+    description: 'Streak mutuel de 7 jours avec un ami',
+    condition: (stats) => stats.bestFriendStreak >= 7,
+  },
+  {
+    type: 'friend_streak_14',
+    name: 'Partenaires',
+    description: 'Streak mutuel de 14 jours avec un ami',
+    condition: (stats) => stats.bestFriendStreak >= 14,
+  },
+  {
+    type: 'friend_streak_30',
+    name: 'Inséparables',
+    description: 'Streak mutuel de 30 jours avec un ami',
+    condition: (stats) => stats.bestFriendStreak >= 30,
+  },
+  {
+    type: 'friend_streak_100',
+    name: 'Âmes Sœurs',
+    description: 'Streak mutuel de 100 jours avec un ami',
+    condition: (stats) => stats.bestFriendStreak >= 100,
+  },
 ];
 
 export const useBadges = (userId: string | undefined, stats: any) => {
