@@ -265,18 +265,14 @@ export const useChallengeProgress = (userId: string | undefined) => {
             .update({ badge_awarded: true })
             .eq('challenge_id', challengeId);
           
-          // Calculate XP earned (base XP * bonus for winning margin)
-          const marginBonus = Math.min(winnerScore - loserScore, 5) * 10;
-          const xpEarned = 100 + marginBonus;
-          
-          // Notify winner with XP info and result
+          // Notify winner with result
           await supabase
             .from('social_notifications')
             .insert({
               sender_id: currentUserId,
               recipient_id: winnerId,
               type: 'achievement',
-              message: `🏆 Victoire ! Tu as gagné le duel "${challenge.title}" ! Score: ${winnerScore} - ${loserScore}. +${xpEarned} XP gagnés !${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
+              message: `🏆 Victoire ! Tu as gagné le duel "${challenge.title}" ! Score: ${winnerScore} - ${loserScore}.${challenge.duel_mode === 'specific_habit' ? ` L'habitude "${challenge.habit_name}" a été retirée.` : ''}`
             });
           
           // Notify loser and reset their streak

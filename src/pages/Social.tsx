@@ -1395,7 +1395,7 @@ const Social = () => {
               const daysLeft = Math.max(0, Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
               const isExpanded = expandedChallenges[challenge.id] ?? false;
               const currentAnimation = scoreAnimations[challenge.id];
-              const potentialXP = Math.ceil(challenge.target_value * 10 * (isWinning ? 1.5 : 1));
+              
               
               return (
                 <div key={challenge.id} className={`glass rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent hover:border-red-500/50 transition-all duration-300 relative overflow-hidden group animate-fade-in ${currentAnimation?.show ? 'ring-2 ring-yellow-500/50' : ''}`} style={{ animationDelay: `${index * 0.1}s` }}>
@@ -1431,10 +1431,6 @@ const Social = () => {
                           )}
                           {isWinning && <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full animate-pulse">🏆 En tête</span>}
                           {!isWinning && !isTie && <span className="text-[10px] bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">💪 Rattrape !</span>}
-                          <span className="text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Zap className="w-2.5 h-2.5" />
-                            {potentialXP} XP
-                          </span>
                         </div>
                         <h3 className="font-bold text-foreground text-sm truncate">{challenge.title}</h3>
                         <p className="text-[10px] text-muted-foreground">
@@ -1494,11 +1490,6 @@ const Social = () => {
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                   {challenge.habit_name ? `fois "${challenge.habit_name}"` : 'habitudes complétées'}
                                 </p>
-                                {/* XP reward preview */}
-                                <div className="mt-2 flex items-center justify-center gap-1 text-yellow-500">
-                                  <Zap className="w-3 h-3" />
-                                  <span className="text-[10px] font-medium">{potentialXP} XP à gagner</span>
-                                </div>
                               </div>
                             </div>
                             
