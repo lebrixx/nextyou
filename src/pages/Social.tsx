@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, Zap, ChevronRight, ChevronDown, X, Clock, Trash2, Swords, RefreshCw, Activity } from "lucide-react";
+import { Users, UserPlus, Bell, Crown, Plus, Copy, Check, Send, Trophy, Target, Flame, MessageCircle, TrendingUp, Award, ChevronRight, ChevronDown, X, Clock, Trash2, Swords, RefreshCw, Activity } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { FriendBadgesSection } from "@/components/FriendBadgesSection";
 import { FriendActivityFeed } from "@/components/FriendActivityFeed";
 import { useFriendStreaks } from "@/hooks/useFriendStreaks";
+import { StreakReminderButton } from "@/components/StreakReminderButton";
+import { StreakBadgeProgress } from "@/components/StreakBadgeProgress";
 interface Profile {
   id: string;
   full_name: string | null;
@@ -1624,7 +1626,7 @@ const Social = () => {
                 {/* Why duels section */}
                 <div className="glass rounded-xl p-4 border border-white/10 text-left max-w-sm mx-auto">
                   <h4 className="font-semibold text-foreground text-sm mb-3 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-yellow-500" />
+                    <Swords className="w-4 h-4 text-red-500" />
                     Pourquoi faire des duels ?
                   </h4>
                   <ul className="space-y-2 text-xs text-muted-foreground">
@@ -1733,7 +1735,19 @@ const Social = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-semibold text-foreground">{streak.friendName}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-foreground">{streak.friendName}</h3>
+                              {/* Reminder button */}
+                              {user && !streak.friendCompletedToday && streak.currentStreak > 0 && (
+                                <StreakReminderButton
+                                  userId={user.id}
+                                  friendId={streak.friendId}
+                                  friendName={streak.friendName}
+                                  currentStreak={streak.currentStreak}
+                                  friendCompletedToday={streak.friendCompletedToday}
+                                />
+                              )}
+                            </div>
                             {streak.bestStreak > 0 && (
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Trophy className="w-3 h-3 text-yellow-500" />
@@ -1753,8 +1767,16 @@ const Social = () => {
                         </div>
                       </div>
                       
-                      {/* Streak status message */}
+                      {/* Badge progress */}
                       <div className="mt-3 pt-3 border-t border-white/5">
+                        <StreakBadgeProgress 
+                          currentStreak={streak.currentStreak} 
+                          bestStreak={streak.bestStreak} 
+                        />
+                      </div>
+                      
+                      {/* Streak status message */}
+                      <div className="mt-2">
                         <p className="text-xs text-center text-muted-foreground">
                           {streak.currentStreak === 0 
                             ? "❄️ Complétez une habitude le même jour pour démarrer !"

@@ -9,11 +9,13 @@ interface FriendStreak {
   currentStreak: number;
   bestStreak: number;
   lastMutualDate: string | null;
+  friendCompletedToday: boolean;
 }
 
 export const useFriendStreaks = (userId: string | undefined, friendIds: string[]) => {
   const [streaks, setStreaks] = useState<FriendStreak[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bestFriendStreak, setBestFriendStreak] = useState(0);
 
   const loadStreaks = useCallback(async () => {
     if (!userId || friendIds.length === 0) {
@@ -127,13 +129,18 @@ export const useFriendStreaks = (userId: string | undefined, friendIds: string[]
           friendAvatar: friendProfile?.avatar_url,
           currentStreak,
           bestStreak,
-          lastMutualDate
+          lastMutualDate,
+          friendCompletedToday
         });
       }
 
       // Sort by current streak (descending)
       updatedStreaks.sort((a, b) => b.currentStreak - a.currentStreak);
       setStreaks(updatedStreaks);
+      
+      // Calculate best friend streak across all friends for badge system
+      const maxBestStreak = Math.max(...updatedStreaks.map(s => s.bestStreak), 0);
+      setBestFriendStreak(maxBestStreak);
     } catch (error) {
       console.error('Error loading friend streaks:', error);
     } finally {
@@ -170,5 +177,5 @@ export const useFriendStreaks = (userId: string | undefined, friendIds: string[]
     };
   }, [userId, loadStreaks]);
 
-  return { streaks, loading, refresh: loadStreaks };
+  return { streaks, loading, refresh: loadStreaks, bestFriendStreak };
 };

@@ -78,6 +78,11 @@ const badgeIcons: Record<string, any> = {
   hard_week_survivor: Shield,
   low_energy_push: Zap,
   comeback_king: Crown,
+  // Streak Mutuel
+  friend_streak_7: Flame,
+  friend_streak_14: Users,
+  friend_streak_30: Heart,
+  friend_streak_100: Diamond,
 };
 
 const badgeColors: Record<string, string> = {
@@ -137,6 +142,11 @@ const badgeColors: Record<string, string> = {
   hard_week_survivor: "from-gray-500 to-gray-700",
   low_energy_push: "from-purple-400 to-purple-600",
   comeback_king: "from-yellow-500 to-orange-600",
+  // Streak Mutuel
+  friend_streak_7: "from-orange-400 to-amber-500",
+  friend_streak_14: "from-orange-500 to-yellow-500",
+  friend_streak_30: "from-red-500 to-orange-500",
+  friend_streak_100: "from-purple-500 to-pink-500",
 };
 
 const badgeDifficulty: Record<string, string> = {
@@ -196,6 +206,11 @@ const badgeDifficulty: Record<string, string> = {
   hard_week_survivor: "Spécial",
   low_energy_push: "Spécial",
   comeback_king: "Spécial",
+  // Streak Mutuel
+  friend_streak_7: "Social",
+  friend_streak_14: "Social",
+  friend_streak_30: "Social",
+  friend_streak_100: "Social",
 };
 
 const difficultyColors: Record<string, string> = {
@@ -205,6 +220,7 @@ const difficultyColors: Record<string, string> = {
   "Très difficile": "text-red-500",
   "Légendaire": "text-purple-500",
   "Spécial": "text-pink-500",
+  "Social": "text-orange-500",
 };
 
 const Badges = () => {

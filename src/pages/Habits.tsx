@@ -58,6 +58,7 @@ const Habits = () => {
   const [user, setUser] = useState<any>(null);
   const [completions, setCompletions] = useState<any[]>([]);
   const [habitsLoaded, setHabitsLoaded] = useState(false);
+  const [bestFriendStreak, setBestFriendStreak] = useState(0);
   
   // Goals state
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -222,6 +223,18 @@ const Habits = () => {
         .select('*')
         .eq('user_id', user.id);
       setCompletions(completionsData || []);
+      
+      // Load best friend streak for badges
+      const { data: friendStreaksData } = await supabase
+        .from('friend_streaks')
+        .select('best_streak')
+        .eq('user_id', user.id)
+        .order('best_streak', { ascending: false })
+        .limit(1);
+      
+      if (friendStreaksData && friendStreaksData.length > 0) {
+        setBestFriendStreak(friendStreaksData[0].best_streak);
+      }
     }
   };
 
@@ -231,6 +244,7 @@ const Habits = () => {
     bestStreak: Math.max(...habits.map(h => h.streak || 0), 0),
     totalHabits: habits.length,
     perfectWeek: false,
+    bestFriendStreak,
   };
 
   // Auto-unlock badges
