@@ -1642,7 +1642,7 @@ const Social = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <Award className="w-3.5 h-3.5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Gagne jusqu'à <span className="text-green-500 font-medium">150 XP par duel</span> remporté</span>
+                      <span>Améliore ta <span className="text-green-500 font-medium">régularité</span> grâce à la compétition</span>
                     </li>
                   </ul>
                 </div>
@@ -1656,7 +1656,6 @@ const Social = () => {
             >
               <Swords className="w-4 h-4 mr-2 group-hover:rotate-45 transition-transform duration-300" />
               <span>Lancer un nouveau duel</span>
-              <span className="ml-2 text-[10px] bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-full">+XP</span>
             </Button>
           </TabsContent>
 
