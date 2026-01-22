@@ -398,7 +398,7 @@ const Auth = () => {
             )}
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-2">
-            Next <span className="bg-gradient-primary bg-clip-text text-transparent">Me</span>
+            Time <span className="bg-gradient-primary bg-clip-text text-transparent">Ritual</span>
           </h1>
           <p className="text-muted-foreground text-sm">
             {isSignUp ? "Crée ton compte" : "Connecte-toi à ton compte"}
@@ -492,6 +492,28 @@ const Auth = () => {
             </button>
           </div>
         </form>
+
+        {/* Continuer sans compte */}
+        <div className="glass rounded-2xl p-5 border border-white/10 space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              <span className="text-foreground font-medium">Avec un compte</span>, tes données sont sauvegardées et synchronisées sur tous tes appareils. Tu accèdes aussi aux fonctionnalités sociales (amis, défis, groupes).
+            </p>
+          </div>
+          
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/")}
+            className="w-full border-muted-foreground/30 text-muted-foreground hover:text-foreground hover:border-foreground/50 h-10"
+          >
+            Continuer sans compte
+          </Button>
+          
+          <p className="text-[10px] text-muted-foreground/70 text-center">
+            Tes données seront stockées uniquement sur cet appareil
+          </p>
+        </div>
       </div>
     </div>
   );
