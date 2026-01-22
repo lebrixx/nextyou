@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, HelpCircle } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { motion } from "framer-motion";
@@ -241,13 +241,23 @@ const Index = () => {
       {/* Header with Daily Quote */}
       <header className="px-6 pt-12 pb-8">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px] whitespace-nowrap">
-            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
-            <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
-              Ritual
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
-            </span>
-          </h1>
+          <div className="relative">
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px] whitespace-nowrap">
+              <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
+              <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
+                Ritual
+                <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
+              </span>
+            </h1>
+            {/* Tour Guide Button */}
+            <button
+              onClick={() => setTourOpen(true)}
+              className="absolute top-6 right-0 p-2 rounded-full glass border border-primary/30 hover:border-primary/60 hover:bg-primary/10 transition-all group"
+              title="Découvrir l'app"
+            >
+              <HelpCircle className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
               {t('todayQuote')}
