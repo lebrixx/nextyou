@@ -3,10 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { initPushNotifications } from "./pushNotifications";
-import { AnimatePresence, motion } from "framer-motion";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Plan from "./pages/Plan";
@@ -25,51 +24,26 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -8 },
-};
-
-const pageTransition = {
-  type: "tween" as const,
-  ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
-  duration: 0.25,
-};
-
 const AnimatedRoutes = () => {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial="initial"
-        animate="in"
-        exit="out"
-        variants={pageVariants}
-        transition={pageTransition}
-      >
-        <Routes location={location}>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/habits" element={<Habits />} />
-          <Route path="/analytics" element={<Plan />} />
-          <Route path="/quotes" element={<Quotes />} />
-          <Route path="/timer" element={<Timer />} />
-          <Route path="/pomodoro" element={<Pomodoro />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/premium" element={<Premium />} />
-          <Route path="/assistant" element={<Assistant />} />
-          <Route path="/badges" element={<Badges />} />
-          <Route path="/stats" element={<Stats />} />
-          <Route path="/social" element={<Social />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/" element={<Index />} />
+      <Route path="/habits" element={<Habits />} />
+      <Route path="/analytics" element={<Plan />} />
+      <Route path="/quotes" element={<Quotes />} />
+      <Route path="/timer" element={<Timer />} />
+      <Route path="/pomodoro" element={<Pomodoro />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/premium" element={<Premium />} />
+      <Route path="/assistant" element={<Assistant />} />
+      <Route path="/badges" element={<Badges />} />
+      <Route path="/stats" element={<Stats />} />
+      <Route path="/social" element={<Social />} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
