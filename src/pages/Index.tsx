@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
 import HabitCard from "@/components/HabitCard";
 import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
+import AnimatedCounter from "@/components/AnimatedCounter";
 import { supabase } from "@/integrations/supabase/client";
 
 import { quotes } from "@/data/quotes";
@@ -267,35 +269,73 @@ const Index = () => {
 
 
       {/* Performance Quotidienne */}
-        <section className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center">
+        <motion.section 
+          className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
           <p className="text-muted-foreground font-semibold text-[9px] tracking-wide uppercase mb-2">
             {t('performanceToday')}
           </p>
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              {completedToday}
-            </span>
+            <AnimatedCounter 
+              value={completedToday} 
+              className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+            />
             <span className="text-2xl font-semibold text-muted-foreground">/</span>
             <span className="text-2xl font-semibold text-foreground">{totalHabits}</span>
           </div>
           <p className="text-xs text-muted-foreground mt-2">{t('completedHabits')}</p>
-        </section>
+          
+          {/* Animated Progress Bar */}
+          <div className="mt-4 w-full h-2 bg-muted/30 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </motion.section>
 
         {/* Timers Section */}
-        <section className="space-y-3">
+        <motion.section 
+          className="space-y-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
           <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" />
             {t('myTimers')}
           </h2>
           {timers.length > 0 ? <div className="glass rounded-xl p-4 shadow-elevation border border-white/5">
-              <div className="grid grid-cols-2 gap-3">
-                {timers.map(timer => <div key={timer.id} className="rounded-lg p-3 bg-background/50 border border-white/5">
+              <motion.div 
+                className="grid grid-cols-2 gap-3"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                }}
+              >
+                {timers.map(timer => (
+                  <motion.div 
+                    key={timer.id} 
+                    className="rounded-lg p-3 bg-background/50 border border-white/5"
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.9 },
+                      visible: { opacity: 1, scale: 1 }
+                    }}
+                  >
                     <p className="text-xs text-muted-foreground mb-1 truncate">{timer.name}</p>
                     <p className="text-lg font-bold bg-gradient-primary bg-clip-text text-transparent">
                       {formatTimerCompact(timer.startDate)}
                     </p>
-                  </div>)}
-              </div>
+                  </motion.div>
+                ))}
+              </motion.div>
               <div className="mt-3 pt-3 border-t border-white/5">
               <p className="text-[10px] text-muted-foreground text-center">
                 💡 {t('addTimerWidget')}
@@ -308,7 +348,7 @@ const Index = () => {
                 {t('goToTimerTab')}
               </p>
             </div>}
-        </section>
+        </motion.section>
 
         {/* Goals Section */}
         {goals.length > 0 && <section className="space-y-3">
@@ -359,7 +399,29 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground/70">
                   {t('clickToAddHabit')}
                 </p>
-              </div> : habits.map(habit => <HabitCard key={habit.id} {...habit} onToggle={toggleHabit} />)}
+              </div> : (
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
+                  }}
+                  className="space-y-3"
+                >
+                  {habits.map(habit => (
+                    <motion.div
+                      key={habit.id}
+                      variants={{
+                        hidden: { opacity: 0, x: -20 },
+                        visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                      }}
+                    >
+                      <HabitCard {...habit} onToggle={toggleHabit} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
           </div>
         </section>
 

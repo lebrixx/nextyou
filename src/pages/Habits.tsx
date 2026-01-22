@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
@@ -534,21 +535,46 @@ const Habits = () => {
               💡 Clique sur une habitude pour la modifier
             </p>
 
-            {sortedHabits.map((habit) => {
-              const isDuelHabit = habit.category === 'duel';
-              const duelTitle = isDuelHabit && habit.description ? habit.description.replace('⚔️ Duel: ', '') : undefined;
-              
-              return (
-                <HabitCard 
-                  key={habit.id} 
-                  {...habit} 
-                  onToggle={toggleHabit} 
-                  onClick={() => handleEditHabit(habit)}
-                  isDuelHabit={isDuelHabit}
-                  duelTitle={duelTitle}
-                />
-              );
-            })}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+                }
+              }}
+              className="space-y-3"
+            >
+              {sortedHabits.map((habit, index) => {
+                const isDuelHabit = habit.category === 'duel';
+                const duelTitle = isDuelHabit && habit.description ? habit.description.replace('⚔️ Duel: ', '') : undefined;
+                
+                return (
+                  <motion.div
+                    key={habit.id}
+                    variants={{
+                      hidden: { opacity: 0, y: 20, scale: 0.95 },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0, 
+                        scale: 1,
+                        transition: { type: "spring", stiffness: 300, damping: 24 }
+                      }
+                    }}
+                  >
+                    <HabitCard 
+                      {...habit} 
+                      onToggle={toggleHabit} 
+                      onClick={() => handleEditHabit(habit)}
+                      isDuelHabit={isDuelHabit}
+                      duelTitle={duelTitle}
+                    />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </>
         )}
       </main>
