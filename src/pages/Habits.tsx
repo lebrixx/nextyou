@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown, BarChart3 } from "lucide-react";
+import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown, BarChart3, BookTemplate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -7,6 +7,7 @@ import HabitCard from "@/components/HabitCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
 import EditHabitDialog from "@/components/EditHabitDialog";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import HabitTemplatesDialog from "@/components/HabitTemplatesDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +61,7 @@ const Habits = () => {
   const [completions, setCompletions] = useState<any[]>([]);
   const [habitsLoaded, setHabitsLoaded] = useState(false);
   const [bestFriendStreak, setBestFriendStreak] = useState(0);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   
   // Goals state
   const [goals, setGoals] = useState<Goal[]>(() => {
@@ -478,20 +480,34 @@ const Habits = () => {
             <Plus className="w-4 h-4 mr-1.5" />
             {t('newHabit')}
           </Button>
+          
+          {/* Stats & Badges side by side */}
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={() => navigate("/stats")}
+              variant="outline"
+              className="border-primary/50 text-primary hover:bg-primary/10 h-9 text-sm font-semibold"
+            >
+              <BarChart3 className="w-4 h-4 mr-1" />
+              Stats
+            </Button>
+            <Button
+              onClick={() => navigate("/badges")}
+              variant="outline"
+              className="glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm font-semibold"
+            >
+              🏆 Badges
+            </Button>
+          </div>
+          
+          {/* Templates button */}
           <Button
-            onClick={() => navigate("/stats")}
+            onClick={() => setTemplatesOpen(true)}
             variant="outline"
-            className="w-full border-primary/50 text-primary hover:bg-primary/10 h-9 text-sm font-semibold"
+            className="w-full glass border-amber-500/40 text-amber-400 hover:bg-amber-500/10 h-9 text-sm font-semibold"
           >
-            <BarChart3 className="w-4 h-4 mr-1" />
-            Statistiques
-          </Button>
-          <Button
-            onClick={() => navigate("/badges")}
-            variant="outline"
-            className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-9 text-sm font-semibold"
-          >
-            🏆 {t('myBadges')}
+            <BookTemplate className="w-4 h-4 mr-1.5" />
+            📚 Templates d'habitudes
           </Button>
           
           {/* AI Assistant Button - Joli et attractif */}
@@ -779,6 +795,13 @@ const Habits = () => {
           setConfirmDialog(prev => ({ ...prev, open: false }));
         }}
         variant="destructive"
+      />
+      
+      {/* Habit Templates Dialog */}
+      <HabitTemplatesDialog
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        onAddHabit={addHabit}
       />
     </div>
   );
