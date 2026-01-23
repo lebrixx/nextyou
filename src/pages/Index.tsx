@@ -241,23 +241,22 @@ const Index = () => {
       {/* Header with Daily Quote */}
       <header className="px-6 pt-12 pb-8">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="relative">
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight leading-none relative my-0 pt-[25px] py-[35px] whitespace-nowrap">
-              <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
-              <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
-                Ritual
-                <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
-              </span>
-            </h1>
-            {/* Tour Guide Button */}
-            <button
-              onClick={() => setTourOpen(true)}
-              className="absolute top-8 -right-2 md:right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-primary/30 hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-lg"
-            >
-              <HelpCircle className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-medium text-primary hidden sm:inline">Guide</span>
-            </button>
-          </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-2 tracking-tight leading-none relative my-0 pt-[25px] whitespace-nowrap">
+            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
+            <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
+              Ritual
+              <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
+            </span>
+          </h1>
+          
+          {/* Tour Guide Button */}
+          <button
+            onClick={() => setTourOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full bg-muted/30 border border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/10 transition-all group"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Découvrir l'app</span>
+          </button>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
               {t('todayQuote')}
