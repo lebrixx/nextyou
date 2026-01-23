@@ -249,8 +249,11 @@ const Timer = () => {
         <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
           Mes <span className="bg-gradient-primary bg-clip-text text-transparent">Compteurs</span>
         </h1>
-        <p className="text-muted-foreground text-sm leading-relaxed mb-4 max-w-md mx-auto">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-2 max-w-md mx-auto">
           Mesure tes progrès, célèbre chaque seconde de transformation
+        </p>
+        <p className="text-xs text-muted-foreground/70 mb-4 max-w-sm mx-auto">
+          💪 Idéal aussi pour suivre ta libération d'une addiction
         </p>
         <Button
           onClick={() => setDialogOpen(true)}
