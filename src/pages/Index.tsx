@@ -252,10 +252,10 @@ const Index = () => {
             {/* Tour Guide Button */}
             <button
               onClick={() => setTourOpen(true)}
-              className="absolute top-6 right-0 p-2 rounded-full glass border border-primary/30 hover:border-primary/60 hover:bg-primary/10 transition-all group"
-              title="Découvrir l'app"
+              className="absolute top-8 -right-2 md:right-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border border-primary/30 hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-lg"
             >
-              <HelpCircle className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+              <HelpCircle className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-medium text-primary hidden sm:inline">Guide</span>
             </button>
           </div>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
