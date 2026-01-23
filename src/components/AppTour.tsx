@@ -40,11 +40,18 @@ const tourSteps: TourStep[] = [
     tips: ["Révise tes stats chaque semaine", "Identifie tes jours forts"],
   },
   {
-    title: "⏱️ Pomodoro & Timers",
-    description: "Booste ta productivité avec la technique Pomodoro (25 min focus) ou crée des compteurs personnalisés.",
+    title: "⏱️ Compteurs personnalisés",
+    description: "Crée tes propres compteurs pour suivre ce qui compte vraiment pour toi. Méditation, lecture, sport... Chaque seconde compte et est enregistrée.",
     icon: "⏱️",
     highlight: "timer",
-    tips: ["Le mode focus élimine les distractions", "Fais des pauses régulières"],
+    tips: ["Crée un compteur pour chaque activité", "Visualise ton temps investi"],
+  },
+  {
+    title: "🍅 Technique Pomodoro",
+    description: "Booste ta concentration avec des sessions de 25 minutes. Le mode Focus élimine les distractions et t'aide à rester dans la zone.",
+    icon: "🍅",
+    highlight: "pomodoro",
+    tips: ["25 min de focus = 1 Pomodoro", "Fais 5 min de pause entre chaque session"],
   },
   {
     title: "👥 Social & Défis",
