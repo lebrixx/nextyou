@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, RotateCcw, Trash2, Timer as TimerIcon, Smartphone, ChevronDown, Crown, Clock, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -35,6 +35,22 @@ const Timer = () => {
   const [widgetSectionOpen, setWidgetSectionOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [timersLoaded, setTimersLoaded] = useState(false);
+  
+  const widgetSectionRef = useRef<HTMLDivElement>(null);
+
+  const handleWidgetToggle = () => {
+    const willOpen = !widgetSectionOpen;
+    setWidgetSectionOpen(willOpen);
+    if (willOpen) {
+      setTimeout(() => {
+        widgetSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Additional slight scroll for better visibility
+        setTimeout(() => {
+          window.scrollBy({ top: 60, behavior: 'smooth' });
+        }, 300);
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     const loadUserAndTimers = async (currentUser: any) => {
@@ -406,9 +422,9 @@ const Timer = () => {
         )}
 
         {/* Widget Instructions Section */}
-        <section className="space-y-3 mt-8">
+        <section className="space-y-3 mt-8" ref={widgetSectionRef}>
           <button
-            onClick={() => setWidgetSectionOpen(!widgetSectionOpen)}
+            onClick={handleWidgetToggle}
             className="w-full group"
           >
             <div className="glass rounded-xl p-4 border border-primary/30 hover:border-primary/50 transition-all">
