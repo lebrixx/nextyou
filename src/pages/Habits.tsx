@@ -22,6 +22,7 @@ import { useTranslation } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import useBadges from "@/hooks/useBadges";
 import { useChallengeProgress } from "@/hooks/useChallengeProgress";
+import { calculateStreaksForHabits } from "@/utils/streakCalculator";
 
 interface Habit {
   id: string;
@@ -167,17 +168,47 @@ const Habits = () => {
         
         const completedHabitIds = new Set((todayCompletions || []).map(c => c.habit_id));
         
-        const loadedHabits: Habit[] = habitsData.map(h => ({
-          id: h.id,
-          name: h.name,
-          icon: h.icon as HabitIconType,
-          streak: h.streak || 0,
-          completed: completedHabitIds.has(h.id),
-          reminderEnabled: !!h.reminder_time,
-          reminderTime: h.reminder_time || undefined,
-          category: h.category || undefined,
-          description: h.description || undefined
-        }));
+        // Get ALL completions for streak calculation
+        const { data: allCompletions } = await supabase
+          .from('habit_completions')
+          .select('habit_id, completed_at')
+          .eq('user_id', user.id);
+        
+        // Calculate actual streaks based on completion history
+        const habitIds = habitsData.map(h => h.id);
+        const streakMap = calculateStreaksForHabits(
+          habitIds, 
+          (allCompletions || []).map(c => ({ 
+            habit_id: c.habit_id || '', 
+            completed_at: c.completed_at 
+          }))
+        );
+        
+        const loadedHabits: Habit[] = habitsData.map(h => {
+          const calculatedStreak = streakMap.get(h.id) || 0;
+          
+          // Update streak in database if it differs from calculated
+          if (h.streak !== calculatedStreak) {
+            supabase
+              .from('habits')
+              .update({ streak: calculatedStreak })
+              .eq('id', h.id)
+              .eq('user_id', user.id)
+              .then(() => {});
+          }
+          
+          return {
+            id: h.id,
+            name: h.name,
+            icon: h.icon as HabitIconType,
+            streak: calculatedStreak,
+            completed: completedHabitIds.has(h.id),
+            reminderEnabled: !!h.reminder_time,
+            reminderTime: h.reminder_time || undefined,
+            category: h.category || undefined,
+            description: h.description || undefined
+          };
+        });
         
         setHabits(loadedHabits);
       } else {
@@ -261,14 +292,17 @@ const Habits = () => {
     if (!habit) return;
     
     const newCompleted = !habit.completed;
-    const newStreak = newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1);
+    
+    // If completing, streak increases by 1. If uncompleting, calculate what it should be
+    // For now, optimistically update UI
+    const optimisticStreak = newCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1);
     
     const updatedHabits = habits.map((h) => {
       if (h.id === id) {
         return {
           ...h,
           completed: newCompleted,
-          streak: newStreak
+          streak: optimisticStreak
         };
       }
       return h;
@@ -296,10 +330,10 @@ const Habits = () => {
           console.error('Error recording completion:', completionError);
         }
         
-        // Update streak in Supabase
+        // Update streak in Supabase (optimistic value)
         await supabase
           .from('habits')
-          .update({ streak: newStreak })
+          .update({ streak: optimisticStreak })
           .eq('id', id)
           .eq('user_id', user.id);
       } else {
