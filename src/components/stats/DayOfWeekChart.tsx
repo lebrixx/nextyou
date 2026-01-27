@@ -1,5 +1,6 @@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
+import SectionHeader from "./SectionHeader";
 
 interface DayOfWeekStats {
   day: string;
@@ -32,7 +33,14 @@ const DayOfWeekChart = ({ data, bestDay, worstDay }: DayOfWeekChartProps) => {
   return (
     <div className="glass rounded-xl p-3 border border-primary/10">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-bold text-foreground">Performance par jour</h3>
+        <SectionHeader 
+          title="Performance par jour" 
+          tooltip={{
+            title: "Analyse par jour de la semaine",
+            description: "Ce graphique montre quel jour de la semaine tu es le plus productif. Utilise cette info pour planifier tes habitudes les plus difficiles les jours où tu es le plus performant !",
+            period: "Moyenne sur 90 jours"
+          }}
+        />
         <div className="flex items-center gap-2 text-[9px]">
           <span className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
