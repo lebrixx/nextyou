@@ -12,6 +12,9 @@ import DayOfWeekChart from "@/components/stats/DayOfWeekChart";
 import PredictionsCard from "@/components/stats/PredictionsCard";
 import TrendIndicator from "@/components/stats/TrendIndicator";
 import MonthlyHeatmap from "@/components/stats/MonthlyHeatmap";
+import StatsHelpDialog from "@/components/stats/StatsHelpDialog";
+import SectionHeader from "@/components/stats/SectionHeader";
+import StatTooltip from "@/components/stats/StatTooltip";
 import { format } from "date-fns";
 
 interface Habit {
@@ -126,14 +129,17 @@ const Stats = () => {
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </Button>
         
-        <Button
-          onClick={() => navigate("/premium")}
-          variant="ghost"
-          size="sm"
-          className="absolute top-8 right-6 w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
-        >
-          <Crown className="w-5 h-5 text-primary-foreground" />
-        </Button>
+        <div className="absolute top-8 right-6 flex items-center gap-2">
+          <StatsHelpDialog />
+          <Button
+            onClick={() => navigate("/premium")}
+            variant="ghost"
+            size="sm"
+            className="w-10 h-10 p-0 rounded-full bg-gradient-primary shadow-glow hover:opacity-90"
+          >
+            <Crown className="w-5 h-5 text-primary-foreground" />
+          </Button>
+        </div>
 
         <div className="text-center pt-8">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-primary shadow-glow mb-3">
@@ -168,7 +174,14 @@ const Stats = () => {
           <>
             {/* Main Stats */}
             <div className="glass rounded-2xl p-4 text-center border border-primary/20">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Progression du jour</p>
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Progression du jour</p>
+                <StatTooltip 
+                  title="Progression du jour"
+                  description="Le pourcentage d'habitudes complétées aujourd'hui. Atteindre 100% signifie que tu as accompli toutes tes habitudes !"
+                  period="Aujourd'hui"
+                />
+              </div>
               <div className="flex items-baseline justify-center gap-2 mb-1">
                 <span className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                   {stats.completionRate}%
@@ -187,26 +200,36 @@ const Stats = () => {
             />
 
             {/* Quick Stats Grid */}
-            <div className="grid grid-cols-4 gap-2">
-              <div className="glass rounded-xl p-2.5 text-center border border-white/10">
-                <Award className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-xl font-bold text-foreground">{stats.bestStreak}</p>
-                <p className="text-[8px] text-muted-foreground">Meilleure</p>
-              </div>
-              <div className="glass rounded-xl p-2.5 text-center border border-white/10">
-                <TrendingUp className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-xl font-bold text-foreground">{stats.avgStreak}</p>
-                <p className="text-[8px] text-muted-foreground">Moyenne</p>
-              </div>
-              <div className="glass rounded-xl p-2.5 text-center border border-white/10">
-                <Calendar className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-xl font-bold text-foreground">{totalStats.perfectDays}</p>
-                <p className="text-[8px] text-muted-foreground">Jrs parfaits</p>
-              </div>
-              <div className="glass rounded-xl p-2.5 text-center border border-white/10">
-                <CheckCircle2 className="w-4 h-4 text-primary mx-auto mb-1" />
-                <p className="text-xl font-bold text-foreground">{totalStats.consistencyScore}%</p>
-                <p className="text-[8px] text-muted-foreground">Constance</p>
+            <div className="glass rounded-xl p-3 border border-white/10">
+              <SectionHeader 
+                title="Indicateurs clés" 
+                tooltip={{
+                  title: "Indicateurs clés",
+                  description: "Résumé rapide de tes performances : meilleure série, moyenne des séries, jours parfaits (100% complété) et score de constance.",
+                  period: "30 derniers jours"
+                }}
+              />
+              <div className="grid grid-cols-4 gap-2">
+                <div className="bg-muted/20 rounded-lg p-2.5 text-center">
+                  <Award className="w-4 h-4 text-primary mx-auto mb-1" />
+                  <p className="text-xl font-bold text-foreground">{stats.bestStreak}</p>
+                  <p className="text-[8px] text-muted-foreground">Meilleure série</p>
+                </div>
+                <div className="bg-muted/20 rounded-lg p-2.5 text-center">
+                  <TrendingUp className="w-4 h-4 text-primary mx-auto mb-1" />
+                  <p className="text-xl font-bold text-foreground">{stats.avgStreak}</p>
+                  <p className="text-[8px] text-muted-foreground">Série moyenne</p>
+                </div>
+                <div className="bg-muted/20 rounded-lg p-2.5 text-center">
+                  <Calendar className="w-4 h-4 text-primary mx-auto mb-1" />
+                  <p className="text-xl font-bold text-foreground">{totalStats.perfectDays}</p>
+                  <p className="text-[8px] text-muted-foreground">Jours parfaits</p>
+                </div>
+                <div className="bg-muted/20 rounded-lg p-2.5 text-center">
+                  <CheckCircle2 className="w-4 h-4 text-primary mx-auto mb-1" />
+                  <p className="text-xl font-bold text-foreground">{totalStats.consistencyScore}%</p>
+                  <p className="text-[8px] text-muted-foreground">Constance</p>
+                </div>
               </div>
             </div>
 
@@ -228,7 +251,14 @@ const Stats = () => {
 
             {/* Weekly Comparison */}
             <div className="glass rounded-xl p-3 border border-primary/10">
-              <h3 className="text-xs font-bold text-foreground mb-2">Évolution hebdomadaire</h3>
+              <SectionHeader 
+                title="Évolution hebdomadaire" 
+                tooltip={{
+                  title: "Comparaison des semaines",
+                  description: "Compare ton taux de réussite des 4 dernières semaines. Chaque barre représente le pourcentage moyen d'habitudes complétées sur une semaine entière.",
+                  period: "4 dernières semaines"
+                }}
+              />
               <div className="grid grid-cols-4 gap-2">
                 {weeklyComparison.map((week, index) => (
                   <div key={week.week} className="text-center">
@@ -249,29 +279,46 @@ const Stats = () => {
             </div>
 
             {/* Activity Status */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="glass rounded-xl p-3 border border-green-500/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <p className="text-[9px] text-muted-foreground uppercase">Actives</p>
+            <div className="glass rounded-xl p-3 border border-white/10">
+              <SectionHeader 
+                title="État de tes habitudes" 
+                tooltip={{
+                  title: "Habitudes actives vs inactives",
+                  description: "Les habitudes 'actives' ont une série en cours (au moins 1 jour). Les 'inactives' n'ont pas été complétées hier ou ont une série à 0.",
+                  period: "État actuel"
+                }}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <p className="text-[9px] text-muted-foreground uppercase">Actives</p>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{stats.activeHabits}</p>
+                  <p className="text-[9px] text-muted-foreground">avec série en cours</p>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{stats.activeHabits}</p>
-                <p className="text-[9px] text-muted-foreground">avec série en cours</p>
-              </div>
-              <div className="glass rounded-xl p-3 border border-orange-500/20">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                  <p className="text-[9px] text-muted-foreground uppercase">Inactives</p>
+                <div className="bg-orange-500/10 rounded-lg p-3 border border-orange-500/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <p className="text-[9px] text-muted-foreground uppercase">Inactives</p>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{stats.inactiveHabits}</p>
+                  <p className="text-[9px] text-muted-foreground">à relancer</p>
                 </div>
-                <p className="text-2xl font-bold text-foreground">{stats.inactiveHabits}</p>
-                <p className="text-[9px] text-muted-foreground">à relancer</p>
               </div>
             </div>
 
             {/* Streak Chart */}
             {habits.length > 0 && (
               <div className="glass rounded-xl p-3 border border-white/10">
-                <h3 className="text-xs font-bold text-foreground mb-2">Séries par habitude</h3>
+                <SectionHeader 
+                  title="Séries par habitude" 
+                  tooltip={{
+                    title: "Détail des séries",
+                    description: "Ce graphique montre le nombre de jours consécutifs pour chaque habitude. Plus la barre est haute, plus ta série est longue !",
+                    period: "État actuel"
+                  }}
+                />
                 <ChartContainer config={chartConfig} className="h-[140px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>

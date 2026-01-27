@@ -1,5 +1,6 @@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import SectionHeader from "./SectionHeader";
 
 interface DayStats {
   date: string;
@@ -24,7 +25,14 @@ const WeeklyChart = ({ data }: WeeklyChartProps) => {
   return (
     <div className="glass rounded-xl p-3 border border-primary/10">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-bold text-foreground">7 derniers jours</h3>
+        <SectionHeader 
+          title="7 derniers jours" 
+          tooltip={{
+            title: "Progression hebdomadaire",
+            description: "Cette courbe montre ton taux de complétion quotidien sur les 7 derniers jours. Elle te permet de voir si tu es régulier ou si tu as des baisses de motivation.",
+            period: "7 derniers jours"
+          }}
+        />
         <span className="text-[10px] text-muted-foreground">Taux de complétion</span>
       </div>
       <ChartContainer config={chartConfig} className="h-[100px] w-full">

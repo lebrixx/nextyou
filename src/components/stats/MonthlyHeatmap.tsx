@@ -1,3 +1,5 @@
+import SectionHeader from "./SectionHeader";
+
 interface DayStats {
   date: string;
   dayName: string;
@@ -23,7 +25,14 @@ const MonthlyHeatmap = ({ data }: MonthlyHeatmapProps) => {
   return (
     <div className="glass rounded-xl p-3 border border-primary/10">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-xs font-bold text-foreground">30 derniers jours</h3>
+        <SectionHeader 
+          title="30 derniers jours" 
+          tooltip={{
+            title: "Carte de chaleur mensuelle",
+            description: "Chaque carré représente un jour. Plus la couleur est intense, plus tu as complété d'habitudes ce jour-là. Survole un carré pour voir les détails.",
+            period: "30 derniers jours"
+          }}
+        />
         <div className="flex items-center gap-1 text-[8px] text-muted-foreground">
           <span>0%</span>
           <div className="flex gap-0.5">
