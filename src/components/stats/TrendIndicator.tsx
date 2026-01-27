@@ -1,10 +1,9 @@
 import { TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface TrendIndicatorProps {
   direction: 'up' | 'down' | 'stable';
@@ -48,29 +47,32 @@ const TrendIndicator = ({ direction, percentChange, diff }: TrendIndicatorProps)
           <div>
             <div className="flex items-center gap-1">
               <p className="text-[10px] font-medium text-foreground">{config.label}</p>
-              <TooltipProvider delayDuration={100}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-                      <Info className="w-2 h-2 text-muted-foreground" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent 
-                    side="top" 
-                    className="max-w-[220px] p-2.5 bg-popover border border-border shadow-lg"
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button 
+                    className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-muted/50 hover:bg-muted active:bg-muted/70 transition-colors touch-manipulation"
+                    aria-label="Info tendance"
                   >
-                    <div className="space-y-1">
-                      <p className="font-semibold text-[10px] text-foreground">Tendance hebdomadaire</p>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Compare tes performances des 7 derniers jours à celles de la semaine précédente. 
-                        {direction === 'up' && " Tu progresses, continue !"}
-                        {direction === 'down' && " Ne te décourage pas, chaque jour est une nouvelle chance."}
-                        {direction === 'stable' && " Tu maintiens un bon rythme."}
-                      </p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    <Info className="w-2 h-2 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  side="top" 
+                  align="start"
+                  className="w-[220px] p-2.5 bg-popover border border-border shadow-lg z-50"
+                  sideOffset={8}
+                >
+                  <div className="space-y-1">
+                    <p className="font-semibold text-[10px] text-foreground">Tendance hebdomadaire</p>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      Compare tes performances des 7 derniers jours à celles de la semaine précédente. 
+                      {direction === 'up' && " Tu progresses, continue !"}
+                      {direction === 'down' && " Ne te décourage pas, chaque jour est une nouvelle chance."}
+                      {direction === 'stable' && " Tu maintiens un bon rythme."}
+                    </p>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <p className="text-[9px] text-muted-foreground">vs semaine dernière</p>
           </div>

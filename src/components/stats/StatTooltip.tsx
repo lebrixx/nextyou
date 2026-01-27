@@ -1,10 +1,9 @@
 import { Info } from "lucide-react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface StatTooltipProps {
   title: string;
@@ -14,27 +13,32 @@ interface StatTooltipProps {
 
 const StatTooltip = ({ title, description, period }: StatTooltipProps) => {
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <Info className="w-2.5 h-2.5 text-muted-foreground" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent 
-          side="top" 
-          className="max-w-[250px] p-3 bg-popover border border-border shadow-lg"
+    <Popover>
+      <PopoverTrigger asChild>
+        <button 
+          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-muted/50 hover:bg-muted active:bg-muted/70 transition-colors touch-manipulation"
+          aria-label={`Info: ${title}`}
         >
-          <div className="space-y-1">
-            <p className="font-semibold text-xs text-foreground">{title}</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
-            {period && (
-              <p className="text-[10px] text-primary/80 mt-1">📅 Période: {period}</p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+          <Info className="w-2.5 h-2.5 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent 
+        side="top" 
+        align="center"
+        className="w-[260px] p-3 bg-popover border border-border shadow-lg z-50"
+        sideOffset={8}
+      >
+        <div className="space-y-1.5">
+          <p className="font-semibold text-xs text-foreground">{title}</p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+          {period && (
+            <p className="text-[10px] text-primary/80 mt-1.5 pt-1.5 border-t border-border/50">
+              📅 Période: {period}
+            </p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 
