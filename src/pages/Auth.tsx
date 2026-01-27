@@ -49,10 +49,47 @@ const Auth = () => {
         return;
       }
 
-      if (username.trim().length < 2) {
+      const trimmedUsername = username.trim();
+      
+      if (trimmedUsername.length < 2) {
         toast({
           title: "Erreur",
           description: "Le pseudo doit contenir au moins 2 caractères",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (trimmedUsername.length > 30) {
+        toast({
+          title: "Erreur",
+          description: "Le pseudo ne peut pas dépasser 30 caractères",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Validate character types (alphanumeric, spaces, accents, underscores, hyphens)
+      const usernameRegex = /^[\p{L}\p{N}\s_\-]+$/u;
+      const hasZeroWidthChars = /[\u200B-\u200D\uFEFF]/.test(trimmedUsername);
+      
+      if (!usernameRegex.test(trimmedUsername) || hasZeroWidthChars) {
+        toast({
+          title: "Erreur",
+          description: "Le pseudo ne peut contenir que des lettres, chiffres, espaces, _ et -",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Ensure not only whitespace
+      if (trimmedUsername.replace(/\s/g, '').length === 0) {
+        toast({
+          title: "Erreur",
+          description: "Le pseudo ne peut pas être vide",
           variant: "destructive",
         });
         setLoading(false);
@@ -77,7 +114,7 @@ const Auth = () => {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: username.trim(),
+            full_name: trimmedUsername,
           },
         },
       });
