@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, HelpCircle } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { Capacitor } from '@capacitor/core';
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
@@ -56,16 +57,19 @@ const Index = () => {
 
         // Check both Push and Local notifications permissions
         let hasPermission = false;
+        const isNative = Capacitor.isNativePlatform();
 
-        // Check Push Notifications (iOS)
-        try {
-          const pushStatus = await PushNotifications.checkPermissions();
-          console.log('Push notification status:', pushStatus);
-          if (pushStatus.receive === 'granted') {
-            hasPermission = true;
+        // Check Push Notifications (iOS/Android only - not available on web)
+        if (isNative) {
+          try {
+            const pushStatus = await PushNotifications.checkPermissions();
+            console.log('Push notification status:', pushStatus);
+            if (pushStatus.receive === 'granted') {
+              hasPermission = true;
+            }
+          } catch (pushError) {
+            console.log('Push notifications not available:', pushError);
           }
-        } catch (pushError) {
-          console.log('Push notifications not available (web):', pushError);
         }
 
         // Check Local Notifications
