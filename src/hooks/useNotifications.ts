@@ -37,12 +37,16 @@ export const useNotifications = () => {
     try {
       const isNative = Capacitor.isNativePlatform();
 
-      // Check permissions
+      // Check permissions - only check push notifications on native platforms
       if (isNative) {
-        const pushStatus = await PushNotifications.checkPermissions();
-        if (pushStatus.receive !== 'granted') {
-          console.warn('⚠️ Push notifications not authorized');
-          throw new Error('Les notifications ne sont pas autorisées. Active-les dans les paramètres iOS.');
+        try {
+          const pushStatus = await PushNotifications.checkPermissions();
+          if (pushStatus.receive !== 'granted') {
+            console.warn('⚠️ Push notifications not authorized');
+            // Don't throw, just warn - we can still use local notifications
+          }
+        } catch (pushError) {
+          console.log('Push notifications not available:', pushError);
         }
       }
 
