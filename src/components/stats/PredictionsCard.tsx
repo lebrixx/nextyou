@@ -71,6 +71,8 @@ const PredictionsCard = ({ predictions }: PredictionsCardProps) => {
               <Flame className={`w-4 h-4 ${colors.text}`} />
               <div className="flex items-center gap-1">
                 <span className="text-[10px] font-medium text-foreground">Santé de ta série</span>
+                <span className="text-[7px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
+                <span className="text-[7px] text-muted-foreground/70 italic sm:hidden">tap →</span>
                 <Popover>
                   <PopoverTrigger asChild>
                     <button 
@@ -106,6 +108,8 @@ const PredictionsCard = ({ predictions }: PredictionsCardProps) => {
             <div className="flex items-center gap-1.5">
               <Target className="w-3.5 h-3.5 text-primary" />
               <span className="text-[10px] text-foreground">Objectif hebdo</span>
+              <span className="text-[7px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
+              <span className="text-[7px] text-muted-foreground/70 italic sm:hidden">tap →</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
@@ -140,6 +144,8 @@ const PredictionsCard = ({ predictions }: PredictionsCardProps) => {
           <div className="glass rounded-lg p-2 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <TrendingUp className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[6px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
+              <span className="text-[6px] text-muted-foreground/70 italic sm:hidden">tap →</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
@@ -164,6 +170,8 @@ const PredictionsCard = ({ predictions }: PredictionsCardProps) => {
           <div className="glass rounded-lg p-2 text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Trophy className="w-3.5 h-3.5 text-yellow-500" />
+              <span className="text-[6px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
+              <span className="text-[6px] text-muted-foreground/70 italic sm:hidden">tap →</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
