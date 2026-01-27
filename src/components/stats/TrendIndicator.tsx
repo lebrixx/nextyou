@@ -47,6 +47,8 @@ const TrendIndicator = ({ direction, percentChange, diff }: TrendIndicatorProps)
           <div>
             <div className="flex items-center gap-1">
               <p className="text-[10px] font-medium text-foreground">{config.label}</p>
+              <span className="text-[7px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
+              <span className="text-[7px] text-muted-foreground/70 italic sm:hidden">tap →</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
