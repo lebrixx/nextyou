@@ -1,27 +1,9 @@
-const allowedOrigins = [
-  'https://habitflow-neon-pulse.lovable.app',
-  'https://id-preview--02242e9b-a733-4244-a277-ad7efa295676.lovable.app',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:8080',
-  'capacitor://localhost',
-  'http://localhost'
-];
-
-const getCorsHeaders = (req: Request) => {
-  const origin = req.headers.get('origin') || '';
-  const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed) || origin === allowed);
-  
-  return {
-    'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Credentials': 'true',
-  };
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
