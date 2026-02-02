@@ -234,35 +234,30 @@ const Assistant = () => {
               ))}
             </div>
 
-            <div className="space-y-3 pt-4">
-              <Button
-                onClick={handleAddAllHabits}
-                className="w-full bg-gradient-primary text-primary-foreground shadow-glow font-bold h-12"
-                size="lg"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                Ajouter toutes les habitudes
-              </Button>
-              
-              <Button
-                onClick={() => handleSubmit(true)}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full glass border-primary/30 text-foreground hover:bg-primary/10 h-11"
-                size="lg"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Affinement en cours...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Affiner les suggestions
-                  </>
-                )}
-              </Button>
+            <div className="space-y-4 pt-4">
+              <div className="glass rounded-xl p-4 border border-primary/20 space-y-3">
+                <Button
+                  onClick={() => handleSubmit(true)}
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-purple-600 via-primary to-pink-600 text-white shadow-glow font-bold h-12"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Affinement en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-5 w-5" />
+                      Affiner les suggestions
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  L'IA va générer de nouvelles suggestions plus adaptées à ton objectif
+                </p>
+              </div>
               
               <Button
                 onClick={handleNewSearch}
