@@ -240,10 +240,7 @@ const AgendaWidget = () => {
                                 </div>
                               )}
                             </div>
-                            {reminder.description && (
-                              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{reminder.description}</p>
-                            )}
-                            <div className="flex items-center gap-3 text-xs">
+                            <div className="flex items-center gap-3 text-xs mt-1">
                               <span className={`font-medium ${
                                 priority === 'today' ? 'text-primary' : priority === 'tomorrow' ? 'text-amber-400' : 'text-muted-foreground'
                               }`}>
