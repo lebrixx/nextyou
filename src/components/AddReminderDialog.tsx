@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
@@ -27,7 +27,6 @@ const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [notificationEnabled, setNotificationEnabled] = useState(true);
@@ -37,15 +36,9 @@ const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
     e.preventDefault();
     
     const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
 
     if (!trimmedTitle || trimmedTitle.length > 100) {
       toast.error("Le titre est requis et doit contenir maximum 100 caractères");
-      return;
-    }
-
-    if (trimmedDescription.length > 1000) {
-      toast.error("La description doit contenir maximum 1000 caractères");
       return;
     }
 
@@ -56,7 +49,6 @@ const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
 
     onAdd({
       title: trimmedTitle,
-      description: trimmedDescription || undefined,
       reminder_date: date,
       reminder_time: time || undefined,
       notification_enabled: notificationEnabled,
@@ -65,7 +57,7 @@ const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
 
     // Reset form
     setTitle('');
-    setDescription('');
+    setDate('');
     setDate('');
     setTime('');
     setNotificationEnabled(true);
@@ -98,18 +90,6 @@ const AddReminderDialog = ({ onAdd, onSuccess }: AddReminderDialogProps) => {
               placeholder={t('title')}
               required
               className="glass border-white/10"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-foreground">{t('description')}</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t('description')}
-              className="glass border-white/10 resize-none"
-              rows={3}
             />
           </div>
 
