@@ -46,25 +46,26 @@ const TrendIndicator = ({ direction, percentChange, diff }: TrendIndicatorProps)
           <Icon className={`w-4 h-4 ${config.color}`} />
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-[10px] font-medium text-foreground">{config.label}</p>
+              <p className="text-xs font-medium text-foreground">{config.label}</p>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 hover:bg-primary/30 active:bg-primary/40 border border-primary/30 transition-all touch-manipulation shadow-sm"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary/15 hover:bg-primary/25 active:bg-primary/35 border border-primary/25 transition-all touch-manipulation min-h-[28px]"
                     aria-label="Info tendance"
                   >
-                    <Info className="w-3 h-3 text-primary" />
+                    <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="text-[9px] font-medium text-primary/90">?</span>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent 
                   side="top" 
                   align="start"
-                  className="w-[220px] p-2.5 bg-popover border border-border shadow-lg z-50"
+                  className="w-[240px] p-3 bg-popover border border-border shadow-lg z-50"
                   sideOffset={8}
                 >
-                  <div className="space-y-1">
-                    <p className="font-semibold text-[10px] text-foreground">Tendance hebdomadaire</p>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-xs text-foreground">Tendance hebdomadaire</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
                       Compare tes performances des 7 derniers jours à celles de la semaine précédente. 
                       {direction === 'up' && " Tu progresses, continue !"}
                       {direction === 'down' && " Ne te décourage pas, chaque jour est une nouvelle chance."}
