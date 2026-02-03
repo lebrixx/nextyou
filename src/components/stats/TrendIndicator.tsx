@@ -45,17 +45,15 @@ const TrendIndicator = ({ direction, percentChange, diff }: TrendIndicatorProps)
         <div className="flex items-center gap-2">
           <Icon className={`w-4 h-4 ${config.color}`} />
           <div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <p className="text-[10px] font-medium text-foreground">{config.label}</p>
-              <span className="text-[7px] text-muted-foreground/70 italic hidden sm:inline">clique →</span>
-              <span className="text-[7px] text-muted-foreground/70 italic sm:hidden">tap →</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <button 
-                    className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-muted/50 hover:bg-muted active:bg-muted/70 transition-colors touch-manipulation"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/20 hover:bg-primary/30 active:bg-primary/40 border border-primary/30 transition-all touch-manipulation shadow-sm"
                     aria-label="Info tendance"
                   >
-                    <Info className="w-2 h-2 text-muted-foreground" />
+                    <Info className="w-3 h-3 text-primary" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent 
