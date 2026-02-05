@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Award, Star, Trophy, Flame, Target, Zap, Crown, Heart, Shield, Sparkles } from "lucide-react";
+import { Award, Star, Trophy, Flame, Target, Zap, Crown, Heart, Shield, Sparkles, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Badge {
   id: string;
@@ -53,6 +54,7 @@ const badgeColors: Record<string, string> = {
 export const FriendBadgesSection = ({ friendId }: FriendBadgesSectionProps) => {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const loadBadges = async () => {
@@ -81,63 +83,92 @@ export const FriendBadgesSection = ({ friendId }: FriendBadgesSectionProps) => {
 
   if (loading) {
     return (
-      <div className="glass rounded-xl p-4 border border-white/10">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="glass rounded-xl p-3 border border-white/10">
+        <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-primary" />
           <span className="text-sm font-medium text-foreground">Badges</span>
-        </div>
-        <div className="flex justify-center py-3">
-          <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full" />
+          <div className="ml-auto animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
         </div>
       </div>
     );
   }
 
+  // Aperçu compact : 4 premiers badges
+  const previewBadges = badges.slice(0, 4);
+  const remainingCount = badges.length - 4;
+
   return (
-    <div className="glass rounded-xl p-4 border border-white/10">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Award className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">Badges</span>
-        </div>
-        <span className="text-xs text-muted-foreground">{badges.length} débloqués</span>
-      </div>
-      
-      {badges.length === 0 ? (
-        <div className="text-center py-3 text-muted-foreground">
-          <Award className="w-8 h-8 mx-auto mb-1 opacity-30" />
-          <p className="text-xs">Aucun badge pour l'instant</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-2">
-          {badges.slice(0, 8).map((badge) => {
-            const Icon = badgeIcons[badge.badge_type] || badgeIcons.default;
-            const colorClass = badgeColors[badge.badge_type] || badgeColors.default;
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div className="glass rounded-xl border border-white/10 overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full p-3 flex items-center gap-3 hover:bg-white/5 transition-colors touch-manipulation">
+            <div className="flex items-center gap-2 shrink-0">
+              <Award className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Badges</span>
+              <span className="text-xs text-muted-foreground">({badges.length})</span>
+            </div>
             
-            return (
-              <div 
-                key={badge.id} 
-                className="flex flex-col items-center gap-1 group relative"
-                title={`${badge.badge_name}: ${badge.badge_description || ''}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorClass} transition-transform group-hover:scale-110`}>
-                  <Icon className="w-5 h-5" />
+            {/* Aperçu compact des badges */}
+            {badges.length > 0 && !isOpen && (
+              <div className="flex items-center gap-1 flex-1 min-w-0">
+                <div className="flex -space-x-1.5">
+                  {previewBadges.map((badge) => {
+                    const Icon = badgeIcons[badge.badge_type] || badgeIcons.default;
+                    const colorClass = badgeColors[badge.badge_type] || badgeColors.default;
+                    return (
+                      <div 
+                        key={badge.id}
+                        className={`w-6 h-6 rounded-full flex items-center justify-center ${colorClass} border-2 border-background`}
+                      >
+                        <Icon className="w-3 h-3" />
+                      </div>
+                    );
+                  })}
                 </div>
-                <span className="text-[9px] text-muted-foreground text-center line-clamp-1 max-w-full">
-                  {badge.badge_name}
-                </span>
+                {remainingCount > 0 && (
+                  <span className="text-[10px] text-muted-foreground ml-1">+{remainingCount}</span>
+                )}
               </div>
-            );
-          })}
-        </div>
-      )}
-      
-      {badges.length > 8 && (
-        <p className="text-[10px] text-center text-muted-foreground mt-2">
-          +{badges.length - 8} autres badges
-        </p>
-      )}
-    </div>
+            )}
+            
+            <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <div className="px-3 pb-3 border-t border-white/5">
+            {badges.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                <Award className="w-8 h-8 mx-auto mb-1 opacity-30" />
+                <p className="text-xs">Aucun badge pour l'instant</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-5 gap-2 pt-3">
+                {badges.map((badge) => {
+                  const Icon = badgeIcons[badge.badge_type] || badgeIcons.default;
+                  const colorClass = badgeColors[badge.badge_type] || badgeColors.default;
+                  
+                  return (
+                    <div 
+                      key={badge.id} 
+                      className="flex flex-col items-center gap-1 group"
+                      title={`${badge.badge_name}: ${badge.badge_description || ''}`}
+                    >
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorClass} transition-transform group-active:scale-95`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-[8px] text-muted-foreground text-center line-clamp-1 max-w-full leading-tight">
+                        {badge.badge_name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 };
 
