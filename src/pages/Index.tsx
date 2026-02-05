@@ -12,7 +12,6 @@ import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
 import AnimatedCounter from "@/components/AnimatedCounter";
-import WelcomeOnboarding from "@/components/WelcomeOnboarding";
 import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -154,9 +153,6 @@ const Index = () => {
   const [tourOpen, setTourOpen] = useState(false);
   const [philosophyOpen, setPhilosophyOpen] = useState(false);
   const philosophyRef = useRef<HTMLDivElement>(null);
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    return !localStorage.getItem("timeritual_onboarding_complete");
-  });
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
     return allQuotes[Math.floor(Math.random() * allQuotes.length)];
@@ -246,11 +242,6 @@ const Index = () => {
     setHabits(updatedHabits);
     localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
   };
-  
-  // Show onboarding for new users
-  if (showOnboarding) {
-    return <WelcomeOnboarding onComplete={() => setShowOnboarding(false)} />;
-  }
   
   return <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
