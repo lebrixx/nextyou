@@ -12,6 +12,8 @@ import { HabitIconType } from "@/components/HabitIcon";
 import AppTour from "@/components/AppTour";
 import AgendaWidget from "@/components/AgendaWidget";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import WelcomeOnboarding from "@/components/WelcomeOnboarding";
+import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 
 import { quotes } from "@/data/quotes";
@@ -152,6 +154,9 @@ const Index = () => {
   const [tourOpen, setTourOpen] = useState(false);
   const [philosophyOpen, setPhilosophyOpen] = useState(false);
   const philosophyRef = useRef<HTMLDivElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem("timeritual_onboarding_complete");
+  });
   const [currentQuote, setCurrentQuote] = useState(() => {
     const allQuotes = Object.values(quotes).flat();
     return allQuotes[Math.floor(Math.random() * allQuotes.length)];
@@ -241,6 +246,12 @@ const Index = () => {
     setHabits(updatedHabits);
     localStorage.setItem("habitflow_habits", JSON.stringify(updatedHabits));
   };
+  
+  // Show onboarding for new users
+  if (showOnboarding) {
+    return <WelcomeOnboarding onComplete={() => setShowOnboarding(false)} />;
+  }
+  
   return <div className="min-h-screen bg-background pb-20">
       {/* Header with Daily Quote */}
       <header className="px-6 pt-12 pb-8">
@@ -354,13 +365,18 @@ const Index = () => {
                 💡 {t('addTimerWidget')}
               </p>
               </div>
-            </div> : <div className="glass rounded-xl p-6 text-center border border-white/5">
-              <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground mb-2">{t('noTimersConfigured')}</p>
-              <p className="text-xs text-muted-foreground/70">
-                {t('goToTimerTab')}
-              </p>
-            </div>}
+            </div> : (
+              <EmptyState
+                icon={Clock}
+                title={t('noTimersConfigured')}
+                description={t('goToTimerTab')}
+                action={{
+                  label: "Créer un compteur",
+                  onClick: () => navigate('/timer')
+                }}
+                variant="minimal"
+              />
+            )}
         </motion.section>
 
         {/* Goals Section */}
@@ -405,14 +421,17 @@ const Index = () => {
             </div>
           </div>
           <div className="space-y-3">
-            {habits.length === 0 ? <div className="glass rounded-xl p-8 text-center">
-                <p className="text-muted-foreground text-sm mb-3">
-                  {t('noHabitsYet')}
-                </p>
-                <p className="text-xs text-muted-foreground/70">
-                  {t('clickToAddHabit')}
-                </p>
-              </div> : (
+            {habits.length === 0 ? (
+              <EmptyState
+                icon={Target}
+                title={t('noHabitsYet')}
+                description={t('clickToAddHabit')}
+                action={{
+                  label: "Ajouter une habitude",
+                  onClick: () => navigate('/habits')
+                }}
+              />
+            ) : (
                 <motion.div
                   initial="hidden"
                   animate="visible"
