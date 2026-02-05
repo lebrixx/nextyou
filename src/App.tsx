@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { initPushNotifications } from "./pushNotifications";
+import SplashScreen from "./components/SplashScreen";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Plan from "./pages/Plan";
@@ -48,23 +49,35 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(() => {
+    // Only show splash once per session
+    const hasSeenSplash = sessionStorage.getItem("timeritual_splash_shown");
+    return !hasSeenSplash;
+  });
+
   // Initialiser les notifications push au démarrage de l'app
   useEffect(() => {
     initPushNotifications();
   }, []);
 
+  const handleSplashComplete = () => {
+    sessionStorage.setItem("timeritual_splash_shown", "true");
+    setShowSplash(false);
+  };
+
   return (
-  <QueryClientProvider client={queryClient}>
-    <I18nProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </I18nProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider>
+        <TooltipProvider>
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} duration={2000} />}
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </I18nProvider>
+    </QueryClientProvider>
   );
 };
 
