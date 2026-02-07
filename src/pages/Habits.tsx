@@ -62,6 +62,7 @@ const Habits = () => {
   const [user, setUser] = useState<any>(null);
   const [completions, setCompletions] = useState<any[]>([]);
   const [habitsLoaded, setHabitsLoaded] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [bestFriendStreak, setBestFriendStreak] = useState(0);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   
@@ -147,129 +148,134 @@ const Habits = () => {
 
   const loadUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
+    setAuthChecked(true);
+    
+    if (!user) {
+      setHabitsLoaded(true);
+      return;
+    }
+    
+    setUser(user);
 
-      // Load habits from Supabase
-      const { data: habitsData } = await supabase
-        .from('habits')
-        .select('*')
+    // Load habits from Supabase
+    const { data: habitsData } = await supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_archived', false)
+      .order('created_at', { ascending: true });
+    
+    if (habitsData && habitsData.length > 0) {
+      // Get today's completions to determine completion status
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayCompletions } = await supabase
+        .from('habit_completions')
+        .select('habit_id')
         .eq('user_id', user.id)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: true });
+        .eq('completed_at', today);
       
-      if (habitsData && habitsData.length > 0) {
-        // Get today's completions to determine completion status
-        const today = new Date().toISOString().split('T')[0];
-        const { data: todayCompletions } = await supabase
-          .from('habit_completions')
-          .select('habit_id')
+      const completedHabitIds = new Set((todayCompletions || []).map(c => c.habit_id));
+      
+      // Get ALL completions for streak calculation
+      const { data: allCompletions } = await supabase
+        .from('habit_completions')
+        .select('habit_id, completed_at')
+        .eq('user_id', user.id);
+      
+      // Calculate actual streaks based on completion history
+      const habitIds = habitsData.map(h => h.id);
+      const streakMap = calculateStreaksForHabits(
+        habitIds, 
+        (allCompletions || []).map(c => ({ 
+          habit_id: c.habit_id || '', 
+          completed_at: c.completed_at 
+        }))
+      );
+      
+      const loadedHabits: Habit[] = habitsData.map(h => {
+        const calculatedStreak = streakMap.get(h.id) || 0;
+        
+        // Update streak in database if it differs from calculated
+        if (h.streak !== calculatedStreak) {
+          supabase
+            .from('habits')
+            .update({ streak: calculatedStreak })
+            .eq('id', h.id)
+            .eq('user_id', user.id)
+            .then(() => {});
+        }
+        
+        return {
+          id: h.id,
+          name: h.name,
+          icon: h.icon as HabitIconType,
+          streak: calculatedStreak,
+          completed: completedHabitIds.has(h.id),
+          reminderEnabled: !!h.reminder_time,
+          reminderTime: h.reminder_time || undefined,
+          category: h.category || undefined,
+          description: h.description || undefined
+        };
+      });
+      
+      setHabits(loadedHabits);
+    } else {
+      // If no habits from Supabase, check localStorage as fallback
+      const saved = localStorage.getItem("habitflow_habits");
+      if (saved) {
+        const localHabits = JSON.parse(saved);
+        // Migrate local habits to Supabase
+        for (const habit of localHabits) {
+          await supabase.from('habits').insert({
+            user_id: user.id,
+            name: habit.name,
+            icon: habit.icon || 'target',
+            streak: habit.streak || 0,
+            reminder_time: habit.reminderTime || null
+          });
+        }
+        // Reload from Supabase to get proper IDs
+        const { data: migratedHabits } = await supabase
+          .from('habits')
+          .select('*')
           .eq('user_id', user.id)
-          .eq('completed_at', today);
+          .eq('is_archived', false);
         
-        const completedHabitIds = new Set((todayCompletions || []).map(c => c.habit_id));
-        
-        // Get ALL completions for streak calculation
-        const { data: allCompletions } = await supabase
-          .from('habit_completions')
-          .select('habit_id, completed_at')
-          .eq('user_id', user.id);
-        
-        // Calculate actual streaks based on completion history
-        const habitIds = habitsData.map(h => h.id);
-        const streakMap = calculateStreaksForHabits(
-          habitIds, 
-          (allCompletions || []).map(c => ({ 
-            habit_id: c.habit_id || '', 
-            completed_at: c.completed_at 
-          }))
-        );
-        
-        const loadedHabits: Habit[] = habitsData.map(h => {
-          const calculatedStreak = streakMap.get(h.id) || 0;
-          
-          // Update streak in database if it differs from calculated
-          if (h.streak !== calculatedStreak) {
-            supabase
-              .from('habits')
-              .update({ streak: calculatedStreak })
-              .eq('id', h.id)
-              .eq('user_id', user.id)
-              .then(() => {});
-          }
-          
-          return {
+        if (migratedHabits) {
+          const loaded: Habit[] = migratedHabits.map(h => ({
             id: h.id,
             name: h.name,
             icon: h.icon as HabitIconType,
-            streak: calculatedStreak,
-            completed: completedHabitIds.has(h.id),
+            streak: h.streak || 0,
+            completed: false,
             reminderEnabled: !!h.reminder_time,
             reminderTime: h.reminder_time || undefined,
             category: h.category || undefined,
             description: h.description || undefined
-          };
-        });
-        
-        setHabits(loadedHabits);
-      } else {
-        // If no habits from Supabase, check localStorage as fallback
-        const saved = localStorage.getItem("habitflow_habits");
-        if (saved) {
-          const localHabits = JSON.parse(saved);
-          // Migrate local habits to Supabase
-          for (const habit of localHabits) {
-            await supabase.from('habits').insert({
-              user_id: user.id,
-              name: habit.name,
-              icon: habit.icon || 'target',
-              streak: habit.streak || 0,
-              reminder_time: habit.reminderTime || null
-            });
-          }
-          // Reload from Supabase to get proper IDs
-          const { data: migratedHabits } = await supabase
-            .from('habits')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('is_archived', false);
-          
-          if (migratedHabits) {
-            const loaded: Habit[] = migratedHabits.map(h => ({
-              id: h.id,
-              name: h.name,
-              icon: h.icon as HabitIconType,
-              streak: h.streak || 0,
-              completed: false,
-              reminderEnabled: !!h.reminder_time,
-              reminderTime: h.reminder_time || undefined,
-              category: h.category || undefined,
-              description: h.description || undefined
-            }));
-            setHabits(loaded);
-          }
+          }));
+          setHabits(loaded);
         }
       }
-      
-      setHabitsLoaded(true);
+    }
+    
+    setHabitsLoaded(true);
 
-      const { data: completionsData } = await supabase
-        .from('habit_completions')
-        .select('*')
-        .eq('user_id', user.id);
-      setCompletions(completionsData || []);
-      
-      // Load best friend streak for badges
-      const { data: friendStreaksData } = await supabase
-        .from('friend_streaks')
-        .select('best_streak')
-        .eq('user_id', user.id)
-        .order('best_streak', { ascending: false })
-        .limit(1);
-      
-      if (friendStreaksData && friendStreaksData.length > 0) {
-        setBestFriendStreak(friendStreaksData[0].best_streak);
-      }
+    const { data: completionsData } = await supabase
+      .from('habit_completions')
+      .select('*')
+      .eq('user_id', user.id);
+    setCompletions(completionsData || []);
+    
+    // Load best friend streak for badges
+    const { data: friendStreaksData } = await supabase
+      .from('friend_streaks')
+      .select('best_streak')
+      .eq('user_id', user.id)
+      .order('best_streak', { ascending: false })
+      .limit(1);
+    
+    if (friendStreaksData && friendStreaksData.length > 0) {
+      setBestFriendStreak(friendStreaksData[0].best_streak);
     }
   };
 
@@ -558,8 +564,31 @@ const Habits = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-3 max-w-2xl mx-auto">
-        {!habitsLoaded ? (
+        {!authChecked ? (
           <HabitListSkeleton count={3} />
+        ) : !user ? (
+          <div className="glass rounded-xl p-8 text-center space-y-4 border border-primary/20">
+            <div className="w-16 h-16 mx-auto rounded-full bg-gradient-primary/20 flex items-center justify-center">
+              <Target className="w-8 h-8 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-foreground">Connecte-toi pour commencer</h3>
+              <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
+                Crée un compte gratuit pour sauvegarder tes habitudes et suivre ta progression sur tous tes appareils.
+              </p>
+            </div>
+            <div className="pt-2 space-y-2">
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-glow font-semibold"
+              >
+                Se connecter / Créer un compte
+              </Button>
+              <p className="text-xs text-muted-foreground/70">
+                🔒 Tes données sont sécurisées et synchronisées
+              </p>
+            </div>
+          </div>
         ) : habits.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center space-y-3">
             <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
