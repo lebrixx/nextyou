@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Target, ChevronRight, Trash2, Sparkles, Crown, BarChart3, BookTemplate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import HabitCard from "@/components/HabitCard";
 import AddHabitDialog from "@/components/AddHabitDialog";
@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useBadges from "@/hooks/useBadges";
 import { useChallengeProgress } from "@/hooks/useChallengeProgress";
 import { calculateStreaksForHabits } from "@/utils/streakCalculator";
+import { HabitListSkeleton } from "@/components/skeletons";
 
 interface Habit {
   id: string;
@@ -557,76 +558,99 @@ const Habits = () => {
       </header>
 
       <main className="px-6 pt-4 space-y-3 max-w-2xl mx-auto">
-        {habits.length === 0 ? (
-          <div className="glass rounded-xl p-8 text-center space-y-3">
-            <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
-              <Target className="w-7 h-7 text-primary" />
-            </div>
-            <h3 className="text-lg font-bold text-foreground">{t('startJourney')}</h3>
-            <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-              {t('habitDescription')}
-            </p>
-            <p className="text-xs text-muted-foreground/70 pt-2">
-              {t('habitExample')}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-muted-foreground">
-                {habits.length} {t('habitActive')}
-              </p>
-              <p className="text-xs text-success">
-                {habits.filter((h) => h.completed).length} {t('completedToday')}
-              </p>
-            </div>
-            
-            <p className="text-xs text-muted-foreground/70 italic mb-3">
-              💡 Clique sur une habitude pour la modifier
-            </p>
-
+        <AnimatePresence mode="wait">
+          {!habitsLoaded ? (
             <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-                }
-              }}
-              className="space-y-3"
+              key="skeleton"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              {sortedHabits.map((habit, index) => {
-                const isDuelHabit = habit.category === 'duel';
-                const duelTitle = isDuelHabit && habit.description ? habit.description.replace('⚔️ Duel: ', '') : undefined;
-                
-                return (
-                  <motion.div
-                    key={habit.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 20, scale: 0.95 },
-                      visible: { 
-                        opacity: 1, 
-                        y: 0, 
-                        scale: 1,
-                        transition: { type: "spring", stiffness: 300, damping: 24 }
-                      }
-                    }}
-                  >
-                    <HabitCard 
-                      {...habit} 
-                      onToggle={toggleHabit} 
-                      onClick={() => handleEditHabit(habit)}
-                      isDuelHabit={isDuelHabit}
-                      duelTitle={duelTitle}
-                    />
-                  </motion.div>
-                );
-              })}
+              <HabitListSkeleton count={3} />
             </motion.div>
-          </>
-        )}
+          ) : habits.length === 0 ? (
+            <motion.div 
+              key="empty"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="glass rounded-xl p-8 text-center space-y-3"
+            >
+              <div className="w-14 h-14 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center mb-2">
+                <Target className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">{t('startJourney')}</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
+                {t('habitDescription')}
+              </p>
+              <p className="text-xs text-muted-foreground/70 pt-2">
+                {t('habitExample')}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="habits"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-muted-foreground">
+                  {habits.length} {t('habitActive')}
+                </p>
+                <p className="text-xs text-success">
+                  {habits.filter((h) => h.completed).length} {t('completedToday')}
+                </p>
+              </div>
+              
+              <p className="text-xs text-muted-foreground/70 italic mb-3">
+                💡 Clique sur une habitude pour la modifier
+              </p>
+
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+                  }
+                }}
+                className="space-y-3"
+              >
+                {sortedHabits.map((habit, index) => {
+                  const isDuelHabit = habit.category === 'duel';
+                  const duelTitle = isDuelHabit && habit.description ? habit.description.replace('⚔️ Duel: ', '') : undefined;
+                  
+                  return (
+                    <motion.div
+                      key={habit.id}
+                      variants={{
+                        hidden: { opacity: 0, y: 20, scale: 0.95 },
+                        visible: { 
+                          opacity: 1, 
+                          y: 0, 
+                          scale: 1,
+                          transition: { type: "spring", stiffness: 300, damping: 24 }
+                        }
+                      }}
+                    >
+                      <HabitCard 
+                        {...habit} 
+                        onToggle={toggleHabit} 
+                        onClick={() => handleEditHabit(habit)}
+                        isDuelHabit={isDuelHabit}
+                        duelTitle={duelTitle}
+                      />
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       <Navigation />

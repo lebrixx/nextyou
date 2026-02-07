@@ -1,4 +1,5 @@
 import { LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface StatsCardProps {
   icon: LucideIcon;
@@ -10,11 +11,19 @@ interface StatsCardProps {
 
 const StatsCard = ({ icon: Icon, label, value, trend, trendUp }: StatsCardProps) => {
   return (
-    <div className="glass rounded-xl p-4 hover:border-primary/30 transition-all duration-300 hover:shadow-elevation group hover:scale-[1.02] border border-white/5">
+    <motion.div 
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="glass rounded-xl p-4 hover:border-primary/30 transition-all duration-300 hover:shadow-elevation group border border-white/5"
+    >
       <div className="flex items-start justify-between mb-3">
-        <div className="p-2.5 rounded-lg bg-gradient-primary shadow-glow">
+        <motion.div 
+          className="p-2.5 rounded-lg bg-gradient-primary shadow-glow"
+          whileHover={{ rotate: [0, -5, 5, 0] }}
+          transition={{ duration: 0.3 }}
+        >
           <Icon className="w-4 h-4 text-primary-foreground" />
-        </div>
+        </motion.div>
         {trend && (
           <span
             className={`text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-sm border ${
@@ -31,7 +40,7 @@ const StatsCard = ({ icon: Icon, label, value, trend, trendUp }: StatsCardProps)
       <p className="text-3xl font-bold text-foreground group-hover:text-primary transition-colors">
         {value}
       </p>
-    </div>
+    </motion.div>
   );
 };
 
