@@ -266,26 +266,44 @@ const Settings = () => {
               )}
             </div>
           ) : (
-            <div className="glass rounded-xl p-6 text-center space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-primary/10 flex items-center justify-center">
-                <User className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <p className="text-foreground font-semibold mb-1">Non connecté</p>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Connecte-toi pour synchroniser tes données sur tous tes appareils
-                </p>
-              </div>
-              <Button
-                onClick={() => navigate("/auth")}
-                className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+            <div className="glass rounded-xl overflow-hidden">
+              {/* Compact view */}
+              <button 
+                onClick={() => setProfileExpanded(!profileExpanded)}
+                className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
               >
-                <LogIn className="w-4 h-4 mr-2" />
-                Se connecter
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                💡 Tu peux utiliser l&apos;app sans compte, mais tes données seront uniquement sur cet appareil
-              </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-foreground">Non connecté</p>
+                    <p className="text-xs text-muted-foreground">
+                      Mode local uniquement
+                    </p>
+                  </div>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${profileExpanded ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Expanded view */}
+              {profileExpanded && (
+                <div className="p-4 pt-0 space-y-4 border-t border-white/5">
+                  <p className="text-xs text-muted-foreground">
+                    Connecte-toi pour synchroniser tes données sur tous tes appareils et accéder aux fonctionnalités sociales.
+                  </p>
+                  <Button
+                    onClick={() => navigate("/auth")}
+                    className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Se connecter / Créer un compte
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    💡 Tes données restent sur cet appareil sans compte
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </section>
