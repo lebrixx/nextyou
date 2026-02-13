@@ -31,6 +31,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [countdownDone, setCountdownDone] = useState(false);
   const [dayTimerRunning, setDayTimerRunning] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerName, setTimerName] = useState("Jour 1");
+  const [customTimerName, setCustomTimerName] = useState("");
 
   const totalSteps = 5;
 
@@ -290,23 +292,55 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             >
               {!countdownStarted ? (
                 <>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: "spring" }}
+                      className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+                    >
+                      <Clock className="w-10 h-10 text-primary" />
+                    </motion.div>
                     <h2 className="text-2xl font-bold text-foreground">
-                      Prêt à commencer ?
+                      Ton compteur personnel
                     </h2>
-                    <p className="text-muted-foreground leading-relaxed">
-                      À partir de maintenant, tu deviens une personne plus <span className="text-primary font-semibold">disciplinée</span>. Chaque jour compte.
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Ta première habitude : <span className="text-foreground font-semibold">« {habitName} »</span>
+                    <p className="text-muted-foreground leading-relaxed text-sm">
+                      Ce compteur marquera le début de ta transformation. Il tournera en permanence pour te rappeler <span className="text-primary font-semibold">depuis combien de temps tu progresses</span>.
                     </p>
                   </div>
+
+                  {/* Timer name selection */}
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Nomme ton compteur</p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {["Jour 1", "Version 2.0", "Reprise en main", "Nouveau départ", "Renaissance"].map((name) => (
+                        <button
+                          key={name}
+                          onClick={() => { setTimerName(name); setCustomTimerName(""); }}
+                          className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                            timerName === name && !customTimerName
+                              ? "bg-primary/20 border-2 border-primary text-primary font-semibold"
+                              : "glass border-2 border-transparent text-muted-foreground hover:border-primary/30"
+                          }`}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                    <Input
+                      placeholder="Ou choisis ton propre nom..."
+                      value={customTimerName}
+                      onChange={(e) => { setCustomTimerName(e.target.value); setTimerName(""); }}
+                      className="text-center"
+                    />
+                  </div>
+
                   <Button
                     onClick={() => setCountdownStarted(true)}
                     className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
                     size="lg"
                   >
-                    Lancer le Jour 1
+                    Lancer « {customTimerName || timerName} »
                     <Flame className="w-4 h-4 ml-1" />
                   </Button>
                 </>
@@ -337,21 +371,21 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                 >
                   <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary via-accent to-primary-glow flex items-center justify-center shadow-glow">
                     <div className="text-center">
-                      <p className="text-xs text-primary-foreground/80 font-medium">JOUR</p>
-                      <p className="text-5xl font-black text-primary-foreground">1</p>
+                      <p className="text-[10px] text-primary-foreground/80 font-medium uppercase tracking-wider">Début</p>
+                      <p className="text-lg font-bold text-primary-foreground leading-tight">{customTimerName || timerName}</p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <h2 className="text-2xl font-bold text-foreground">C'est parti ! 🔥</h2>
                     <p className="text-muted-foreground text-sm">
-                      Le chrono tourne. Chaque seconde te rapproche de la personne que tu veux devenir.
+                      À partir de maintenant, chaque seconde compte. Tu n'es plus la même personne qu'il y a 5 secondes.
                     </p>
                   </div>
 
                   {/* Live timer */}
                   <div className="glass rounded-xl p-4 inline-block">
-                    <p className="text-xs text-muted-foreground mb-1">Temps depuis ton engagement</p>
+                    <p className="text-xs text-muted-foreground mb-1">{customTimerName || timerName}</p>
                     <p className="text-2xl font-mono font-bold text-primary">
                       {String(Math.floor(elapsedSeconds / 60)).padStart(2, "0")}:
                       {String(elapsedSeconds % 60).padStart(2, "0")}
