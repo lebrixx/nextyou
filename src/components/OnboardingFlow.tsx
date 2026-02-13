@@ -229,8 +229,13 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                 {[
                   {
                     icon: "⏱️",
-                    title: "Pomodoro & Timers",
+                    title: "Pomodoro",
                     desc: "Reste concentré avec des sessions chronométrées",
+                  },
+                  {
+                    icon: "⏳",
+                    title: "Compteurs personnels",
+                    desc: "Marque les moments qui comptent pour toi — arrêt d'une addiction, reprise en main, nouveau chapitre de ta vie",
                   },
                   {
                     icon: "🤖",
