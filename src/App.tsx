@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { initPushNotifications } from "./pushNotifications";
 import SplashScreen from "./components/SplashScreen";
+import OnboardingFlow from "./components/OnboardingFlow";
 import Index from "./pages/Index";
 import Habits from "./pages/Habits";
 import Plan from "./pages/Plan";
@@ -50,9 +51,12 @@ const AnimatedRoutes = () => {
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(() => {
-    // Only show splash once per session
     const hasSeenSplash = sessionStorage.getItem("timeritual_splash_shown");
     return !hasSeenSplash;
+  });
+
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem("timeritual_onboarding_done");
   });
 
   // Initialiser les notifications push au démarrage de l'app
@@ -65,11 +69,19 @@ const App = () => {
     setShowSplash(false);
   };
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem("timeritual_onboarding_done", "true");
+    setShowOnboarding(false);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <TooltipProvider>
           {showSplash && <SplashScreen onComplete={handleSplashComplete} duration={2000} />}
+          {!showSplash && showOnboarding && (
+            <OnboardingFlow onComplete={handleOnboardingComplete} />
+          )}
           <Toaster />
           <Sonner />
           <BrowserRouter>
