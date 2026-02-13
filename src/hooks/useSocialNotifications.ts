@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 interface SocialNotificationPreferences {
   friendRequests: boolean;
@@ -102,6 +104,27 @@ export const useSocialNotifications = (userId: string | undefined) => {
             title,
             description,
           });
+
+          // Send native notification
+          if (Capacitor.isNativePlatform()) {
+            try {
+              const permStatus = await LocalNotifications.checkPermissions();
+              if (permStatus.display === 'granted') {
+                await LocalNotifications.schedule({
+                  notifications: [{
+                    title,
+                    body: description,
+                    id: Math.floor(Math.random() * 100000),
+                    schedule: { at: new Date(Date.now() + 500) },
+                    sound: undefined,
+                    smallIcon: 'ic_stat_icon_config_sample',
+                  }]
+                });
+              }
+            } catch (e) {
+              console.log('Native notification error:', e);
+            }
+          }
         }
       )
       .subscribe();
