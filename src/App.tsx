@@ -79,12 +79,12 @@ const App = () => {
       <I18nProvider>
         <TooltipProvider>
           {showSplash && <SplashScreen onComplete={handleSplashComplete} duration={2000} />}
-          {!showSplash && showOnboarding && (
-            <OnboardingFlow onComplete={handleOnboardingComplete} />
-          )}
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            {!showSplash && showOnboarding && (
+              <OnboardingFlow onComplete={handleOnboardingComplete} />
+            )}
             <AnimatedRoutes />
           </BrowserRouter>
         </TooltipProvider>
