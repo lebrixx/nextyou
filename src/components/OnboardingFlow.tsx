@@ -6,6 +6,7 @@ import {
   Flame, ArrowRight, Check, Plus, LogIn, UserPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
 const HABIT_SUGGESTIONS = [
@@ -36,17 +37,33 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
   const totalSteps = 5;
 
-  // Countdown logic for step 3
-  useEffect(() => {
-    if (!countdownStarted || countdownDone) return;
-    if (countdownValue <= 0) {
-      setCountdownDone(true);
-      setDayTimerRunning(true);
-      return;
+  // Save timer to Supabase or localStorage
+  const saveOnboardingTimer = async () => {
+    const finalName = customTimerName || timerName;
+    const now = new Date().toISOString();
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from('timers').insert({
+          user_id: user.id,
+          name: finalName,
+          duration: 0,
+          created_at: now,
+        });
+      } else {
+        // Save to localStorage for migration later
+        const existing = JSON.parse(localStorage.getItem("habitflow_timers") || "[]");
+        existing.push({ id: crypto.randomUUID(), name: finalName, startDate: now });
+        localStorage.setItem("habitflow_timers", JSON.stringify(existing));
+      }
+    } catch (e) {
+      // Fallback to localStorage
+      const existing = JSON.parse(localStorage.getItem("habitflow_timers") || "[]");
+      existing.push({ id: crypto.randomUUID(), name: finalName, startDate: now });
+      localStorage.setItem("habitflow_timers", JSON.stringify(existing));
     }
-    const timer = setTimeout(() => setCountdownValue((v) => v - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [countdownStarted, countdownValue, countdownDone]);
+  };
 
   // Day timer elapsed
   useEffect(() => {
@@ -341,7 +358,11 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                   </div>
 
                   <Button
-                    onClick={() => setCountdownStarted(true)}
+                    onClick={async () => {
+                      await saveOnboardingTimer();
+                      setCountdownStarted(true);
+                      setDayTimerRunning(true);
+                    }}
                     className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
                     size="lg"
                   >
@@ -349,23 +370,6 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                     <Flame className="w-4 h-4 ml-1" />
                   </Button>
                 </>
-              ) : !countdownDone ? (
-                <motion.div
-                  key="countdown"
-                  className="space-y-4"
-                >
-                  <p className="text-muted-foreground text-sm">Ton parcours commence dans...</p>
-                  <motion.div
-                    key={countdownValue}
-                    initial={{ scale: 2, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.5, type: "spring" }}
-                    className="text-8xl font-black text-primary"
-                  >
-                    {countdownValue}
-                  </motion.div>
-                </motion.div>
               ) : (
                 <motion.div
                   key="day1"
