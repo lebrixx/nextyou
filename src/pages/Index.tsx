@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, HelpCircle } from "lucide-react";
+import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, HelpCircle, Sparkles } from "lucide-react";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
@@ -255,14 +255,23 @@ const Index = () => {
             </span>
           </h1>
           
-          {/* Tour Guide Button */}
-          <button
-            onClick={() => setTourOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1 mb-4 rounded-full bg-muted/30 border border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/10 transition-all group"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Découvrir l'app</span>
-          </button>
+          {/* Tour Guide & Onboarding Buttons */}
+          <div className="flex items-center gap-2 mb-4">
+            <button
+              onClick={() => setTourOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-muted-foreground/20 hover:border-primary/40 hover:bg-primary/10 transition-all group"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">Découvrir l'app</span>
+            </button>
+            <button
+              onClick={() => { localStorage.removeItem("timeritual_onboarding_done"); window.location.reload(); }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/30 border border-muted-foreground/20 hover:border-accent/40 hover:bg-accent/10 transition-all group"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-muted-foreground group-hover:text-accent transition-colors" />
+              <span className="text-xs text-muted-foreground group-hover:text-accent transition-colors">Relancer onboarding</span>
+            </button>
+          </div>
           <div className="glass rounded-xl p-4 mb-3 border border-primary/20">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 text-center">
               {t('todayQuote')}
