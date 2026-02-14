@@ -374,6 +374,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                 ))}
               </div>
 
+              <p className="text-xs text-muted-foreground text-center italic">…et bien d'autres encore ✨</p>
+
               {!notifRequested ? (
                 <Button
                   onClick={async () => {
@@ -413,15 +415,6 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </motion.div>
-              )}
-
-              {!notifRequested && (
-                <button
-                  onClick={nextStep}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Plus tard →
-                </button>
               )}
             </motion.div>
           )}
