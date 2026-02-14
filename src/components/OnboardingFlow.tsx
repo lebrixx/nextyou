@@ -81,26 +81,24 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
   const requestNotifications = async () => {
     setNotifRequested(true);
+    const isNative = Capacitor.isNativePlatform();
+    if (!isNative) {
+      // On web/PC, just skip — no native permission to request
+      setNotifGranted(false);
+      return;
+    }
     try {
-      const isNative = Capacitor.isNativePlatform();
-      if (isNative) {
-        try {
-          const pushResult = await PushNotifications.requestPermissions();
-          if (pushResult.receive === 'granted') {
-            await PushNotifications.register();
-            setNotifGranted(true);
-          }
-        } catch (e) { console.log('Push not available:', e); }
-        try {
-          const localResult = await LocalNotifications.requestPermissions();
-          if (localResult.display === 'granted') setNotifGranted(true);
-        } catch (e) { console.log('Local notif error:', e); }
-      } else {
-        if ('Notification' in window && Notification.permission !== 'denied') {
-          const result = await Notification.requestPermission();
-          if (result === 'granted') setNotifGranted(true);
+      try {
+        const pushResult = await PushNotifications.requestPermissions();
+        if (pushResult.receive === 'granted') {
+          await PushNotifications.register();
+          setNotifGranted(true);
         }
-      }
+      } catch (e) { console.log('Push not available:', e); }
+      try {
+        const localResult = await LocalNotifications.requestPermissions();
+        if (localResult.display === 'granted') setNotifGranted(true);
+      } catch (e) { console.log('Local notif error:', e); }
     } catch (e) {
       console.error('Notification permission error:', e);
     }
