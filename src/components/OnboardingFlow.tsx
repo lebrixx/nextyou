@@ -358,7 +358,6 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               <div className="space-y-3 text-left">
                 {[
                   { emoji: "🎯", text: "Rappels d'habitudes à l'heure que tu choisis" },
-                  { emoji: "🔥", text: "Alertes quand ton streak est en danger" },
                   { emoji: "💬", text: "Messages de tes amis et défis reçus" },
                   { emoji: "💪", text: "Citations motivantes pour ta journée" },
                 ].map((item, i) => (
