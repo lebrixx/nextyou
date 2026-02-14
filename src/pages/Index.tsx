@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, Target, Flame, Clock, Award, Calendar, ChevronRight, ChevronDown, HelpCircle, Sparkles } from "lucide-react";
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { PushNotifications } from '@capacitor/push-notifications';
-import { Capacitor } from '@capacitor/core';
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
@@ -50,69 +47,7 @@ const Index = () => {
   useNotificationScheduler(); // Schedule all notifications
 
   // Request notification permissions on startup
-  useEffect(() => {
-    const requestNotificationPermissions = async () => {
-      try {
-        // Small delay to let the app fully load
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Check both Push and Local notifications permissions
-        let hasPermission = false;
-        const isNative = Capacitor.isNativePlatform();
-
-        // Check Push Notifications (iOS/Android only - not available on web)
-        if (isNative) {
-          try {
-            const pushStatus = await PushNotifications.checkPermissions();
-            console.log('Push notification status:', pushStatus);
-            if (pushStatus.receive === 'granted') {
-              hasPermission = true;
-            }
-          } catch (pushError) {
-            console.log('Push notifications not available:', pushError);
-          }
-        }
-
-        // Check Local Notifications
-        try {
-          const localStatus = await LocalNotifications.checkPermissions();
-          console.log('Local notification status:', localStatus);
-          if (localStatus.display === 'granted') {
-            hasPermission = true;
-          }
-        } catch (localError) {
-          console.log('Local notifications check error:', localError);
-        }
-
-        // If already has permission, don't show toast again
-        if (hasPermission) {
-          console.log('Notifications already granted');
-          return;
-        }
-
-        // Try to request Local Notifications permissions
-        try {
-          const localStatus = await LocalNotifications.checkPermissions();
-          if (localStatus.display === 'prompt' || localStatus.display === 'prompt-with-rationale') {
-            console.log('Requesting local notification permissions...');
-            const result = await LocalNotifications.requestPermissions();
-            console.log('Local notification permissions result:', result);
-            if (result.display === 'granted') {
-              toast({
-                title: "Notifications activées",
-                description: "Tu recevras des rappels pour tes habitudes"
-              });
-            }
-          }
-        } catch (error) {
-          console.log('Local notifications not available:', error);
-        }
-      } catch (error) {
-        console.error('Error with notification permissions:', error);
-      }
-    };
-    requestNotificationPermissions();
-  }, []);
+  // Notification permissions are now requested during onboarding
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem("habitflow_habits");
     return saved ? JSON.parse(saved) : [{

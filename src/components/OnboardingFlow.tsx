@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, Target, Clock, Users, Trophy, ChevronRight,
-  Flame, ArrowRight, Check, Plus, LogIn, UserPlus
+  Flame, ArrowRight, Check, Plus, LogIn, UserPlus, Bell, BellOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { PushNotifications } from "@capacitor/push-notifications";
 
 const HABIT_SUGGESTIONS = [
   { name: "Méditer", icon: "🧘", desc: "5 min de calme" },
@@ -34,8 +37,10 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [timerName, setTimerName] = useState("Jour 1");
   const [customTimerName, setCustomTimerName] = useState("");
+  const [notifGranted, setNotifGranted] = useState(false);
+  const [notifRequested, setNotifRequested] = useState(false);
 
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   // Save timer to Supabase or localStorage
   const saveOnboardingTimer = async () => {
@@ -73,6 +78,33 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   }, [dayTimerRunning]);
 
   const habitName = selectedHabit || customHabit || "Mon habitude";
+
+  const requestNotifications = async () => {
+    setNotifRequested(true);
+    try {
+      const isNative = Capacitor.isNativePlatform();
+      if (isNative) {
+        try {
+          const pushResult = await PushNotifications.requestPermissions();
+          if (pushResult.receive === 'granted') {
+            await PushNotifications.register();
+            setNotifGranted(true);
+          }
+        } catch (e) { console.log('Push not available:', e); }
+        try {
+          const localResult = await LocalNotifications.requestPermissions();
+          if (localResult.display === 'granted') setNotifGranted(true);
+        } catch (e) { console.log('Local notif error:', e); }
+      } else {
+        if ('Notification' in window && Notification.permission !== 'denied') {
+          const result = await Notification.requestPermission();
+          if (result === 'granted') setNotifGranted(true);
+        }
+      }
+    } catch (e) {
+      console.error('Notification permission error:', e);
+    }
+  };
 
   const nextStep = useCallback(() => {
     if (step < totalSteps - 1) setStep((s) => s + 1);
@@ -302,10 +334,110 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 3 — Symbolic countdown "Jour 1" */}
+          {/* STEP 3 — Notification permission */}
           {step === 3 && (
             <motion.div
               key="step3"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-sm w-full text-center space-y-8"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+              >
+                <Bell className="w-12 h-12 text-primary" />
+              </motion.div>
+
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Reste sur la bonne voie
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Les notifications sont <span className="text-primary font-semibold">essentielles</span> pour Time Ritual. Elles te rappellent tes habitudes, célèbrent tes streaks et t'encouragent quand tu en as besoin.
+                </p>
+              </div>
+
+              <div className="space-y-3 text-left">
+                {[
+                  { emoji: "🎯", text: "Rappels d'habitudes à l'heure que tu choisis" },
+                  { emoji: "🔥", text: "Alertes quand ton streak est en danger" },
+                  { emoji: "💬", text: "Messages de tes amis et défis reçus" },
+                  { emoji: "💪", text: "Citations motivantes pour ta journée" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="flex items-center gap-3 glass rounded-lg p-3"
+                  >
+                    <span className="text-lg">{item.emoji}</span>
+                    <span className="text-sm text-foreground">{item.text}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              {!notifRequested ? (
+                <Button
+                  onClick={async () => {
+                    await requestNotifications();
+                  }}
+                  className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+                  size="lg"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Activer les notifications
+                </Button>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="space-y-3"
+                >
+                  <div className={`flex items-center justify-center gap-2 p-3 rounded-xl ${notifGranted ? 'bg-green-500/10 text-green-400' : 'bg-muted text-muted-foreground'}`}>
+                    {notifGranted ? (
+                      <>
+                        <Check className="w-5 h-5" />
+                        <span className="text-sm font-semibold">Notifications activées !</span>
+                      </>
+                    ) : (
+                      <>
+                        <BellOff className="w-5 h-5" />
+                        <span className="text-sm">Tu pourras les activer plus tard dans les réglages</span>
+                      </>
+                    )}
+                  </div>
+                  <Button
+                    onClick={nextStep}
+                    className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+                    size="lg"
+                  >
+                    Continuer
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </motion.div>
+              )}
+
+              {!notifRequested && (
+                <button
+                  onClick={nextStep}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Plus tard →
+                </button>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 4 — Symbolic timer "Jour 1" */}
+          {step === 4 && (
+            <motion.div
+              key="step4"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
@@ -414,10 +546,10 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 4 — Account prompt */}
-          {step === 4 && (
+          {/* STEP 5 — Account prompt */}
+          {step === 5 && (
             <motion.div
-              key="step4"
+              key="step5"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
