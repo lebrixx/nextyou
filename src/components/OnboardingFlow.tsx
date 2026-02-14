@@ -80,13 +80,13 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const habitName = selectedHabit || customHabit || "Mon habitude";
 
   const requestNotifications = async () => {
-    setNotifRequested(true);
     const isNative = Capacitor.isNativePlatform();
     if (!isNative) {
-      // On web/PC, just skip — no native permission to request
-      setNotifGranted(false);
+      // On web/PC, just advance to next step
+      setStep((s) => s + 1);
       return;
     }
+    setNotifRequested(true);
     try {
       try {
         const pushResult = await PushNotifications.requestPermissions();
