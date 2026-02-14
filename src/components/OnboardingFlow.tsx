@@ -127,13 +127,6 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         />
       </div>
 
-      {/* Skip button */}
-      <button
-        onClick={() => finishOnboarding(false)}
-        className="absolute top-4 right-4 text-xs text-muted-foreground hover:text-foreground z-10"
-      >
-        Passer
-      </button>
 
       <div className="flex-1 flex items-center justify-center p-6">
         <AnimatePresence mode="wait">
@@ -263,7 +256,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
               transition={{ duration: 0.4 }}
-              className="max-w-sm w-full space-y-6"
+              className="max-w-sm w-full space-y-6 max-h-[85vh] overflow-y-auto pb-4"
             >
               <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold text-foreground">
