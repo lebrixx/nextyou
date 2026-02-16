@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Crown, ChevronDown } from "lucide-react";
+import { Bell, Palette, User, Info, LogOut, LogIn, Download, Globe, Crown, ChevronDown, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { applyTheme, getTheme, Theme } from "@/lib/theme";
+import { applyTheme, getTheme, Theme, applyAppearance, getAppearance, AppearanceMode } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { exportToCSV, exportToJSON, generateExportFilename } from "@/utils/exportData";
 import { useTranslation, Language } from "@/lib/i18n";
@@ -20,6 +20,7 @@ const Settings = () => {
   const { language, setLanguage, t } = useTranslation();
   const { refreshNotifications } = useNotificationScheduler();
   const [currentTheme, setCurrentTheme] = useState<Theme>(getTheme());
+  const [currentAppearance, setCurrentAppearance] = useState<AppearanceMode>(getAppearance());
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [fullName, setFullName] = useState("");
@@ -427,6 +428,38 @@ const Settings = () => {
             </div>
             Apparence
           </h2>
+          <div className="glass rounded-xl p-4 space-y-4">
+            <div>
+              <p className="font-semibold text-foreground text-sm mb-2">Mode d'affichage</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Choisis entre le mode clair ou sombre
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {([
+                { mode: "light" as AppearanceMode, icon: Sun, label: "Clair" },
+                { mode: "dark" as AppearanceMode, icon: Moon, label: "Sombre" },
+              ]).map(({ mode, icon: Icon, label }) => (
+                <button
+                  key={mode}
+                  onClick={() => {
+                    setCurrentAppearance(mode);
+                    applyAppearance(mode);
+                    toast({ title: "Mode changé", description: `Mode ${label.toLowerCase()} activé` });
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg transition-all ${
+                    currentAppearance === mode
+                      ? "bg-primary/20 border-2 border-primary text-primary font-semibold"
+                      : "glass border-2 border-transparent text-muted-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm">{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="glass rounded-xl p-4">
             <div className="mb-3">
               <p className="font-semibold text-foreground text-sm mb-2">Thème de couleur</p>
