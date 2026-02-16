@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { initPushNotifications } from "./pushNotifications";
+import { applyAppearance, getAppearance } from "@/lib/theme";
 import SplashScreen from "./components/SplashScreen";
 import OnboardingFlow from "./components/OnboardingFlow";
 import Index from "./pages/Index";
@@ -62,6 +63,7 @@ const App = () => {
   // Initialiser les notifications push au démarrage de l'app
   useEffect(() => {
     initPushNotifications();
+    applyAppearance(getAppearance());
   }, []);
 
   const handleSplashComplete = () => {

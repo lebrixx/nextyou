@@ -67,6 +67,54 @@ All colors MUST be HSL.
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
+
+  .dark {
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 10% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 10% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 264 87% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --primary-glow: 264 80% 65%;
+    --primary-dark: 264 85% 45%;
+
+    --secondary: 264 20% 18%;
+    --secondary-foreground: 264 30% 80%;
+
+    --muted: 240 10% 16%;
+    --muted-foreground: 240 5% 55%;
+
+    --accent: 264 70% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 264 87% 58%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(264 87% 58%) 0%, hsl(264 80% 65%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(240 10% 10%) 0%, hsl(264 15% 12%) 100%);
+    --gradient-glow: linear-gradient(135deg, hsl(264 87% 58% / 0.15) 0%, hsl(264 80% 65% / 0.08) 100%);
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(264 40% 20% / 0.4) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(264 50% 15% / 0.3) 0px, transparent 50%);
+
+    /* Shadows */
+    --shadow-glow: 0 0 30px hsl(264 80% 60% / 0.2), 0 0 60px hsl(264 80% 60% / 0.1);
+    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3), 0 0 1px hsl(264 30% 40% / 0.3);
+    --shadow-elevation: 0 4px 20px hsl(0 0% 0% / 0.4), 0 0 0 1px hsl(264 30% 30% / 0.3);
+  }
 }
 
 @layer base {

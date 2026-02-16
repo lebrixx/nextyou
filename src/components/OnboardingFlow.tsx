@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles, Target, Clock, Users, Trophy, ChevronRight,
-  Flame, ArrowRight, Check, Plus, LogIn, UserPlus, Bell, BellOff
+  Flame, ArrowRight, Check, Plus, LogIn, UserPlus, Bell, BellOff,
+  Sun, Moon, Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { applyAppearance, type AppearanceMode } from "@/lib/theme";
 
 const HABIT_SUGGESTIONS = [
   { name: "Méditer", icon: "🧘", desc: "5 min de calme" },
@@ -39,8 +41,9 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [customTimerName, setCustomTimerName] = useState("");
   const [notifGranted, setNotifGranted] = useState(false);
   const [notifRequested, setNotifRequested] = useState(false);
+  const [appearanceMode, setAppearanceMode] = useState<AppearanceMode>("light");
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   // Save timer to Supabase or localStorage
   const saveOnboardingTimer = async () => {
@@ -187,8 +190,85 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 1 — Choose first habit */}
+          {/* STEP 1 — Appearance choice */}
           {step === 1 && (
+            <motion.div
+              key="step1-appearance"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-sm w-full text-center space-y-8"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow"
+              >
+                <Palette className="w-12 h-12 text-primary-foreground" />
+              </motion.div>
+
+              <div className="space-y-3">
+                <h1 className="text-3xl font-bold text-foreground">
+                  Choisis ton style
+                </h1>
+                <p className="text-muted-foreground leading-relaxed">
+                  Préfères-tu une interface <span className="text-primary font-semibold">claire</span> ou <span className="text-primary font-semibold">sombre</span> ?
+                </p>
+              </div>
+
+              <div className="flex gap-4">
+                {([
+                  { mode: "light" as AppearanceMode, icon: Sun, label: "Clair", desc: "Lumineux et aéré", preview: "bg-[hsl(240,7%,97%)]" },
+                  { mode: "dark" as AppearanceMode, icon: Moon, label: "Sombre", desc: "Doux pour les yeux", preview: "bg-[hsl(240,10%,8%)]" },
+                ]).map(({ mode, icon: Icon, label, desc, preview }) => (
+                  <motion.button
+                    key={mode}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: mode === "light" ? 0.3 : 0.4 }}
+                    onClick={() => {
+                      setAppearanceMode(mode);
+                      applyAppearance(mode);
+                    }}
+                    className={`flex-1 rounded-2xl p-5 transition-all duration-300 ${
+                      appearanceMode === mode
+                        ? "border-2 border-primary shadow-glow bg-primary/10"
+                        : "glass border-2 border-transparent hover:border-primary/30"
+                    }`}
+                  >
+                    <div className={`w-full h-20 rounded-xl ${preview} mb-4 flex items-center justify-center border border-border`}>
+                      <Icon className={`w-8 h-8 ${mode === "light" ? "text-amber-500" : "text-indigo-400"}`} />
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">{label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{desc}</p>
+                    {appearanceMode === mode && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="w-6 h-6 rounded-full bg-primary mx-auto mt-3 flex items-center justify-center"
+                      >
+                        <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                      </motion.div>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+
+              <Button
+                onClick={nextStep}
+                className="w-full bg-gradient-primary text-primary-foreground shadow-glow"
+                size="lg"
+              >
+                Continuer
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </motion.div>
+          )}
+
+          {/* STEP 2 — Choose first habit */}
+          {step === 2 && (
             <motion.div
               key="step1"
               initial={{ opacity: 0, y: 30 }}
@@ -246,8 +326,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 2 — App features showcase */}
-          {step === 2 && (
+          {/* STEP 3 — App features showcase */}
+          {step === 3 && (
             <motion.div
               key="step2"
               initial={{ opacity: 0, y: 30 }}
@@ -325,8 +405,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 3 — Notification permission */}
-          {step === 3 && (
+          {/* STEP 4 — Notification permission */}
+          {step === 4 && (
             <motion.div
               key="step3"
               initial={{ opacity: 0, y: 30 }}
@@ -417,8 +497,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 4 — Symbolic timer "Jour 1" */}
-          {step === 4 && (
+          {/* STEP 5 — Symbolic timer "Jour 1" */}
+          {step === 5 && (
             <motion.div
               key="step4"
               initial={{ opacity: 0, y: 30 }}
@@ -529,8 +609,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             </motion.div>
           )}
 
-          {/* STEP 5 — Account prompt */}
-          {step === 5 && (
+          {/* STEP 6 — Account prompt */}
+          {step === 6 && (
             <motion.div
               key="step5"
               initial={{ opacity: 0, y: 30 }}
