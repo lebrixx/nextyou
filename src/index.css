@@ -14,29 +14,29 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Next You 2.0 - Dark Purple Theme */
-    --background: 0 0% 5%;
-    --foreground: 0 0% 96%;
+    /* Time Ritual - Light Lavender Theme */
+    --background: 240 7% 97%;
+    --foreground: 260 35% 8%;
 
-    --card: 280 10% 8%;
-    --card-foreground: 0 0% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 35% 8%;
 
-    --popover: 280 10% 8%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 35% 8%;
 
-    --primary: 280 60% 48%;
+    --primary: 264 87% 50%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 280 70% 60%;
-    --primary-dark: 280 65% 35%;
+    --primary-glow: 264 80% 60%;
+    --primary-dark: 264 85% 40%;
 
-    --secondary: 280 50% 20%;
-    --secondary-foreground: 280 40% 90%;
+    --secondary: 264 30% 93%;
+    --secondary-foreground: 264 50% 30%;
 
-    --muted: 280 10% 15%;
-    --muted-foreground: 280 5% 60%;
+    --muted: 264 10% 92%;
+    --muted-foreground: 264 10% 45%;
 
-    --accent: 280 70% 55%;
+    --accent: 264 70% 55%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 70% 55%;
@@ -45,23 +45,23 @@ All colors MUST be HSL.
     --success: 142 70% 45%;
     --success-foreground: 0 0% 100%;
 
-    --border: 280 15% 18%;
-    --input: 280 15% 18%;
-    --ring: 280 60% 48%;
+    --border: 264 15% 90%;
+    --input: 264 15% 90%;
+    --ring: 264 87% 50%;
 
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(280 60% 48%) 0%, hsl(280 70% 60%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(280 10% 8%) 0%, hsl(280 10% 5%) 100%);
-    --gradient-glow: linear-gradient(135deg, hsl(280 60% 48% / 0.2) 0%, hsl(280 70% 60% / 0.1) 100%);
-    --gradient-mesh: radial-gradient(at 0% 0%, hsl(280 70% 30% / 0.3) 0px, transparent 50%),
-                     radial-gradient(at 100% 100%, hsl(280 80% 40% / 0.2) 0px, transparent 50%);
+    --gradient-primary: linear-gradient(135deg, hsl(264 87% 50%) 0%, hsl(264 80% 60%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(264 30% 97%) 100%);
+    --gradient-glow: linear-gradient(135deg, hsl(264 87% 50% / 0.1) 0%, hsl(264 80% 60% / 0.05) 100%);
+    --gradient-mesh: radial-gradient(at 0% 0%, hsl(264 40% 90% / 0.5) 0px, transparent 50%),
+                     radial-gradient(at 100% 100%, hsl(264 50% 92% / 0.4) 0px, transparent 50%);
 
     /* Shadows */
-    --shadow-glow: 0 0 60px hsl(280 70% 60% / 0.4), 0 0 100px hsl(280 70% 60% / 0.2);
-    --shadow-card: 0 20px 60px hsl(0 0% 0% / 0.7), 0 0 1px hsl(280 60% 60% / 0.3);
-    --shadow-elevation: 0 8px 32px hsl(280 60% 48% / 0.3), 0 0 0 1px hsl(280 60% 48% / 0.1);
+    --shadow-glow: 0 0 30px hsl(264 80% 60% / 0.15), 0 0 60px hsl(264 80% 60% / 0.08);
+    --shadow-card: 0 4px 24px hsl(264 20% 50% / 0.08), 0 0 1px hsl(264 30% 70% / 0.2);
+    --shadow-elevation: 0 4px 20px hsl(264 30% 50% / 0.1), 0 0 0 1px hsl(264 30% 80% / 0.2);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -78,16 +78,19 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    font-family: 'Manrope', sans-serif;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-card/40 backdrop-blur-xl border border-white/10;
+    @apply bg-card/70 backdrop-blur-xl border border-primary/10;
+    box-shadow: var(--shadow-card);
   }
   
   .glass-strong {
-    @apply bg-card/60 backdrop-blur-2xl border border-white/10;
+    @apply bg-card/85 backdrop-blur-2xl border border-primary/10;
+    box-shadow: var(--shadow-card);
   }
 
   .pb-safe {
@@ -116,7 +119,7 @@ All colors MUST be HSL.
   }
   
   .hover-glow:hover {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.2);
   }
 
   /* Smooth shimmer effect for loading */
@@ -124,7 +127,7 @@ All colors MUST be HSL.
     background: linear-gradient(
       90deg,
       hsl(var(--muted) / 0) 0%,
-      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted-foreground) / 0.08) 50%,
       hsl(var(--muted) / 0) 100%
     );
     background-size: 200% 100%;
@@ -147,10 +150,10 @@ All colors MUST be HSL.
 
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+      box-shadow: 0 0 15px hsl(var(--primary) / 0.2);
     }
     50% {
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.35);
     }
   }
 

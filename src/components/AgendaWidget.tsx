@@ -101,7 +101,7 @@ const AgendaWidget = () => {
                             ? 'bg-gradient-to-r from-primary/25 to-primary/10 border border-primary/40' 
                             : priority === 'tomorrow'
                             ? 'bg-amber-500/10 border border-amber-500/30'
-                            : 'bg-white/5 border border-white/10'
+                         : 'bg-muted/30 border border-border'
                         }`}
                       >
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
@@ -109,7 +109,7 @@ const AgendaWidget = () => {
                             ? 'bg-primary/30' 
                             : priority === 'tomorrow'
                             ? 'bg-amber-500/20'
-                            : 'bg-white/10'
+                           : 'bg-muted/20'
                         }`}>
                           <Bell className={`w-5 h-5 ${
                             priority === 'today' ? 'text-primary' : priority === 'tomorrow' ? 'text-amber-400' : 'text-muted-foreground'
@@ -141,7 +141,7 @@ const AgendaWidget = () => {
 
               {/* Message d'aide quand vide */}
               {!isOpen && reminders.length === 0 && (
-                <div className="mt-4 p-3 rounded-xl bg-white/5 border border-dashed border-white/20">
+                <div className="mt-4 p-3 rounded-xl bg-muted/20 border border-dashed border-border">
                   <p className="text-xs text-muted-foreground text-center">
                     📅 Clique pour ajouter ton premier rappel
                   </p>
@@ -152,7 +152,7 @@ const AgendaWidget = () => {
         </CollapsibleTrigger>
 
         <CollapsibleContent className="space-y-3 animate-accordion-down">
-          <div className="glass rounded-xl p-4 border border-white/10">
+          <div className="glass rounded-xl p-4 border border-primary/10">
             {/* Header avec explication */}
             <div className="mb-4">
               <h4 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -177,8 +177,8 @@ const AgendaWidget = () => {
                       isToday 
                         ? 'bg-gradient-primary border-2 border-primary shadow-glow' 
                         : dayReminders.length > 0
-                        ? 'bg-primary/10 border border-primary/30'
-                        : 'bg-background/50 border border-white/5'
+                        ? 'bg-muted/30 border border-border'
+                        : 'bg-muted/10 border border-border'
                     }`}
                   >
                     <p className={`text-[10px] font-semibold uppercase tracking-wide mb-0.5 ${
@@ -227,7 +227,7 @@ const AgendaWidget = () => {
                             ? 'bg-gradient-to-r from-primary/20 to-primary/5 border-primary/40'
                             : priority === 'tomorrow'
                             ? 'bg-amber-500/10 border-amber-500/30'
-                            : 'glass border-white/10 hover:border-primary/20'
+                             : 'glass border-border hover:border-primary/20'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -282,7 +282,7 @@ const AgendaWidget = () => {
                     );
                   })
                 ) : (
-                  <div className="text-center py-6 rounded-xl bg-white/5 border border-dashed border-white/20">
+                  <div className="text-center py-6 rounded-xl bg-muted/10 border border-dashed border-border">
                     <CalendarDays className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
                     <p className="text-sm font-medium text-muted-foreground mb-1">Aucun rappel</p>
                     <p className="text-xs text-muted-foreground/70">Ajoute un rappel pour ne rien oublier !</p>

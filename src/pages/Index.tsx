@@ -183,10 +183,9 @@ const Index = () => {
       <header className="px-6 pt-12 pb-8">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-2 tracking-tight leading-none relative my-0 pt-[25px] whitespace-nowrap">
-            <span className="text-foreground drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)] hover:scale-105 transition-transform inline-block">Time</span>
-            <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(168,85,247,0.6)] animate-pulse ml-2 inline-block hover:scale-110 transition-transform relative">
+            <span className="text-foreground inline-block hover:scale-105 transition-transform">Time</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent ml-2 inline-block hover:scale-110 transition-transform">
               Ritual
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-purple-500 to-pink-500 blur-2xl opacity-40 animate-pulse"></span>
             </span>
           </h1>
           
@@ -229,7 +228,7 @@ const Index = () => {
 
       {/* Performance Quotidienne */}
         <motion.section 
-          className="glass rounded-xl p-5 shadow-elevation border border-white/5 text-center"
+          className="glass rounded-xl p-5 shadow-elevation border border-primary/10 text-center"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
@@ -269,7 +268,7 @@ const Index = () => {
             <Clock className="w-5 h-5 text-primary" />
             {t('myTimers')}
           </h2>
-          {timers.length > 0 ? <div className="glass rounded-xl p-4 shadow-elevation border border-white/5">
+          {timers.length > 0 ? <div className="glass rounded-xl p-4 shadow-elevation border border-primary/10">
               <motion.div 
                 className="grid grid-cols-2 gap-3"
                 initial="hidden"
@@ -282,7 +281,7 @@ const Index = () => {
                 {timers.map(timer => (
                   <motion.div 
                     key={timer.id} 
-                    className="rounded-lg p-3 bg-background/50 border border-white/5"
+                    className="rounded-lg p-3 bg-muted/30 border border-border"
                     variants={{
                       hidden: { opacity: 0, scale: 0.9 },
                       visible: { opacity: 1, scale: 1 }
@@ -295,7 +294,7 @@ const Index = () => {
                   </motion.div>
                 ))}
               </motion.div>
-              <div className="mt-3 pt-3 border-t border-white/5">
+              <div className="mt-3 pt-3 border-t border-border">
               <p className="text-[10px] text-muted-foreground text-center">
                 💡 {t('addTimerWidget')}
               </p>
@@ -323,7 +322,7 @@ const Index = () => {
               </h2>
             </div>
             <div className="space-y-3">
-              {goals.map(goal => <div key={goal.id} className="glass rounded-xl p-4 shadow-elevation border border-white/5">
+              {goals.map(goal => <div key={goal.id} className="glass rounded-xl p-4 shadow-elevation border border-primary/10">
                   <div className="flex items-start gap-3 mb-2">
                     <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-glow shrink-0">
                       <Target className="w-4 h-4 text-primary-foreground" />

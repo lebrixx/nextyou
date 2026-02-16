@@ -55,7 +55,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
         'gradient-primary': 'var(--gradient-primary)',
@@ -102,8 +102,8 @@ export default {
           "100%": { transform: "scale(1)", opacity: "1" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(280 70% 60% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(280 70% 60% / 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 15px hsl(264 80% 60% / 0.2)" },
+          "50%": { boxShadow: "0 0 30px hsl(264 80% 60% / 0.35)" },
         },
         "slide-up": {
           "0%": { transform: "translateY(100%)", opacity: "0" },

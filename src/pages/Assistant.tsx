@@ -173,12 +173,12 @@ const Assistant = () => {
 
       <main className="px-6 space-y-4 max-w-2xl mx-auto">
         {!suggestions ? (
-          <div className="glass rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass rounded-2xl p-6 space-y-4 border border-primary/10">
             <Textarea
               placeholder="Ex: Je veux devenir plus musclé, avoir une meilleure santé, être plus productif..."
               value={userMessage}
               onChange={(e) => setUserMessage(e.target.value)}
-              className="min-h-[120px] text-base resize-none glass border-white/10"
+              className="min-h-[120px] text-base resize-none glass border-border"
               disabled={isLoading}
             />
             <Button
@@ -203,7 +203,7 @@ const Assistant = () => {
         ) : (
           <div className="space-y-4">
             {suggestions.message && (
-              <div className="glass rounded-2xl p-4 border border-white/10">
+              <div className="glass rounded-2xl p-4 border border-primary/10">
                 <p className="text-foreground text-sm">{suggestions.message}</p>
               </div>
             )}
@@ -213,7 +213,7 @@ const Assistant = () => {
               {suggestions.habits.map((habit, index) => (
                 <div
                   key={index}
-                  className="glass rounded-xl p-4 border border-white/10 hover:border-primary/30 transition-colors space-y-3"
+                  className="glass rounded-xl p-4 border border-primary/10 hover:border-primary/30 transition-colors space-y-3"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-foreground font-semibold text-base">{habit.name}</p>

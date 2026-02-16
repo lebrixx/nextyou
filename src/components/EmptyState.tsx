@@ -47,7 +47,7 @@ export const EmptyState = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-2xl p-8 text-center border border-white/5 relative overflow-hidden"
+      className="glass rounded-2xl p-8 text-center border border-primary/10 relative overflow-hidden"
     >
       {/* Subtle background decoration */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">
@@ -60,7 +60,7 @@ export const EmptyState = ({
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center mx-auto mb-5 border border-white/5"
+          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted/50 to-muted/20 flex items-center justify-center mx-auto mb-5 border border-border"
         >
           <motion.div
             animate={{ 

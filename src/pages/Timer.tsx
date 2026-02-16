@@ -402,7 +402,7 @@ const Timer = () => {
                 <Button
                   onClick={() => confirmReset(timer.id)}
                   variant="outline"
-                  className="flex-1 glass border-white/20 text-foreground hover:bg-white/5 h-10 text-xs"
+                  className="flex-1 glass border-border text-foreground hover:bg-muted/30 h-10 text-xs"
                 >
                   <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                   Réinitialiser
