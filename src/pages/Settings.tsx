@@ -220,7 +220,7 @@ const Settings = () => {
 
               {/* Expanded view */}
               {profileExpanded && (
-                <div className="p-4 pt-0 space-y-4 border-t border-white/5">
+                <div className="p-4 pt-0 space-y-4 border-t border-border">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground text-sm">
                       Email
@@ -242,7 +242,7 @@ const Settings = () => {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="glass border-white/10 focus:border-primary/50"
+                      className="glass border-border focus:border-primary/50"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -288,7 +288,7 @@ const Settings = () => {
 
               {/* Expanded view */}
               {profileExpanded && (
-                <div className="p-4 pt-0 space-y-4 border-t border-white/5">
+                <div className="p-4 pt-0 space-y-4 border-t border-border">
                   <p className="text-xs text-muted-foreground">
                     Connecte-toi pour synchroniser tes données sur tous tes appareils et accéder aux fonctionnalités sociales.
                   </p>
@@ -405,10 +405,10 @@ const Settings = () => {
               </p>
             </div>
             <Select value={language} onValueChange={(value) => setLanguage(value as Language)}>
-              <SelectTrigger className="glass border-white/10">
+              <SelectTrigger className="glass border-border">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="glass-strong border-white/20">
+              <SelectContent className="glass-strong border-border">
                 <SelectItem value="fr">{t('french')}</SelectItem>
                 <SelectItem value="en">{t('english')}</SelectItem>
                 <SelectItem value="es">{t('spanish')}</SelectItem>

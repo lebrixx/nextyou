@@ -14,7 +14,7 @@ const StatsCard = ({ icon: Icon, label, value, trend, trendUp }: StatsCardProps)
     <motion.div 
       whileHover={{ scale: 1.02 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="glass rounded-xl p-4 hover:border-primary/30 transition-all duration-300 hover:shadow-elevation group border border-white/5"
+      className="glass rounded-xl p-4 hover:border-primary/30 transition-all duration-300 hover:shadow-elevation group border border-primary/10"
     >
       <div className="flex items-start justify-between mb-3">
         <motion.div 

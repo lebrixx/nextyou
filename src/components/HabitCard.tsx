@@ -65,7 +65,7 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle, onClick, habit
             : "border-red-500/40 bg-gradient-to-br from-red-500/10 to-orange-500/5 hover:border-red-500/60"
           : completed 
             ? "border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5" 
-            : "hover:shadow-elevation hover:scale-[1.01] border-white/5"
+            : "hover:shadow-elevation hover:scale-[1.01] border-primary/10"
       } group`}
       onClick={handleCardClick}
     >
@@ -216,7 +216,7 @@ const HabitCard = ({ id, name, icon, streak, completed, onToggle, onClick, habit
                   : "hover:bg-red-500/20 backdrop-blur-sm border border-red-500/30"
                 : completed
                   ? "bg-gradient-to-br from-primary to-primary-glow hover:from-primary-dark hover:to-primary text-primary-foreground shadow-glow"
-                  : "hover:bg-white/10 backdrop-blur-sm border border-white/10"
+                  : "hover:bg-muted/30 backdrop-blur-sm border border-border"
             }`}
           >
             <AnimatePresence mode="wait">

@@ -24,7 +24,7 @@ const Navigation = () => {
   return (
     <nav 
       id="main-navigation"
-      className="glass-strong border-t border-white/10 shadow-elevation backdrop-blur-xl"
+      className="bg-card/80 backdrop-blur-xl border-t border-border shadow-card"
       style={{ 
         position: 'fixed',
         bottom: 0,
@@ -47,15 +47,15 @@ const Navigation = () => {
             className={({ isActive }) =>
               `flex flex-col items-center justify-center gap-1 min-w-[52px] w-[52px] h-[52px] rounded-xl transition-all duration-300 ${
                 isActive
-                  ? "text-primary scale-105 bg-primary/10 shadow-glow border border-primary/30"
-                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                  ? "text-primary scale-105 bg-primary/10 border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`
             }
           >
             {({ isActive }) => (
               <>
                 <item.icon
-                  className={`w-5 h-5 transition-all flex-shrink-0 ${isActive ? "drop-shadow-glow" : ""}`}
+                  className={`w-5 h-5 transition-all flex-shrink-0 ${isActive ? "drop-shadow-sm" : ""}`}
                 />
                 <span className="text-[10px] font-bold tracking-wide whitespace-nowrap">{item.label}</span>
               </>

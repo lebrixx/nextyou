@@ -217,7 +217,7 @@ const Quotes = () => {
 
       <main className="px-6 space-y-5 max-w-2xl mx-auto">
         {/* Info Banner */}
-        <section className="glass rounded-xl p-4 border border-white/10">
+        <section className="glass rounded-xl p-4 border border-primary/10">
           <div className="flex gap-3">
             <div className="shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -252,7 +252,7 @@ const Quotes = () => {
 
           <div className="glass rounded-xl overflow-hidden">
             {/* Enable/Disable */}
-            <div className="p-4 flex items-center justify-between border-b border-white/5">
+            <div className="p-4 flex items-center justify-between border-b border-border">
               <div>
                 <p className="font-semibold text-foreground text-sm">Activer les notifications</p>
                 <p className="text-xs text-muted-foreground">
@@ -267,7 +267,7 @@ const Quotes = () => {
             </div>
 
             {/* Quotes per day */}
-            <div className="p-4 border-b border-white/5">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-semibold text-foreground text-sm">Citations par jour</p>
                 <span className="text-lg font-bold text-primary">{settings.quotesPerDay}</span>
@@ -290,7 +290,7 @@ const Quotes = () => {
             </div>
 
             {/* Notification Mode */}
-            <div className="p-4 border-b border-white/5">
+            <div className="p-4 border-b border-border">
               <p className="font-semibold text-foreground text-sm mb-3">Mode d'envoi</p>
               <RadioGroup
                 value={settings.mode}
@@ -332,7 +332,7 @@ const Quotes = () => {
 
             {/* Time Range Settings */}
             {settings.mode === "range" && (
-              <div className="p-4 space-y-4 border-b border-white/5">
+              <div className="p-4 space-y-4 border-b border-border">
                 <p className="font-semibold text-foreground text-sm">Plage horaire</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -355,7 +355,7 @@ const Quotes = () => {
 
             {/* Specific Times Settings */}
             {settings.mode === "specific" && (
-              <div className="p-4 space-y-4 border-b border-white/5">
+              <div className="p-4 space-y-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-foreground text-sm">Heures précises</p>
                   {settings.specificTimes.length < 5 && (
@@ -396,7 +396,7 @@ const Quotes = () => {
 
             {/* Random Mode Info */}
             {settings.mode === "random" && (
-              <div className="p-4 border-b border-white/5">
+              <div className="p-4 border-b border-border">
                 <div className="glass rounded-lg p-3 bg-primary/5 border border-primary/20">
                   <p className="text-sm text-foreground">
                     💡 Les citations seront envoyées à des moments aléatoires entre 8h et 22h pour te surprendre positivement !
@@ -428,7 +428,7 @@ const Quotes = () => {
         </section>
 
         {/* Stats */}
-        <section className="glass rounded-xl p-4 border border-white/5">
+        <section className="glass rounded-xl p-4 border border-primary/10">
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
               <p className="text-3xl font-bold text-primary">{quotes.length}</p>

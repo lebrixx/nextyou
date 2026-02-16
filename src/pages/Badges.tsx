@@ -330,7 +330,7 @@ const Badges = () => {
             <p className="text-muted-foreground">Chargement...</p>
           </div>
         ) : !user ? (
-          <div className="glass rounded-2xl p-8 text-center space-y-4 border border-white/10">
+          <div className="glass rounded-2xl p-8 text-center space-y-4 border border-primary/10">
             <Trophy className="w-12 h-12 text-muted-foreground mx-auto" />
             <h3 className="text-lg font-bold text-foreground">Connecte-toi</h3>
             <p className="text-muted-foreground text-sm">
@@ -346,7 +346,7 @@ const Badges = () => {
         ) : (
           <>
             {/* Progress */}
-            <div className="glass rounded-2xl p-4 border border-white/10">
+            <div className="glass rounded-2xl p-4 border border-primary/10">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-foreground">Progression totale</p>
                 <p className="text-sm text-primary font-bold">{Math.round((unlockedCount / totalBadges) * 100)}%</p>

@@ -200,7 +200,7 @@ const Stats = () => {
             />
 
             {/* Quick Stats Grid */}
-            <div className="glass rounded-xl p-3 border border-white/10">
+            <div className="glass rounded-xl p-3 border border-primary/10">
               <SectionHeader 
                 title="Indicateurs clés" 
                 tooltip={{
@@ -279,7 +279,7 @@ const Stats = () => {
             </div>
 
             {/* Activity Status */}
-            <div className="glass rounded-xl p-3 border border-white/10">
+            <div className="glass rounded-xl p-3 border border-primary/10">
               <SectionHeader 
                 title="État de tes habitudes" 
                 tooltip={{
@@ -310,7 +310,7 @@ const Stats = () => {
 
             {/* Streak Chart */}
             {habits.length > 0 && (
-              <div className="glass rounded-xl p-3 border border-white/10">
+              <div className="glass rounded-xl p-3 border border-primary/10">
                 <SectionHeader 
                   title="Séries par habitude" 
                   tooltip={{
