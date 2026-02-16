@@ -132,13 +132,15 @@ All colors MUST be HSL.
 
 @layer utilities {
   .glass {
-    @apply bg-card/70 backdrop-blur-xl border border-primary/15;
-    box-shadow: var(--shadow-card);
+    @apply bg-card/70 backdrop-blur-xl;
+    border: 1px solid hsl(var(--primary) / 0.12);
+    box-shadow: var(--shadow-card), inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
   }
   
   .glass-strong {
-    @apply bg-card/85 backdrop-blur-2xl border border-primary/15;
-    box-shadow: var(--shadow-card);
+    @apply bg-card/85 backdrop-blur-2xl;
+    border: 1px solid hsl(var(--primary) / 0.15);
+    box-shadow: var(--shadow-card), inset 0 1px 0 0 hsl(0 0% 100% / 0.08);
   }
 
   .pb-safe {
